@@ -1,0 +1,26 @@
+# Project Configuration
+project:
+  name: "Rowing Pose Detection Analyser"
+  version: "1.0.0"
+
+# Paths Configuration
+paths:
+  data: "data"
+  src: "src"
+  config: "src/config"
+  logs: "logs"
+
+# Logging Configuration
+logging:
+  handlers:
+    - sink: stdout
+      format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | <level>{message}</level>"
+      level: INFO
+      colorize: true
+
+    - sink: "logs/RowingPoseDetectionAnalyser.log"
+      format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+      level: INFO
+      rotation: "10 MB"
+      retention: 3
+

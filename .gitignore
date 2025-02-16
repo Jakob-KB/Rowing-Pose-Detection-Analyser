@@ -1,0 +1,45 @@
+# Ignore Python Bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore Virtual Environments
+venv/*
+.env/
+.idea/*
+
+.idea/misc.xml
+
+
+# Ignore Data Files (but allow example files)
+data/frames/*
+!data/frames/.gitkeep
+
+data/videos/*
+!data/videos/.gitkeep
+
+data/labels/*
+!data/labels/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
+
+data/videos_metadata.csv
+
+
+# Ignore Logs and Outputs
+logs/*
+!logs/.gitkeep
+
+# Ignore Models and Results
+models/*
+reports/*
+!reports/figures
+!reports/figures/.gitkeep
+
+# Ignore Secret Configs
+src/config/secrets.yaml
+
+# Ignore System Files
+.DS_Store
+Thumbs.db
