@@ -1,0 +1,6 @@
+opencv-python~=4.11.0.86
+pandas~=2.2.3
+PyYAML~=6.0.2
+python-dotenv~=1.0.1
+loguru~=0.7.3
+tqdm~=4.67.1

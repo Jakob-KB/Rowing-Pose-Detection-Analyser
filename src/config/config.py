@@ -1,4 +1,4 @@
-import logging
+# src/config/config.py
 import sys
 import yaml
 import os
@@ -21,7 +21,7 @@ def load_config(config_path):
         with open(config_path, "r") as file:
             return yaml.safe_load(file)
     else:
-        print(f"⚠️ Warning: Config file {config_path} not found. Using defaults.")
+        print("Warning: Config not found.")
         return {}
 
 
@@ -40,6 +40,9 @@ CONFIG_DIR = get_path("config")
 REPORTS_DIR = get_path("reports")
 SRC_DIR = get_path("src")
 LOGS_DIR = get_path("logs")
+
+# Video Processing
+FRAME_INTERVAL = config.get("video_processing").get("frame_interval")
 
 # Ensure required directories exist
 for directory in [

@@ -24,7 +24,7 @@ data/labels/*
 data/processed/*
 !data/processed/.gitkeep
 
-data/videos_metadata.csv
+data/video_metadata.csv
 
 
 # Ignore Logs and Outputs

@@ -1,1 +1,2 @@
-from .config import *  # Import everything from config.py
+# src/config/__init__.py
+from .config import *
