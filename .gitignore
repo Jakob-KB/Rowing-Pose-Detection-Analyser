@@ -10,6 +10,7 @@ venv/*
 
 .idea/misc.xml
 
+RowingPoseModel-Jakob-2025-02-16/
 
 # Ignore Data Files (but allow example files)
 data/frames/*
