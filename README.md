@@ -1,5 +1,7 @@
 # Rowing-Pose-Detection-Analyser
 
+[Migrating to BlazePose implmentation with MediaPipe]
+
 The Pose Detection Algorithm is designed to take a minute-long video of someone using a rowing machine (otherwise known as an Erg) that can then be processed for numerous
 analytics on the specific user's technique such as their ratio of stroke to recovery, the angle their body opens up during the rowing stroke and much more. Being an open-source
 program anyone with the relevant skills may also tweak the code to allow any other analytics to be recorded. The following tools were used to develop the analyser:
