@@ -9,6 +9,7 @@ paths:
   src: "src"
   config: "src/config"
   logs: "logs"
+  reports: "reports"
 
 # Video Processing
 video_processing:
