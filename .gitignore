@@ -12,31 +12,22 @@ venv/*
 
 RowingPoseModel-Jakob-2025-02-16/
 
-# Ignore Data Files (but allow example files)
+# Ignore Data content but include project structure
 data/frames/*
 !data/frames/.gitkeep
 
 data/videos/*
 !data/videos/.gitkeep
 
-data/labels/*
-!data/labels/.gitkeep
-
-data/processed/*
-!data/processed/.gitkeep
-
-data/video_metadata.csv
-
-
-# Ignore Logs and Outputs
+# Other directories to keep clean
 logs/*
 !logs/.gitkeep
 
-# Ignore Models and Results
 models/*
+!models/.gitkeep
+
 reports/*
-!reports/figures
-!reports/figures/.gitkeep
+!reports/.gitkeep
 
 # Ignore Secret Configs
 src/config/secrets.yaml

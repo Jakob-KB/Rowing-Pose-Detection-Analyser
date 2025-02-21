@@ -1,4 +1,3 @@
-# src/config/config.py
 import sys
 import yaml
 import os
@@ -38,43 +37,29 @@ def get_path(key):
 DATA_DIR = get_path("data")
 CONFIG_DIR = get_path("config")
 REPORTS_DIR = get_path("reports")
-SRC_DIR = get_path("src")
 LOGS_DIR = get_path("logs")
 
-# Video Processing
-FRAME_INTERVAL = config.get("video_processing").get("frame_interval")
-
 # Ensure required directories exist
-for directory in [
-    DATA_DIR,
-    CONFIG_DIR,
-    REPORTS_DIR,
-    LOGS_DIR
-]:
+for directory in [DATA_DIR, CONFIG_DIR, REPORTS_DIR, LOGS_DIR]:
     os.makedirs(directory, exist_ok=True)
 
-# Configure logging
-logger.remove()  # Remove default Loguru handlers
-log_handlers = config.get("logging", {}).get("handlers", [])
+# Add main logger
+logger.remove()
+logger.add(
+    sys.stdout,
+    level="INFO",
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | {message}",
+    colorize=True,
+)
 
-for handler in log_handlers:
-    sink = handler.get("sink", "stdout")
-
-    if sink.lower() == "stdout":
-        sink = sys.stdout
-        logger.add(
-            sys.stdout,
-            level=handler.get("level", "INFO").upper(),
-            format=handler.get("format", "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"),
-            colorize=handler.get("colorize", False)
-        )
-    elif sink.lower() == "stderr":
-        sink = sys.stderr
-        logger.add(
-            sys.stderr,
-            level=handler.get("level", "INFO").upper(),
-            format=handler.get("format", "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"),
-            colorize=handler.get("colorize", False),
-            rotation=handler.get("rotation", None),
-            retention=handler.get("retention", None),
-        )
+# MediaPose Landmarks
+RIGHT_FACING_LANDMARKS = {
+    "EarR": 8,
+    "ShoulderR": 12,
+    "ElbowR": 14,
+    "HandR": 16,
+    "MidFingersR": 20,
+    "HipR": 24,
+    "KneeR": 26,
+    "AnkleR": 28
+}
