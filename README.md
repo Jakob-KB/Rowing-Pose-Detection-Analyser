@@ -18,8 +18,7 @@ Being open-source, it allows developers to modify the code and add new analytics
 - Pandas  
 - Matplotlib  
 
-## Sample Output  
-
+## Sample Pipeline
 ### Input: Rowing Video  
 The software processes videos taken from the **side (~3m from the Erg)**. Below is an example of a test video.  
 
@@ -42,11 +41,3 @@ These help identify inefficiencies and areas for improvement.
 - **Switching to BlazePose (MediaPipe)** for better pose estimation.  
 - **Adding a GUI** to simplify video uploads and analysis.  
 - **More metrics** like handle speed and slide position tracking.  
-
-## Contributing  
-
-Contributions are welcome. Open an issue or submit a pull request to improve the model or add features.  
-
-## License  
-
-This project is open-source under the **MIT License**.
