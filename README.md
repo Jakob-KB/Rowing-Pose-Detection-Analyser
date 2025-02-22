@@ -1,23 +1,52 @@
-# Rowing-Pose-Detection-Analyser
+# Rowing Pose Detection Analyzer  
 
-[Migrating to a BlazePose implementation with MediaPipe]
+**Migrating to a BlazePose implementation with MediaPipe**  
 
-The Pose Detection Algorithm is designed to take a minute-long video of someone using a rowing machine (otherwise known as an Erg) that can then be processed for numerous
-analytics on the specific user's technique such as their ratio of stroke to recovery, the angle their body opens up during the rowing stroke and much more. Being an open-source
-program anyone with the relevant skills may also tweak the code to allow any other analytics to be recorded. The following tools were used to develop the analyser:
+This tool processes a minute-long video of a person using a rowing machine (Ergometer) to analyze their technique. It provides key performance metrics:  
 
- - Python
- - TensorFlow 
- - Torch
- - Pandas
- - MatPlotLib
+- **Stroke-to-recovery ratio** – Time spent in the drive vs. recovery phase.  
+- **Body angle** – The rower’s back angle relative to the Erg, indicating power generation.  
+- **Strokes per minute (SPM)** – Measured to one decimal place.  
 
-Below you can see a screenshot of a user rowing (as you can see the video is taken from the side at ~3m back from the rowing machine) this specific video is of stock 
-rowing footage although the software has been tested and opterated on numerous users such as myself and my other teammates.
+Being open-source, it allows developers to modify the code and add new analytics.  
 
-![image](https://user-images.githubusercontent.com/50581493/142087383-226df071-a9a0-4e75-8716-1b0e55105d90.png)
+## Tools & Technologies  
 
+- Python  
+- TensorFlow  
+- PyTorch  
+- Pandas  
+- Matplotlib  
 
-Once the video has been processed the output looks like the follow, the word up the top indicates the part of the stroke the rower is in (drive or recovery) the ratio next is how long is spent in the drive compared to the time spent in the recovery, the spm is the 'strokes per minute' and is indicated to a tenth, finally the number located by the rowers hip is the current angle of her back to the erg and can help indicate if the rower is getting the maximum amount of power avalible.
+## Sample Output  
 
-![image](https://user-images.githubusercontent.com/50581493/142087072-3b37f476-4cfd-4176-8edf-3748d9c07eab.png)
+### Input: Rowing Video  
+The software processes videos taken from the **side (~3m from the Erg)**. Below is an example of a test video.  
+
+![Rowing Input](https://user-images.githubusercontent.com/50581493/142087383-226df071-a9a0-4e75-8716-1b0e55105d90.png)  
+
+### Processed Output  
+The software overlays performance metrics on the video:  
+
+- **Stroke phase** (Drive or Recovery)  
+- **Stroke-to-recovery ratio**  
+- **SPM (Strokes Per Minute)**  
+- **Back angle** relative to the Erg  
+
+These help identify inefficiencies and areas for improvement.  
+
+![Rowing Output](https://user-images.githubusercontent.com/50581493/142087072-3b37f476-4cfd-4176-8edf-3748d9c07eab.png)  
+
+## Future Improvements  
+
+- **Switching to BlazePose (MediaPipe)** for better pose estimation.  
+- **Adding a GUI** to simplify video uploads and analysis.  
+- **More metrics** like handle speed and slide position tracking.  
+
+## Contributing  
+
+Contributions are welcome. Open an issue or submit a pull request to improve the model or add features.  
+
+## License  
+
+This project is open-source under the **MIT License**.
