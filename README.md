@@ -16,7 +16,8 @@ Being open-source, it allows developers to modify the code and add new analytics
 - TensorFlow  
 - PyTorch  
 - Pandas  
-- Matplotlib  
+- Matplotlib
+- OpenCV
 
 ## Sample Pipeline
 ### Input: Rowing Video  
