@@ -155,5 +155,5 @@ if __name__ == "__main__":
     sample_input_path = DATA_DIR / "videos" / f"{title}.mp4"
     sample_output_path = REPORTS_DIR / f"{sample_input_path.stem}_report"
 
-    processor = PoseVideoProcessor(display=True)
+    processor = PoseVideoProcessor(display=False)
     processor.process_video(sample_input_path, sample_output_path)
