@@ -4,13 +4,11 @@ __pycache__/
 *.pyo
 
 # Ignore Virtual Environments
-venv/*
+.venv/*
 .env/
 .idea/*
 
 .idea/misc.xml
-
-RowingPoseModel-Jakob-2025-02-16/
 
 # Ignore Data content but include project structure
 data/frames/*
