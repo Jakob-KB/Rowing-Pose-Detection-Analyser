@@ -4,7 +4,7 @@ import time
 from src.config import DATA_DIR, cfg
 
 
-def validate_input_video(input_path: Path) -> bool:
+def validate_raw_video(input_path: Path) -> bool:
     """
     Validate video file format, duration, and FPS.
     """

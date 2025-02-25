@@ -2,6 +2,41 @@
 import cv2
 import numpy as np
 from typing import Dict, Tuple, List, Any
+from pathlib import Path
+
+from matplotlib.pyplot import connect
+
+from src import RowerAnalysis
+from src.config import logger
+
+def annotate_video(analysis: RowerAnalysis, overwrite: bool = False) -> None:
+
+    # Load landmark map and connections from analysis config
+    landmark_map: Dict[str, int] = analysis.config["landmark_map"]
+    landmark_connections: List[Tuple[(int, int)]] = analysis.config["landmark_connections"]
+
+    # Load raw video path, landmark data path and the annotated video path to output at
+    raw_video_path: Path = analysis.raw_video_path
+    annotated_video_path: Path = analysis.annotated_video_path
+    landmark_data_path: Path = analysis.landmark_data_path
+
+    # Check landmark map and connections are set
+    if landmark_map is None or landmark_connections is None:
+        raise ValueError("Landmark map and/or landmark connections are None. Check analysis config.")
+
+    # Check raw video path and landmark data exist
+    if raw_video_path.exists() is False:
+        raise FileNotFoundError(f"No raw video file for the analysis was found at {raw_video_path} to annotate.")
+    if landmark_data_path.exists() is False:
+        raise FileNotFoundError(f"No landmark data was found at {landmark_data_path}, required to annotate video.")
+
+    # Check if an annotated video already exists
+    if annotated_video_path.exists():
+        if overwrite is False:
+            raise FileExistsError("An annotated video already exists for this analysis, either overwrite or "
+                                  "delete it instead.")
+        if overwrite is True:
+            logger.info("An annotated video already exists for this analysis, overwriting it")
 
 class LandmarkDrawer:
     def __init__(self, landmarks_map: Dict[str, int], connections: List[Tuple[int, int]]) -> None:

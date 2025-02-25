@@ -1,34 +1,41 @@
+import shutil
 from pathlib import Path
 from typing import List
 import mimetypes
+import os
 
 from src.config import logger
+import inspect
 
-
-def validate_file(file_path: Path, create_if_missing: bool = False) -> bool:
+def validate_file_exists(file_path: Path, var_name: str = "File") -> None:
     """
-    Check if a file exists and is a regular file. Optionally, create the file
-    (and its parent directories) if it is missing.
+    Check if a file exists.
     """
-    if file_path.is_file():
-        logger.info(f"Successfully identified file: {file_path}")
-        return True
+    file_exists: bool = file_path.exists()
 
-    if create_if_missing:
-        try:
-            # Ensure the parent directory exists
-            if not file_path.parent.exists():
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                logger.info(f"Created parent directory: {file_path.parent}")
-            # Create the file (or update the modified time if it already exists)
-            file_path.touch(exist_ok=True)
-            logger.info(f"Successfully created file: {file_path}")
-            return True
-        except Exception as e:
-            logger.error(f"Error creating file {file_path}: {e}")
+    if file_exists is True:
+        logger.info(f"{var_name} was found at {file_path}")
+    elif file_exists is False:
+        raise FileNotFoundError(f"Unable to find {var_name} at {file_path}")
 
-    logger.error(f"Failed to identify file: {file_path}")
-    return False
+
+def validate_file_doesnt_exist(file_path: Path, var_name: str = "File", overwrite: bool = False) -> None:
+    """
+    Check file doesn't already exist, if it does delete it if directed.
+    """
+    file_exists: bool = file_path.exists()
+
+    if file_exists is True and overwrite is True:
+        logger.info(f"{var_name} already exists at {file_path}. Deleting so it can be overwritten.")
+        if file_path.is_file():
+            os.remove(file_path)
+        elif file_path.is_dir():
+            shutil.rmtree(file_path)
+    elif file_exists is True and overwrite is False:
+        raise FileExistsError(f"{var_name} already exists at {file_path}. Delete or overwrite it instead.")
+    elif file_exists is False:
+        logger.info(f"{var_name} validated as {file_path} is clear.")
+
 
 
 def validate_directory(directory: Path, create_if_missing: bool = False) -> bool:
@@ -63,3 +70,8 @@ def get_videos_from_path(videos_path: Path, video_type: str = "mp4") -> List[Pat
                 videos.append(file)
 
     return videos
+
+
+if __name__ == "__main__":
+    my_file_path = Path("test3.txt")
+    validate_file_exists(my_file_path)

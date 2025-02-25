@@ -4,15 +4,20 @@ import mediapipe as mp
 import yaml
 import os
 from pathlib import Path
-from src.config import RIGHT_LANDMARKS, logger
+from src.config import LANDMARK_MAP_R, logger
 from src import RowerAnalysis
 
 def detect_landmarks(analysis: RowerAnalysis, overwrite: bool = False) -> None:
     """
     Process raw video from report and save pose data per frame in YAML
     """
-    video_path: Path = analysis.raw_video
-    output_data_path: Path = analysis.landmark_data
+    raw_video_path: Path = analysis.raw_video_path
+    output_data_path: Path = analysis.landmark_data_path
+
+    # Check that the raw video path exists
+    if raw_video_path.exists() is False:
+        raise FileNotFoundError(f"No raw video file for the analysis was found at {raw_video_path} to "
+                                f"detect landmarks for.")
 
     # Check if landmark data already exists
     if output_data_path.exists():
@@ -24,9 +29,9 @@ def detect_landmarks(analysis: RowerAnalysis, overwrite: bool = False) -> None:
             logger.info("Found existing landmark data file, overwriting it.")
 
     mp_pose = mp.solutions.pose
-    cap = cv2.VideoCapture(str(video_path))
+    cap = cv2.VideoCapture(str(raw_video_path))
     if not cap.isOpened():
-        logger.error(f"Cannot open video {video_path}")
+        logger.error(f"Cannot open video {raw_video_path}")
         return
 
     landmarks_data = []
@@ -34,7 +39,7 @@ def detect_landmarks(analysis: RowerAnalysis, overwrite: bool = False) -> None:
 
     # Get mediapipe settings and landmark mapping from report config
     mediapipe_cfg = analysis.config.get("mediapipe", {})
-    landmarks_cfg = analysis.config.get("landmarks", RIGHT_LANDMARKS)
+    landmarks_cfg = analysis.config.get("landmarks", LANDMARK_MAP_R)
 
     with mp_pose.Pose(
         min_detection_confidence=mediapipe_cfg.get("min_detection_confidence", 0.5),

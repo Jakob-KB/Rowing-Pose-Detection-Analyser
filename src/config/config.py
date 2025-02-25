@@ -30,24 +30,34 @@ CONFIG_DIR = PROJECT_ROOT / cfg.dir.config
 ANALYSES_DIR = PROJECT_ROOT / cfg.dir.analyses
 
 # MediaPose Landmarks
-RIGHT_LANDMARKS = {
+LANDMARK_MAP_R = {
     "Ear": 8,
     "Shoulder": 12,
     "Elbow": 14,
-    "Hand": 16,
-    "Fingers": 20,
+    "Wrist": 16,
+    "Hand": 20,
     "Hip": 24,
     "Knee": 26,
     "Ankle": 28,
 }
 
-LEFT_LANDMARKS = {
+LANDMARK_MAP_L = {
     "Ear": 7,
     "Shoulder": 11,
     "Elbow": 13,
-    "Hand": 15,
-    "Fingers": 19,
+    "Wrist": 15,
+    "Hand": 19,
     "Hip": 23,
     "Knee": 25,
     "Ankle": 27,
 }
+
+LANDMARK_CONNECTIONS_R = [
+    (8, 12),   # Ear to shoulder
+    (12, 14),  # Shoulder to Elbow
+    (14, 16),  # Elbow to Wrist
+    (16, 20),  # Wrist to Hand
+    (12, 24),  # Shoulder to Hip
+    (24, 26),  # Hip to Knee
+    (26, 28)   # Knee to Ankle
+]
