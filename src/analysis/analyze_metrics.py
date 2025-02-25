@@ -1,16 +1,14 @@
+# src/analysis/analyze_metrics.py
 import cv2
 import json
 import math
 from pathlib import Path
-from src.config import REPORTS_DIR, logger
+from src.config import SESSIONS_DIR, logger
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 
 
-# ------------------------------------------------------------------------------
-# Helper Functions
-# ------------------------------------------------------------------------------
 def compute_angle(point1, point2, ref_vector=(-1, 0)):
     """
     Computes the angle (in degrees) between the vector from point2 to point1 and a reference vector.
@@ -25,19 +23,9 @@ def compute_angle(point1, point2, ref_vector=(-1, 0)):
     return math.degrees(math.acos(cos_angle))
 
 
-# ------------------------------------------------------------------------------
-# RowingStrokeAnalyzer Class
-# ------------------------------------------------------------------------------
 class RowingStrokeAnalyzer:
     """
-    Analyzes a labeled video along with corresponding JSON pose data.
-    It computes per-frame metrics including:
-      - HandR x-position and a basic stage ("drive" or "recovery")
-      - Knee and torso angles
-      - Slide position based on AnkleR and HipR positions
-      - Hand speed and its direction based on a symmetric frame window
-
-    Also supports overlaying these metrics on video frames for display.
+    Analyzes a labeled video along with corresponding JSON video_processing data.
     """
 
     def __init__(self, video_path: Path, json_path: Path, stroke_threshold: float = 0.01):
@@ -46,7 +34,7 @@ class RowingStrokeAnalyzer:
         self.stroke_threshold = stroke_threshold
 
         self.pose_data = self._load_pose_data()
-        self.analysis_results = []  # List of per-frame analysis data.
+        self.analysis_results = []  # List of per-frame session data.
         self.transitions = []       # List of (frame_index, transition_type)
         self.stroke_count = 0
 
@@ -59,18 +47,18 @@ class RowingStrokeAnalyzer:
         self.min_hip = None
 
     def _load_pose_data(self):
-        """Loads and sorts pose data from the JSON file."""
+        """Loads and sorts video_processing data from the JSON file."""
         try:
             with open(self.json_path, 'r') as f:
                 data = json.load(f)
             return sorted(data, key=lambda x: x.get("frame", 0))
         except Exception as e:
-            logger.error(f"Error loading pose data from {self.json_path}: {e}")
+            logger.error(f"Error loading video_processing data from {self.json_path}: {e}")
             return []
 
     def analyze_video(self):
         """
-        Processes the video frame-by-frame, computes metrics for each frame,
+        Processes the video frame-by-frame, computes analysis for each frame,
         and stores the results.
         """
         cap = cv2.VideoCapture(str(self.video_path))
@@ -107,12 +95,12 @@ class RowingStrokeAnalyzer:
             frame_index += 1
 
         cap.release()
-        logger.info("Basic analysis complete.")
+        logger.info("Basic session complete.")
         self._compute_slide_position(ankle_x_vals, hip_x_vals)
 
     def _process_frame(self, frame_index, current_pose):
         """
-        Processes an individual frame’s pose data and returns computed metrics.
+        Processes an individual frame’s video_processing data and returns computed analysis.
         """
         result = {
             "frame": frame_index,
@@ -228,7 +216,7 @@ class RowingStrokeAnalyzer:
         return torso_angle, hip_x
 
     def _compute_slide_position(self, ankle_x_vals, hip_x_vals):
-        """Computes the slide position and updates analysis results."""
+        """Computes the slide position and updates session results."""
         self.avg_ankle = sum(ankle_x_vals) / len(ankle_x_vals) if ankle_x_vals else None
         self.min_hip = min(hip_x_vals) if hip_x_vals else None
 
@@ -294,7 +282,7 @@ class RowingStrokeAnalyzer:
 
     def _draw_overlay(self, frame, result):
         """
-        Overlays analysis text on a frame.
+        Overlays session text on a frame.
         """
         font = cv2.FONT_HERSHEY_SIMPLEX
         y = 30
@@ -323,14 +311,14 @@ class RowingStrokeAnalyzer:
 
     def display_analysis(self, speed_window: int = 2, graph_window: int = 50):
         """
-        Overlays analysis data on video frames and displays them.
+        Overlays session data on video frames and displays them.
         Also opens a matplotlib window to plot hand speed (from calculate_hand_speed)
         in real time. The plot rotates to show only the last 'graph_window' frames.
 
         Press 'q' to quit.
         """
         if not self.analysis_results:
-            logger.error("No analysis results available. Run analyze_video() first.")
+            logger.error("No session results available. Run analyze_video() first.")
             return
 
         cap = cv2.VideoCapture(str(self.video_path))
@@ -390,7 +378,7 @@ class RowingStrokeAnalyzer:
 # ------------------------------------------------------------------------------
 def main():
     title = "athlete_1"
-    base_dir = REPORTS_DIR / f"{title}_report"
+    base_dir = SESSIONS_DIR / f"{title}_report"
     video_path = base_dir / f"{title}_labeled_video.mp4"
     json_path = base_dir / f"{title}_pose_data.json"
     analyzed_video_path = base_dir / f"{title}_analyzed_video.mp4"

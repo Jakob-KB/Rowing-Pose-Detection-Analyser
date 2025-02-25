@@ -1,9 +1,11 @@
+# src/analysis/analyze_metrics_simple.py
 import cv2
 import json
 import math
 from pathlib import Path
-from config import REPORTS_DIR  # Assumes REPORTS_DIR is defined in your config module
 import pandas as pd
+
+from src import SESSIONS_DIR
 
 
 # ---------------------------
@@ -11,7 +13,7 @@ import pandas as pd
 # ---------------------------
 def load_pose_dataframe(json_path):
     """
-    Loads the JSON pose data into a pandas DataFrame, sorts by frame, and
+    Loads the JSON video_processing data into a pandas DataFrame, sorts by frame, and
     extracts the relevant landmark x-positions.
     """
     try:
@@ -24,7 +26,7 @@ def load_pose_dataframe(json_path):
         df["hip_x"] = df["landmarks"].apply(lambda lm: lm.get("HipR", {}).get("x") if isinstance(lm, dict) else None)
         return df
     except Exception as e:
-        print(f"Error loading pose data from {json_path}: {e}")
+        print(f"Error loading video_processing data from {json_path}: {e}")
         return pd.DataFrame()
 
 
@@ -75,11 +77,11 @@ def compute_slide_position(avg_ankle, min_hip, current_hip):
 # ---------------------------
 def main():
     title = "athlete_1"
-    base_dir = REPORTS_DIR / f"{title}_report"
+    base_dir = SESSIONS_DIR / f"{title}_report"
     video_path = base_dir / f"{title}_labeled_video.mp4"
     json_path = base_dir / f"{title}_pose_data.json"
 
-    # Load pose data into DataFrame.
+    # Load video_processing data into DataFrame.
     df = load_pose_dataframe(json_path)
     if df.empty:
         return
@@ -94,7 +96,7 @@ def main():
     hand_speeds = []
     directions = []
     slide_positions = []
-    print("Pre-calculating metrics...")
+    print("Pre-calculating analysis...")
     for i in range(total_frames):
         avg_speed, net_direction = calculate_hand_speed_from_df(df, i, window=2)
         hand_speeds.append(avg_speed)

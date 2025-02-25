@@ -1,3 +1,4 @@
+# src/utils/file_handler.py
 import shutil
 from pathlib import Path
 from typing import List
@@ -5,7 +6,6 @@ import mimetypes
 import os
 
 from src.config import logger
-import inspect
 
 def validate_file_exists(file_path: Path, var_name: str = "File") -> None:
     """
@@ -26,7 +26,7 @@ def validate_file_doesnt_exist(file_path: Path, var_name: str = "File", overwrit
     file_exists: bool = file_path.exists()
 
     if file_exists is True and overwrite is True:
-        logger.info(f"{var_name} already exists at {file_path}. Deleting so it can be overwritten.")
+        logger.warning(f"{var_name} already exists at {file_path}. Deleting so it can be overwritten.")
         if file_path.is_file():
             os.remove(file_path)
         elif file_path.is_dir():
@@ -34,7 +34,7 @@ def validate_file_doesnt_exist(file_path: Path, var_name: str = "File", overwrit
     elif file_exists is True and overwrite is False:
         raise FileExistsError(f"{var_name} already exists at {file_path}. Delete or overwrite it instead.")
     elif file_exists is False:
-        logger.info(f"{var_name} validated as {file_path} is clear.")
+        logger.info(f"{var_name} clear as {file_path} doesn't exist.")
 
 
 

@@ -28,7 +28,7 @@ TEMPORAL_WINDOW = 2
 EXTEND_DOWN_PIXELS = 20  # extend downward (at the bottom)
 EXTEND_UP_PIXELS = 10    # extend upward (at the top)
 
-# Load pose data
+# Load video_processing data
 with open(POSE_DATA_PATH, "r") as file:
     pose_data = json.load(file)
 
@@ -141,7 +141,7 @@ for frame_index in tqdm(range(1, total_frames), desc="Processing Frames"):
         prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
         # Compute motion-based edges.
         _, edges = compute_motion_and_edges(prev_gray, curr_gray)
-        # Retrieve pose landmarks.
+        # Retrieve video_processing landmarks.
         shoulder = get_landmark_position(frame_index, SHOULDER_NAME)
         hip = get_landmark_position(frame_index, HIP_NAME)
         landmarks = None

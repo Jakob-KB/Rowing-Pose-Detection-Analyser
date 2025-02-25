@@ -27,29 +27,18 @@ logger.add(
 # Paths from config
 DATA_DIR = PROJECT_ROOT / cfg.dir.data
 CONFIG_DIR = PROJECT_ROOT / cfg.dir.config
-ANALYSES_DIR = PROJECT_ROOT / cfg.dir.analyses
+SESSIONS_DIR = PROJECT_ROOT / cfg.dir.sessions
 
 # MediaPose Landmarks
 LANDMARK_MAP_R = {
-    "Ear": 8,
-    "Shoulder": 12,
-    "Elbow": 14,
-    "Wrist": 16,
-    "Hand": 20,
-    "Hip": 24,
-    "Knee": 26,
-    "Ankle": 28,
-}
-
-LANDMARK_MAP_L = {
-    "Ear": 7,
-    "Shoulder": 11,
-    "Elbow": 13,
-    "Wrist": 15,
-    "Hand": 19,
-    "Hip": 23,
-    "Knee": 25,
-    "Ankle": 27,
+    "ear": 8,
+    "shoulder": 12,
+    "elbow": 14,
+    "wrist": 16,
+    "hand": 20,
+    "hip": 24,
+    "knee": 26,
+    "ankle": 28,
 }
 
 LANDMARK_CONNECTIONS_R = [
@@ -61,3 +50,38 @@ LANDMARK_CONNECTIONS_R = [
     (24, 26),  # Hip to Knee
     (26, 28)   # Knee to Ankle
 ]
+
+# Annotated video config
+ANNOTATION_CFG = {
+    "landmark_point_colour": (255, 0, 0),
+    "landmark_point_radius": 9,
+    "skeleton_bone_colour": (0, 255, 0),
+    "skeleton_bone_width": 2,
+    "skeleton_opacity": 0.5,
+    "landmark_connections": [
+        (8, 12),   # Ear to shoulder
+        (12, 14),  # Shoulder to Elbow
+        (14, 16),  # Elbow to Wrist
+        (16, 20),  # Wrist to Hand
+        (12, 24),  # Shoulder to Hip
+        (24, 26),  # Hip to Knee
+        (26, 28)   # Knee to Ankle
+    ]
+}
+
+MEDIAPIPE_CFG = {
+    "model_complexity": 2,
+    "smooth_landmarks": True,
+    "min_detection_confidence": 0.5,
+    "min_tracking_confidence": 0.5,
+    "landmark_map": {
+        "ear": 8,
+        "shoulder": 12,
+        "elbow": 14,
+        "wrist": 16,
+        "hand": 20,
+        "hip": 24,
+        "knee": 26,
+        "ankle": 28,
+    }
+}

@@ -8,7 +8,7 @@ dir:
   data: "data"
   src: "src"
   config: "src/config"
-  analyses: "analyses"
+  sessions: "sessions"
 
 # Video Input Criteria
 video:
@@ -25,3 +25,37 @@ logging:
       level: INFO
       colorize: true
 
+# Landmarks Configuration
+landmarks:
+  mapping:
+    ear: 8
+    shoulder: 12
+    elbow: 14
+    wrist: 16
+    hand: 20
+    hip: 24
+    knee: 26
+    ankle: 28
+  connections:
+    - [8, 12]   # Ear to Shoulder
+    - [12, 14]  # Shoulder to Elbow
+    - [14, 16]  # Elbow to Wrist
+    - [16, 20]  # Wrist to Hand
+    - [12, 24]  # Shoulder to Hip
+    - [24, 26]  # Hip to Knee
+    - [26, 28]  # Knee to Ankle
+
+# Annotation Configuration
+annotation:
+  landmark_point_colour: [139, 61, 72]
+  landmark_point_radius: 5
+  skeleton_bone_colour: [250, 144, 30]
+  skeleton_bone_thickness: 4
+  opacity: 0.8
+
+# Mediapipe Configuration
+mediapipe:
+  model_complexity: 1
+  smooth_landmarks: true
+  min_detection_confidence: 0.5
+  min_tracking_confidence: 0.5

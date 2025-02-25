@@ -3,7 +3,7 @@ import json
 import numpy as np
 import math
 
-# Load video and pose data
+# Load video and video_processing data
 VIDEO_PATH = "../Rowing-Pose-Detection-Analyser/data/videos/athlete_1.mp4"
 POSE_DATA_PATH = "analyses/athlete_1_report/athlete_1_pose_data.json"
 
@@ -15,7 +15,7 @@ cap = cv2.VideoCapture(VIDEO_PATH)
 if not cap.isOpened():
     raise ValueError("Error: Could not open video. Check file path.")
 
-# Load pose data from JSON
+# Load video_processing data from JSON
 with open(POSE_DATA_PATH, "r") as file:
     pose_data = json.load(file)
 
