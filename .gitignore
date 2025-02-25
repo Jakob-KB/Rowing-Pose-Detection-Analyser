@@ -18,14 +18,8 @@ data/videos/*
 !data/videos/.gitkeep
 
 # Other directories to keep clean
-logs/*
-!logs/.gitkeep
-
-models/*
-!models/.gitkeep
-
-analyses/*
-!analyses/.gitkeep
+sessions/*
+!sessions/.gitkeep
 
 # Ignore Secret Configs
 src/config/secrets.yaml
