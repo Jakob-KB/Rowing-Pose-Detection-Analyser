@@ -2,7 +2,7 @@ import cv2
 import json
 import math
 from pathlib import Path
-from config import REPORTS_DIR, logger
+from src.config import REPORTS_DIR, logger
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -398,7 +398,7 @@ def main():
     analyzer = RowingStrokeAnalyzer(video_path, json_path, stroke_threshold=0.001)
     analyzer.analyze_video()
     analyzer.mark_transition_stages(transition_window=6)
-    # analyzer.save_analysis_video(analyzed_video_path)  # Optional: save annotated video.
+    # analyzer.save_analysis_video(analyzed_video_path)
     analyzer.display_analysis(speed_window=4, graph_window=200)
 
 

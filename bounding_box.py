@@ -5,7 +5,7 @@ import math
 
 # Load video and pose data
 VIDEO_PATH = "../Rowing-Pose-Detection-Analyser/data/videos/athlete_1.mp4"
-POSE_DATA_PATH = "reports/athlete_1_report/athlete_1_pose_data.json"
+POSE_DATA_PATH = "analyses/athlete_1_report/athlete_1_pose_data.json"
 
 FRAME_IDX = 60
 SHOULDER_NAME, HIP_NAME = "ShoulderR", "HipR"

@@ -1,19 +1,41 @@
 import cv2
 from pathlib import Path
 import time
+from src.config import DATA_DIR, cfg
 
-from src.config import DATA_DIR
+
+def validate_input_video(input_path: Path) -> bool:
+    """
+    Validate video file format, duration, and FPS.
+    """
+    if input_path.suffix.lower() != cfg.video.format:
+        raise ValueError(f"Video must be {cfg.video.format}, got {input_path.suffix.lower()} instead.")
+
+    # Open video
+    cap = cv2.VideoCapture(str(input_path))
+    if not cap.isOpened():
+        raise ValueError(f"Failed to open video at path: {str(input_path)}")
+
+    video_fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    duration = frame_count / video_fps if video_fps > 0 else 0
+    cap.release()
+
+    # Validate duration
+    if duration < cfg.video.min_duration or duration > cfg.video.max_duration:
+        raise ValueError(f"Duration {duration:.2f} out of range [{cfg.video.min_duration}, {cfg.video.max_duration}]")
+
+    # Validate FPS (with small tolerance)
+    if abs(video_fps - cfg.video.fps) > 0.1:
+        raise ValueError(f"FPS {video_fps:.2f} does not match expected {cfg.video.fps}")
+
+    return True
 
 
 def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> None:
     """
     Mirrors a video horizontally and saves the output. This function blocks
     until the output file is created and has a nonzero size or until the timeout is reached.
-
-    Args:
-        input_path (Path): Path to the input video file.
-        output_path (Path): Path where the mirrored video will be saved.
-        timeout (float): Maximum number of seconds to wait for the file to be written.
     """
     # Open the input video file.
     cap = cv2.VideoCapture(str(input_path))
@@ -46,6 +68,12 @@ def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> N
     start_time = time.time()
     while (not output_path.exists() or output_path.stat().st_size == 0) and (time.time() - start_time < timeout):
         time.sleep(0.1)
+
+
+def rower_facing_right(input_path: Path, sample_frames: int = 8) -> bool:
+    # Implement frame detection on the hip and ankles to tell if the rower
+    # on the erg is facing left or right (not yet implemented)
+    return True
 
 
 if __name__ == "__main__":

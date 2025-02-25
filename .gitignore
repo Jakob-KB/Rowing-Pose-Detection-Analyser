@@ -24,8 +24,8 @@ logs/*
 models/*
 !models/.gitkeep
 
-reports/*
-!reports/.gitkeep
+analyses/*
+!analyses/.gitkeep
 
 # Ignore Secret Configs
 src/config/secrets.yaml

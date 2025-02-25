@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration (replace with your paths and parameters)
 VIDEO_PATH = "../Rowing-Pose-Detection-Analyser/data/videos/athlete_3.mp4"
-POSE_DATA_PATH = "reports/athlete_3_report/athlete_3_pose_data.json"
+POSE_DATA_PATH = "analyses/athlete_3_report/athlete_3_pose_data.json"
 SHOULDER_NAME, HIP_NAME = "ShoulderR", "HipR"
 PERP_DIST = 150
 ENABLE_MASKING = True

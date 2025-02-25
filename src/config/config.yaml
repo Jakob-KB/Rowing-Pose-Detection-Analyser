@@ -3,17 +3,19 @@ project:
   name: "Rowing Pose Detection Analyser"
   version: "1.0.0"
 
-# Paths Configuration
-paths:
+# Directories Configuration
+dir:
   data: "data"
   src: "src"
   config: "src/config"
-  logs: "logs"
-  reports: "reports"
+  analyses: "analyses"
 
-# Video Processing
-video_processing:
-  frame_interval: 8
+# Video Input Criteria
+video:
+  format: ".mp4"
+  min_duration: 5
+  max_duration: 300
+  fps: 30
 
 # Logging Configuration
 logging:
@@ -22,10 +24,4 @@ logging:
       format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | <level>{message}</level>"
       level: INFO
       colorize: true
-
-    - sink: "logs/RowingPoseDetectionAnalyser.log"
-      format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
-      level: INFO
-      rotation: "10 MB"
-      retention: 3
 
