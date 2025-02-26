@@ -21,6 +21,9 @@ data/videos/*
 sessions/*
 !sessions/.gitkeep
 
+temp/*
+!temp/.gitkeep
+
 # Ignore Secret Configs
 src/config/secrets.yaml
 
