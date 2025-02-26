@@ -52,7 +52,6 @@ def validate_raw_video(input_path: Path) -> (bool, str):
     logger.info(f"Video was successfully validated.")
     return True, ""
 
-
 def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> None:
     """
     Mirrors a video horizontally and saves the output. This function blocks
@@ -89,23 +88,6 @@ def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> N
     start_time = time.time()
     while (not output_path.exists() or output_path.stat().st_size == 0) and (time.time() - start_time < timeout):
         time.sleep(0.1)
-
-
-def rower_facing_right(input_path: Path, sample_frames: int = 8) -> bool:
-    # Implement frame detection on the hip and ankles to tell if the rower
-    # on the erg is facing left or right (not yet implemented)
-    return True
-
-
-def open_video(input_path: Path) -> cv2.VideoCapture:
-    # Attempt to open video
-    cap = cv2.VideoCapture(str(input_path))
-    if not cap.isOpened():
-        msg = f"Failed to open video."
-        logger.warning(f"{msg} At path: {str(input_path)}")
-        raise Exception(f"{msg} At path: {str(input_path)}")
-    return cap
-
 
 if __name__ == "__main__":
     sample_input_path = DATA_DIR / "videos" / "athlete_1.mp4"

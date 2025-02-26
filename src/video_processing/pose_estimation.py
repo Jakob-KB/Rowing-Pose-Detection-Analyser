@@ -4,7 +4,6 @@ import mediapipe as mp
 import yaml
 
 from src.config import logger, cfg
-from src.utils.file_handler import check_path_is_clear, check_path_exists
 from src import Session
 
 
@@ -13,33 +12,27 @@ class PoseEstimator:
         # Set current session
         self.session = session
 
-        # Check files and paths from session are valid
-        valid, msg = self.validate_paths_and_files()
-        if not valid:
-            logger.error(msg)
-            raise
-
     def process_landmarks(self):
         """
         Process raw video from report and save video_processing data per frame in YAML
         """
         # Setup mediapipe pose estimation
-        mp_pose = mp.solutions.pose
+        mp_pose = mp.solutions.pose.Pose(
+            min_detection_confidence=cfg.mediapipe.min_detection_confidence,
+            min_tracking_confidence=cfg.mediapipe.min_tracking_confidence,
+            model_complexity=cfg.mediapipe.model_complexity,
+            smooth_landmarks=cfg.mediapipe.smooth_landmarks
+        )
         cap = cv2.VideoCapture(str(self.session.raw_video_path))
         if not cap.isOpened():
             logger.error(f"Cannot open video {self.session.raw_video_path}")
-            return
+            raise
 
         landmarks_data = []
         frame_num = 0
 
         # Get mediapipe settings and landmark mapping from cfg
-        with mp_pose.Pose(
-                min_detection_confidence=cfg.mediapipe.min_detection_confidence,
-                min_tracking_confidence=cfg.mediapipe.min_tracking_confidence,
-                model_complexity=cfg.mediapipe.model_complexity,
-                smooth_landmarks=cfg.mediapipe.smooth_landmarks
-        ) as pose:
+        with mp_pose as pose:
             while True:
                 ret, frame = cap.read()
                 if not ret:
@@ -67,19 +60,6 @@ class PoseEstimator:
         except Exception as e:
             logger.error(f"Error saving Landmark Data: {e}")
             raise
-
-    def validate_paths_and_files(self) -> (bool, str):
-        valid, msg = check_path_exists(self.session.raw_video_path, "Raw Video")
-        if not valid:
-            return False, msg
-
-        valid, msg = check_path_is_clear(self.session.landmark_data_path, "Landmark Data",
-                                         overwrite=self.session.overwrite)
-        if not valid:
-            return False, msg
-
-        return True, ""
-
 
 
 if __name__ == "__main__":

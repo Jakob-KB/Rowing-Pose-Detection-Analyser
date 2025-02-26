@@ -57,7 +57,7 @@ annotation:
 
 # Mediapipe Configuration
 mediapipe:
-  model_complexity: 1
+  model_complexity: 0
   smooth_landmarks: true
   min_detection_confidence: 0.5
   min_tracking_confidence: 0.5

@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 # Load video and video_processing data
-VIDEO_PATH = "../Rowing-Pose-Detection-Analyser/data/videos/athlete_1.mp4"
+VIDEO_PATH = "../../data/videos/athlete_1.mp4"
 POSE_DATA_PATH = "analyses/athlete_1_report/athlete_1_pose_data.json"
 
 FRAME_IDX = 60
