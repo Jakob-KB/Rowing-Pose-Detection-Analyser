@@ -3,21 +3,28 @@ from pathlib import Path
 import json
 from datetime import datetime
 import shutil
-from typing import Dict, List, Tuple
+from typing import Dict
 import os
+import cv2
 
-from src.config import SESSIONS_DIR, logger, MEDIAPIPE_CFG, ANNOTATION_CFG, cfg
+from src.config import SESSIONS_DIR, logger
 from src.utils.video_handler import validate_raw_video
-from src.utils.file_handler import validate_file_doesnt_exist
+from src.utils.file_handler import check_path_is_clear
 
 class Session:
-    def __init__(self, session_title: str, original_video_path: Path, overwrite: bool = False) -> None:
+    def __init__(self, session_title: str, temp_video_path: Path, overwrite: bool = False) -> None:
         # session identifiers and root path
         self.title = session_title
         self.session_path: Path = SESSIONS_DIR / self.title
+        self.overwrite = overwrite
+
+        # Check that a session folder associated with the title doesn't already exist
+        valid, msg = self.validate_paths_and_files()
+        if not valid:
+            logger.error(msg)
+            raise
 
         # Video paths
-        self.original_video_path = original_video_path
         self.raw_video_path: Path = self.session_path / f"raw.mp4"
         self.annotated_video_path: Path = self.session_path / f"annotated.mp4"
 
@@ -30,7 +37,8 @@ class Session:
         self.config: Dict = {}
 
         # Init methods
-        self._setup_session_directory(overwrite)
+        self._setup_session_directory()
+        self._clone_temp_video_to_session_directory(temp_video_path)
         self._init_config()
 
     def _init_config(self) -> None:
@@ -39,8 +47,8 @@ class Session:
         self.config = {
             "session_title": self.title,
             "creation_date": datetime.now().isoformat(),
+            "overwrite": self.overwrite,
             "paths": {
-                "original_video_path": str(self.original_video_path.resolve()),
                 "raw_video_path": str(self.raw_video_path.resolve()),
                 "annotated_video_path": str(self.annotated_video_path.resolve()),
                 "landmark_data_path": str(self.landmark_data_path.resolve()),
@@ -49,10 +57,7 @@ class Session:
         }
         self.save_config()
 
-    def _setup_session_directory(self, overwrite: bool) -> None:
-        # Check that a directory for that session doesn't already exist
-        validate_file_doesnt_exist(self.session_path, "Session", overwrite=overwrite)
-
+    def _setup_session_directory(self) -> None:
         # Attempt to create a session directory
         try:
             self.session_path.mkdir(parents=True, exist_ok=True)
@@ -60,17 +65,33 @@ class Session:
             logger.error(f"Failed to create session directory {self.session_path}: {e}")
             raise
 
+    def _clone_temp_video_to_session_directory(self, temp_video_path: Path):
         # Check that the raw input video meets requirements
-        if validate_raw_video(self.original_video_path):
-            logger.info("Selected input video meets requirements.")
+        valid, error_msg = validate_raw_video(temp_video_path)
+        if not valid:
+            # Do something to now create the instance, but do not hold the program
+            print("video not valid")
+            ...
 
         # Attempt to clone the video to the session directory
         try:
-            shutil.copy2(self.original_video_path, self.raw_video_path)
+            shutil.copy2(temp_video_path, self.raw_video_path)
             logger.info(f"Raw video copied to {self.raw_video_path}")
         except Exception as e:
             logger.error(f"Error while cloning raw video: {e}")
             raise
+
+        # Check that the raw video was saved to the session directory successfully (try to open it)
+        # Attempt to open video
+        cap = cv2.VideoCapture(str(self.raw_video_path))
+        if not cap.isOpened():
+            msg = f"Failed to open video."
+            logger.warning(f"{msg} At path: {self.raw_video_path}")
+            return False, msg
+        cap.release()
+
+        # Now that the raw video is confirmed to be good, delete the temp video
+        os.remove(temp_video_path)
 
     def save_config(self) -> None:
         try:
@@ -80,6 +101,12 @@ class Session:
         except Exception as e:
             logger.error(f"Failed to save config to {self.config_path}: {e}")
             raise
+
+    def validate_paths_and_files(self) -> (bool, str):
+        # Check that a directory for that session doesn't already exist
+        valid, msg = check_path_is_clear(self.session_path, "Session", overwrite=self.overwrite)
+        if not valid:
+            return valid, msg
 
     @classmethod
     def load_existing_session(cls, session_path: Path):
@@ -106,9 +133,9 @@ class Session:
             if instance.title is None:
                 raise ValueError("Config missing 'session_title'")
             instance.session_path = session_path
+            instance.overwrite = config.get("overwrite")
 
             # Video paths
-            instance.original_video_path = Path(config.get("original_video_path", ""))
             instance.raw_video_path = session_path / f"raw.mp4"
             instance.annotated_video_path = session_path / f"annotated.mp4"
 
@@ -121,7 +148,6 @@ class Session:
             instance.config = config
             instance.landmark_map = config.get("landmark_map")
             instance.landmark_connections = config.get("landmark_connections")
-            print(instance.landmark_connections)
         except Exception as e:
             logger.error(f"Error initializing RowerSession from {session_path}: {e}")
             raise

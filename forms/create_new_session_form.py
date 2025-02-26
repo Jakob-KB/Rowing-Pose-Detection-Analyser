@@ -2,11 +2,13 @@ import streamlit as st
 import re
 from pathlib import Path
 import shutil
-from src.config import SESSIONS_DIR, logger, TEMP_DIR
+from src.config import SESSIONS_DIR, DATA_DIR, logger, TEMP_DIR
+from src.session import Session
+from src.video_processing.annotate_video import AnnotateVideo
+from src.video_processing.pose_estimation import PoseEstimator  # assuming this is your pose detector
+from src.utils.streamlit_handler import validate_session_title  # your validation function
 import uuid
-from pathlib import Path
-import shutil
-from src.utils import validate_session_title, validate_raw_video
+import time
 
 
 def save_temp_video_filepath(uploaded_file) -> Path:
@@ -32,26 +34,45 @@ def save_temp_video_filepath(uploaded_file) -> Path:
     return temp_video_path
 
 
+
 def create_new_session_form():
     st.header("Create New Session")
 
+    # Get inputs from the user
+    session_title = st.text_input("Session Title", key="session_title_input")
+    overwrite_existing_session = st.toggle("Overwrite Existing Session", key="overwrite_toggle")
+    original_video_file = st.file_uploader("Video File", key="original_video", type="mp4")
 
-    # Group the inputs in a container (not a form)
-    with st.container():
-        session_title = st.text_input("Session Title", key="session_title_input")
-        overwrite_existing_session = st.toggle("Overwrite Existing Session", key="overwrite_toggle")
-        original_video_file = st.file_uploader("Video File", key="original_video", type="mp4")
+    if st.button("Create Session", key="create_session_btn"):
 
-        # The submit button is separate, so hitting Enter in the text input doesn't trigger it.
-        if st.button("Create Session", key="create_session_btn"):
+        temp_video_path = save_temp_video_filepath(original_video_file)
 
-            # Save video to temp filepath and check video is valid
-            temp_video_path = save_temp_video_filepath(original_video_file)
-            valid, error_msg = validate_raw_video(temp_video_path)
-            if not valid:
-                st.error(error_msg)
+        valid, error_msg = validate_session_title(session_title, overwrite=overwrite_existing_session)
+        if not valid:
+            st.error(error_msg)
+        elif original_video_file is None:
+            st.error("Please upload a video file.")
+        else:
+            with st.spinner("Processing session..."):
+                try:
+                    # Create a new session.
+                    sample_session = Session(session_title, temp_video_path, overwrite=overwrite_existing_session)
 
-            # Check session title is valid
-            valid, error_msg = validate_session_title(session_title, overwrite=overwrite_existing_session)
-            if not valid:
-                st.error(error_msg)
+                    # Process landmarks
+                    pose_estimator = PoseEstimator(sample_session, overwrite=True)
+                    pose_estimator.process_landmarks()
+
+                    # Annotate the video.
+                    annotator = AnnotateVideo(sample_session, overwrite=True)
+                    annotator.annotate_video()
+
+                    # Save the session in session state so the results page can access it.
+                    st.session_state.session = sample_session
+                except Exception as e:
+                    st.error(f"Error creating session: {e}")
+                    logger.error(f"Error creating session: {e}")
+                    return
+            st.success("Session processing complete!")
+            # Navigate to the results page.
+            st.session_state.page = "results"
+            st.rerun()

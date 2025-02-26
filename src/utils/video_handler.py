@@ -97,6 +97,16 @@ def rower_facing_right(input_path: Path, sample_frames: int = 8) -> bool:
     return True
 
 
+def open_video(input_path: Path) -> cv2.VideoCapture:
+    # Attempt to open video
+    cap = cv2.VideoCapture(str(input_path))
+    if not cap.isOpened():
+        msg = f"Failed to open video."
+        logger.warning(f"{msg} At path: {str(input_path)}")
+        raise Exception(f"{msg} At path: {str(input_path)}")
+    return cap
+
+
 if __name__ == "__main__":
     sample_input_path = DATA_DIR / "videos" / "athlete_1.mp4"
     sample_output_path = DATA_DIR / "videos" / "mirrored_athlete_1.mp4"

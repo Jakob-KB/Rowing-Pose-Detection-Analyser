@@ -12,7 +12,7 @@ dir:
 
 # Video Input Criteria
 video:
-  format: ".mp4"
+  format: "mp4"
   min_duration: 5
   max_duration: 300
   fps: 30

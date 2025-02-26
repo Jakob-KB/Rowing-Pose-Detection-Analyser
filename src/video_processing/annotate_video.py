@@ -6,25 +6,22 @@ from typing import Dict, Tuple, Any, List
 
 from src import Session
 from src.config import logger, cfg
-from src.utils.file_handler import validate_file_exists, validate_file_doesnt_exist
+from src.utils.file_handler import check_path_exists, check_path_is_clear
 
 
 class AnnotateVideo:
     def __init__(self, _session: Session, overwrite: bool = False) -> None:
         # Store the session object
         self.current_session = _session
+        self.overwrite = overwrite
 
-        # Check landmark map and connections are provided in the cfg
-        if cfg.landmarks.mapping is None or cfg.landmarks.connections is None:
-            raise ValueError("Landmark map and/or landmark connections are missing in the session config.")
+        # Check that all associated paths and files of the current session are valid
+        valid, msg = self.validate_paths_and_files()
+        if not valid:
+            logger.error(msg)
+            raise
 
-        # Validate that the raw video and landmark data exist;
-        # ensure the annotated video file does not exist unless overwrite is True.
-        validate_file_exists(self.current_session.raw_video_path, "Raw Video")
-        validate_file_exists(self.current_session.landmark_data_path, "Landmark Data")
-        validate_file_doesnt_exist(self.current_session.annotated_video_path, "Annotated Video", overwrite=overwrite)
-
-        # dotted line variables
+        # Dotted line variables
         self.dotted_line_landmarks: List[str] = ["ankle", "hip"]
         self.dotted_line_extension: int = 96
         self.dotted_line_colour: Tuple[int, int, int] = (255, 255, 255)
@@ -32,8 +29,15 @@ class AnnotateVideo:
         self.dotted_line_factor: int = 8
 
     @staticmethod
-    def _draw_line(image: np.ndarray, pose_landmarks: Any, idx1: int, idx2: int, width: int, height: int,
-                   line_colour: Tuple[int, int, int], line_thickness: int) -> None:
+    def _draw_line(image: np.ndarray,
+                   pose_landmarks: Any,
+                   idx1: int,
+                   idx2: int,
+                   width: int,
+                   height: int,
+                   line_colour: Tuple[int, int, int],
+                   line_thickness: int
+                   ) -> None:
         """Draw a line between two landmarks."""
         start_lm = pose_landmarks.landmark[idx1]
         end_lm = pose_landmarks.landmark[idx2]
@@ -166,6 +170,30 @@ class AnnotateVideo:
         out.release()
         logger.info(f"Annotated video saved to {self.current_session.annotated_video_path}")
 
+    def validate_paths_and_files(self) -> (bool, str):
+        # Check landmark map and connections are provided in the cfg
+        if cfg.landmarks.mapping is None or cfg.landmarks.connections is None:
+            msg = "Landmark map and/or landmark connections are missing in the session config."
+            return False, msg
+
+        # Check the raw video exists
+        valid, msg = check_path_exists(self.current_session.raw_video_path, "Raw Video")
+        if not valid:
+            return False, msg
+
+        # Check the landmark data exists
+        valid, msg = check_path_exists(self.current_session.landmark_data_path, "Landmark Data")
+        if not valid:
+            return valid, msg
+
+        # Check that the annotated video path is empty
+        valid, msg = check_path_is_clear(self.current_session.annotated_video_path, "Annotated Video",
+                                          overwrite=self.overwrite)
+        if not valid:
+            return valid, msg
+
+        return True, ""
+
 
 class SimpleLandmarks:
     """
@@ -191,7 +219,7 @@ if __name__ == "__main__":
     from src.config import SESSIONS_DIR
 
     title = "athlete_1"
-    report_folder = SESSIONS_DIR / title
-    session = Session.load_existing_session(report_folder)
-    annotator = AnnotateVideo(session, overwrite=True)
+    session_folder = SESSIONS_DIR / title
+    sample_session = Session.load_existing_session(session_folder)
+    annotator = AnnotateVideo(sample_session, overwrite=True)
     annotator.annotate_video()
