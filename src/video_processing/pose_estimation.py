@@ -2,15 +2,14 @@
 import cv2
 import mediapipe as mp
 import yaml
-from pathlib import Path
 
-from src.config import LANDMARK_MAP_R, logger, cfg
+from src.config import logger, cfg
 from src.utils.file_handler import check_path_is_clear, check_path_exists
 from src import Session
 
 
 class PoseEstimator:
-    def __init__(self, session: Session, overwrite: bool = False) -> None:
+    def __init__(self, session: Session) -> None:
         # Set current session
         self.session = session
 

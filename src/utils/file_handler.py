@@ -7,6 +7,7 @@ import os
 
 from src.config import logger
 
+
 def check_path_is_clear(path: Path, var_name: str = "File", overwrite: bool = False):
     path_exists: bool = path.exists()
 
@@ -24,7 +25,6 @@ def check_path_is_clear(path: Path, var_name: str = "File", overwrite: bool = Fa
     elif path_exists is False:
         return True, ""
 
-    return True, ""
 
 def check_path_exists(path: Path, var_name: str = "File", delete_if_found: bool = False) -> (bool, str):
     file_exists: bool = path.exists()

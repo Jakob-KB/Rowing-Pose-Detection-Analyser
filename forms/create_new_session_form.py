@@ -16,6 +16,10 @@ def save_temp_video_filepath(uploaded_file) -> Path:
     Save the uploaded video file to the temporary directory (TEMP_DIR)
     using a unique file name to avoid collisions, and return the file path.
     """
+    if uploaded_file is None:
+        st.error("Please upload a video file.")
+        st.stop()
+
     # Extract the file extension from the uploaded file's original name.
     original_extension = Path(uploaded_file.name).suffix
 
@@ -50,20 +54,21 @@ def create_new_session_form():
         valid, error_msg = validate_session_title(session_title, overwrite=overwrite_existing_session)
         if not valid:
             st.error(error_msg)
-        elif original_video_file is None:
-            st.error("Please upload a video file.")
         else:
             with st.spinner("Processing session..."):
                 try:
                     # Create a new session.
+                    print("about to try create session")
                     sample_session = Session(session_title, temp_video_path, overwrite=overwrite_existing_session)
 
+                    print("session created")
+
                     # Process landmarks
-                    pose_estimator = PoseEstimator(sample_session, overwrite=True)
+                    pose_estimator = PoseEstimator(sample_session)
                     pose_estimator.process_landmarks()
 
                     # Annotate the video.
-                    annotator = AnnotateVideo(sample_session, overwrite=True)
+                    annotator = AnnotateVideo(sample_session)
                     annotator.annotate_video()
 
                     # Save the session in session state so the results page can access it.

@@ -108,6 +108,8 @@ class Session:
         if not valid:
             return valid, msg
 
+        return True, ""
+
     @classmethod
     def load_existing_session(cls, session_path: Path):
         # Locate and validate the config file from selected session dir
@@ -163,7 +165,7 @@ if __name__ == "__main__":
     title = "athlete_1"
     original_video = DATA_DIR / "videos" / f"{title}.mp4"
 
-    # Try to create a new session with overwrite option (set to False by default)
+    # Create a new session with overwrite option (set to False by default)
     new_session = Session(title, original_video, overwrite=True)
     print("New session config:", new_session.config)
 
