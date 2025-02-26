@@ -1,35 +1,56 @@
 import cv2
 from pathlib import Path
 import time
-from src.config import DATA_DIR, cfg
+from src.config import DATA_DIR, cfg, logger
 
 
-def validate_raw_video(input_path: Path) -> bool:
+def validate_raw_video(input_path: Path) -> (bool, str):
     """
     Validate video file format, duration, and FPS.
     """
-    if input_path.suffix.lower() != cfg.video.format:
-        raise ValueError(f"Video must be {cfg.video.format}, got {input_path.suffix.lower()} instead.")
 
-    # Open video
+    # Check video format
+    if input_path.suffix.lower() != str("." + cfg.video.format):
+        msg = f"Video format must be {cfg.video.format}."
+        logger.warning(f"{msg} Got {input_path.suffix.lower()} instead.")
+        return False, msg
+
+    # Attempt to open video
     cap = cv2.VideoCapture(str(input_path))
     if not cap.isOpened():
-        raise ValueError(f"Failed to open video at path: {str(input_path)}")
+        msg = f"Failed to open video."
+        logger.warning(f"{msg} At path: {str(input_path)}")
+        return False, msg
 
+    # Get video metadata
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     duration = frame_count / video_fps if video_fps > 0 else 0
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     cap.release()
 
-    # Validate duration
-    if duration < cfg.video.min_duration or duration > cfg.video.max_duration:
-        raise ValueError(f"Duration {duration:.2f} out of range [{cfg.video.min_duration}, {cfg.video.max_duration}]")
-
-    # Validate FPS (with small tolerance)
+    # Check video fps, with small tolerance
     if abs(video_fps - cfg.video.fps) > 0.1:
-        raise ValueError(f"FPS {video_fps:.2f} does not match expected {cfg.video.fps}")
+        msg = f"Video must be approx {cfg.video.fps} fps."
+        logger.warning(f"{msg} Got {video_fps} fps instead.")
+        return False, msg
 
-    return True
+    # Check video duration
+    if duration < cfg.video.min_duration or duration > cfg.video.max_duration:
+        msg = f"Video must be between {cfg.video.min_duration} and {cfg.video.max_duration} seconds long."
+        logger.warning(f"{msg} Got {duration} seconds instead.")
+        return False, msg
+
+    # Check video dimensions
+    if width != cfg.video.width or height != cfg.video.height:
+        msg = f"Video have dimensions {cfg.video.width}x{cfg.video.height}."
+        logger.warning(f"{msg} Got dimensions {width}x{height} instead.")
+        return False, msg
+
+    # Video is valid
+    logger.info(f"Video was successfully validated.")
+    return True, ""
 
 
 def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> None:

@@ -28,6 +28,7 @@ logger.add(
 DATA_DIR = PROJECT_ROOT / cfg.dir.data
 CONFIG_DIR = PROJECT_ROOT / cfg.dir.config
 SESSIONS_DIR = PROJECT_ROOT / cfg.dir.sessions
+TEMP_DIR = PROJECT_ROOT / "temp"
 
 # MediaPose Landmarks
 LANDMARK_MAP_R = {

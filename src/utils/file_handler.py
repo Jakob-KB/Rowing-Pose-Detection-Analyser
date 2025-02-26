@@ -37,7 +37,6 @@ def validate_file_doesnt_exist(file_path: Path, var_name: str = "File", overwrit
         logger.info(f"{var_name} clear as {file_path} doesn't exist.")
 
 
-
 def validate_directory(directory: Path, create_if_missing: bool = False) -> bool:
     """Check if a directory exists or create it if requested."""
     if directory.is_dir():
