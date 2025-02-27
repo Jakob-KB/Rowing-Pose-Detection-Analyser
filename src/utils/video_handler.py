@@ -2,7 +2,7 @@ import cv2
 from pathlib import Path
 import time
 from src.config import DATA_DIR, cfg, logger
-from src.data_classes import VideoMetadata
+from src.landmark_dataclasses import VideoMetadata
 
 def validate_raw_video(input_path: Path) -> (bool, str):
     """

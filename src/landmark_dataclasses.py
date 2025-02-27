@@ -1,55 +1,7 @@
-# src/data_classes.py
+# src/landmark_dataclasses.py
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
-from src.config import cfg, logger
-from pathlib import Path
-
-@dataclass
-class AnnotationPrefs:
-    opacity: float = cfg.annotation_prefs.opacity
-
-    @dataclass
-    class BonePrefs:
-        colour: Tuple[int, int, int] = tuple(cfg.annotation_prefs.bone.colour)
-        thickness: int = cfg.annotation_prefs.bone.thickness
-
-    @dataclass
-    class LandmarkPrefs:
-        colour: Tuple[int, int, int] = tuple(cfg.annotation_prefs.landmark.colour)
-        radius: int = cfg.annotation_prefs.landmark.radius
-
-    @dataclass
-    class ReferenceLinePrefs:
-        length: int = cfg.annotation_prefs.reference_line.length
-        colour: Tuple[int, int, int] = tuple(cfg.annotation_prefs.reference_line.colour)
-        thickness: int = cfg.annotation_prefs.reference_line.thickness
-        dash_factor: int = cfg.annotation_prefs.reference_line.dash_factor
-
-@dataclass
-class MediapipePreferences:
-    model_complexity: int = cfg.mediapipe.model_complexity
-    smooth_landmarks: bool = cfg.mediapipe.smooth_landmarks
-    min_detection_confidence: float = cfg.mediapipe.min_detection_confidence
-    min_tracking_confidence: float = cfg.mediapipe.min_tracking_confidence
-
-@dataclass
-class VideoMetadata:
-    total_frames: int
-    width: int
-    height: int
-    fps: float
-
-    def get_dimensions(self) -> Tuple[int, int]:
-        return self.width, self.height
-
-@dataclass
-class SessionPaths:
-    session_dir: Path
-    raw_video_path: Path
-    annotated_video_path: Path
-    landmark_data_path: Path
-    analysis_data_path: Path
-    session_config_path: Path
+from src.config import logger, cfg
 
 @dataclass
 class Landmark:
@@ -62,19 +14,16 @@ class Landmark:
     frame: int
     name: str
 
-
-    def get_screen_position(self, video: "VideoMetadata") -> Tuple[int, int]:
+    def get_screen_position(self) -> Tuple[int, int]:
         """
         Convert normalized coordinates to pixel positions based on video_metadata dimensions.
         """
-        return int(video.width * self.x), int(video.height * self.y)
+        return int(cfg.video.width * self.x), int(cfg.video.height * self.y)
 
 @dataclass
 class FrameLandmarks:
     """
     Encapsulates landmarks for a single frame.
-
-    This class stores landmarks in a dictionary, indexed by their integer mapping.
     """
     frame: int
     landmarks: Dict[str, Landmark]

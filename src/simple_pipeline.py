@@ -3,7 +3,10 @@ from session import Session
 
 from config import DATA_DIR
 from pathlib import Path
+
+from src.io import save_landmark_data_to_session
 from video_processing import ProcessLandmarks, AnnotateVideo
+from io import *
 
 
 def main() -> None:
@@ -16,7 +19,7 @@ def main() -> None:
     # Process landmarks in the raw video_metadata and save them to session
     pose_estimator: ProcessLandmarks = ProcessLandmarks(sample_session)
     landmark_data = pose_estimator.run()
-    sample_session.save_landmark_data_to_session(landmark_data)
+    save_landmark_data_to_session(sample_session, landmark_data)
 
     # Annotate landmarks and skeleton in a new saved video_metadata
     annotator: AnnotateVideo = AnnotateVideo(sample_session)

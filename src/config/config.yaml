@@ -1,7 +1,7 @@
 # Project Configuration
 project:
   name: "Rowing Pose Detection Analyser"
-  version: "1.0.0"
+  version: "1.1.0"
 
 # Directories Configuration
 dir:
@@ -10,20 +10,12 @@ dir:
   config: "src/config"
   sessions: "sessions"
 
-session_dir:
-  raw_video_path: "raw.mp4"
-  annotated_video_path: "annotated.mp4"
-  landmark_data_path: "landmark.yaml"
-  session_config_path: "session_config.json"
-
-# Video Input Criteria
-video:
-  format: "mp4"
-  min_duration: 5
-  max_duration: 300
-  fps: 30
-  width: 1920
-  height: 1080
+session_file_names:
+  raw_video: "raw.mp4"
+  annotated_video: "annotated.mp4"
+  landmark_data: "landmark.yaml"
+  analysis_data: "analysis.yaml"
+  session_config: "session_config.json"
 
 # Logging Configuration
 logging:
@@ -45,13 +37,22 @@ landmarks:
     knee: 26
     ankle: 28
   connections:
-    - [ear, shoulder]
-    - [shoulder, elbow]
-    - [elbow, wrist]
-    - [wrist, hand]
-    - [shoulder, hip]
-    - [hip, knee]
-    - [knee, ankle]
+    - [ ear, shoulder ]
+    - [ shoulder, elbow ]
+    - [ elbow, wrist ]
+    - [ wrist, hand ]
+    - [ shoulder, hip ]
+    - [ hip, knee ]
+    - [ knee, ankle ]
+
+# Video Input Criteria
+video:
+  format: "mp4"
+  min_duration: 5
+  max_duration: 300
+  fps: 30
+  width: 1920
+  height: 1080
 
 # Annotation Configuration
 annotation_prefs:
@@ -66,10 +67,10 @@ annotation_prefs:
     colour: [255, 255, 255]
     thickness: 3
     dash_factor: 8
-  opacity: 1
+  opacity: 0.8
 
 # Mediapipe Configuration
-mediapipe:
+mediapipe_prefs:
   model_complexity: 0
   smooth_landmarks: true
   min_detection_confidence: 0.5

@@ -1,19 +1,15 @@
 # src/video_processing/process_landmarks.py
 import cv2
 import mediapipe as mp
-from pathlib import Path
 
 from src.config import logger, cfg
 from src.session import Session
-from src.data_classes import LandmarkData
+from src.landmark_dataclasses import LandmarkData
 
 
 class ProcessLandmarks:
     def __init__(self, session: Session) -> None:
         self.session = session
-
-        self.raw_video_path: Path = self.session.paths.raw_video_path
-        self.mediapipe_prefs = self.session.mediapipe_prefs
 
     def run(self) -> LandmarkData:
         """
@@ -23,16 +19,16 @@ class ProcessLandmarks:
         """
         # Initialize Mediapipe Pose
         mp_pose = mp.solutions.pose.Pose(
-            min_detection_confidence=self.mediapipe_prefs.min_detection_confidence,
-            min_tracking_confidence=self.mediapipe_prefs.min_tracking_confidence,
-            model_complexity=self.mediapipe_prefs.model_complexity,
-            smooth_landmarks=self.mediapipe_prefs.smooth_landmarks
+            min_detection_confidence=cfg.mediapipe_prefs.min_detection_confidence,
+            min_tracking_confidence=cfg.mediapipe_prefs.min_tracking_confidence,
+            model_complexity=cfg.mediapipe_prefs.model_complexity,
+            smooth_landmarks=cfg.mediapipe_prefs.smooth_landmarks
         )
 
         # Open the raw video_metadata
-        cap = cv2.VideoCapture(str(self.raw_video_path))
+        cap = cv2.VideoCapture(str(self.session.raw_video_path))
         if not cap.isOpened():
-            msg = f"Cannot open video_metadata {self.raw_video_path}"
+            msg = f"Cannot open video_metadata {self.session.raw_video_path}"
             logger.error(msg)
             raise RuntimeError(msg)
 
