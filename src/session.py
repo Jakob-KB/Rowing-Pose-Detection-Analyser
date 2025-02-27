@@ -1,6 +1,6 @@
 # src/sessions.py
 import shutil
-from src.session_config_manager import *
+from src.io.io_session_config import *
 from src.config import *
 import yaml
 from src.landmark_dataclasses import LandmarkData

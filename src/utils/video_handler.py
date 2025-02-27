@@ -2,7 +2,6 @@ import cv2
 from pathlib import Path
 import time
 from src.config import DATA_DIR, cfg, logger
-from src.landmark_dataclasses import VideoMetadata
 
 def validate_raw_video(input_path: Path) -> (bool, str):
     """
@@ -89,24 +88,6 @@ def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> N
     while (not output_path.exists() or output_path.stat().st_size == 0) and (time.time() - start_time < timeout):
         time.sleep(0.1)
 
-def get_video_data(input_path: Path) -> VideoMetadata:
-    # Initialize the data structure
-    video_data = VideoMetadata()
-
-    cap = cv2.VideoCapture(str(input_path))
-    if not cap.isOpened():
-        msg = f"Could not open video_metadata file: {input_path}"
-        logger.error(msg)
-        raise ValueError(msg)
-
-    # Retrieve properties
-    video_data.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    video_data.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    video_data.fps = cap.get(cv2.CAP_PROP_FPS)
-    video_data.frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    cap.release()
-    return video_data
 
 if __name__ == "__main__":
     sample_input_path = DATA_DIR / "videos" / "athlete_1.mp4"
