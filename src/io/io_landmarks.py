@@ -1,6 +1,7 @@
 import yaml
 from src.session import Session
-from src.landmark_dataclasses import *
+from src.landmark_dataclasses import LandmarkData
+from src.config import logger
 
 
 def save_landmark_data_to_session(session: Session, landmark_data: LandmarkData) -> None:

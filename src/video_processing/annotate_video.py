@@ -4,6 +4,7 @@ import numpy as np
 
 from src import Session
 from src.landmark_dataclasses import *
+from src.io.io_landmarks import load_landmark_data_from_session
 
 
 class AnnotateVideo:
@@ -15,7 +16,7 @@ class AnnotateVideo:
         self.reference_line_landmarks: List[str] = ["ankle", "hip"]
 
         # Setup landmark data
-        self.landmarks_data = self.session.load_landmark_data_from_session()
+        self.landmarks_data = load_landmark_data_from_session(self.session)
 
 
     def run(self) -> None:

@@ -2,7 +2,9 @@
 import shutil
 from src.io.io_session_config import *
 from src.config import *
+import imageio_ffmpeg as ffmpeg
 import yaml
+import subprocess
 from src.landmark_dataclasses import LandmarkData
 
 class Session:
@@ -45,7 +47,22 @@ class Session:
 
         # Attempt to clone the video_metadata to the session directory
         try:
-            shutil.copy2(temp_video_path, self.raw_video_path)
+            # Get ffmpeg binary path
+            ffmpeg_path = ffmpeg.get_ffmpeg_exe()
+
+            # Ffmpeg command to enforce CFR at 30 FPS
+            command = [
+                ffmpeg_path, "-y" if self.overwrite else "-n",  # -y = overwrite, -n = skip if exists
+                "-i", str(temp_video_path),  # Input video
+                "-vsync", "cfr",  # Force constant frame rate
+                "-r", str(cfg.video.fps),  # Set FPS
+                "-c:v", "libx264",  # H.264 encoding
+                "-preset", "fast",  # Speed vs quality tradeoff
+                "-crf", "18",  # High-quality compression
+                "-an",  # Remove any existing audio component
+                str(self.raw_video_path)  # Output file
+            ]
+            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             logger.info(f"Raw video copied to {self.raw_video_path}")
         except Exception as e:
             logger.error(f"Error while cloning raw video: {e}")
@@ -53,34 +70,6 @@ class Session:
 
         # Delete the temp video_metadata now that raw video_metadata is saved to the session directory
         # os.remove(temp_video_path
-
-    # Handle landmark data
-    def save_landmark_data_to_session(self, landmark_data: LandmarkData) -> None:
-        data_dict = landmark_data.to_dict()
-
-        try:
-            with open(self.landmark_data_path, "w") as f:
-                yaml.safe_dump(data_dict, f, default_flow_style=False)
-            logger.info(f"Landmark data saved to {self.landmark_data_path}")
-        except Exception as e:
-            logger.error(f"Error saving landmark data: {e}")
-            raise Exception()
-
-    def load_landmark_data_from_session(self) -> LandmarkData:
-        if not self.landmark_data_path.exists():
-            raise FileNotFoundError(f"Landmark file not found at {self.landmark_data_path}")
-
-        try:
-            with open(self.landmark_data_path, "r") as f:
-                data_dict = yaml.safe_load(f)
-        except Exception as e:
-            logger.error(f"Error loading landmark data: {e}")
-            raise
-
-        # Convert the dict into a LandmarkData object
-        landmark_data = LandmarkData.from_dict(data_dict)
-        logger.info(f"Landmark data loaded from {self.landmark_data_path}")
-        return landmark_data
 
     # Loading Existing Session
     @classmethod
