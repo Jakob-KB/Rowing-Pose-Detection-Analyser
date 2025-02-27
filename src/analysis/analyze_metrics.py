@@ -25,7 +25,7 @@ def compute_angle(point1, point2, ref_vector=(-1, 0)):
 
 class RowingStrokeAnalyzer:
     """
-    Analyzes a labeled video along with corresponding JSON video_processing data.
+    Analyzes a labeled video_metadata along with corresponding JSON video_processing data.
     """
 
     def __init__(self, video_path: Path, json_path: Path, stroke_threshold: float = 0.01):
@@ -58,12 +58,12 @@ class RowingStrokeAnalyzer:
 
     def analyze_video(self):
         """
-        Processes the video frame-by-frame, computes analysis for each frame,
+        Processes the video_metadata frame-by-frame, computes analysis for each frame,
         and stores the results.
         """
         cap = cv2.VideoCapture(str(self.video_path))
         if not cap.isOpened():
-            raise ValueError(f"Error opening video file: {self.video_path}")
+            raise ValueError(f"Error opening video_metadata file: {self.video_path}")
 
         pose_index = 0
         total_pose_entries = len(self.pose_data)
@@ -311,7 +311,7 @@ class RowingStrokeAnalyzer:
 
     def display_analysis(self, speed_window: int = 2, graph_window: int = 50):
         """
-        Overlays session data on video frames and displays them.
+        Overlays session data on video_metadata frames and displays them.
         Also opens a matplotlib window to plot hand speed (from calculate_hand_speed)
         in real time. The plot rotates to show only the last 'graph_window' frames.
 
@@ -323,7 +323,7 @@ class RowingStrokeAnalyzer:
 
         cap = cv2.VideoCapture(str(self.video_path))
         if not cap.isOpened():
-            raise ValueError(f"Error opening video file: {self.video_path}")
+            raise ValueError(f"Error opening video_metadata file: {self.video_path}")
         cv2.namedWindow("Rowing Stroke Analysis", cv2.WINDOW_NORMAL)
 
         plt.ion()

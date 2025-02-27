@@ -10,6 +10,12 @@ dir:
   config: "src/config"
   sessions: "sessions"
 
+session_dir:
+  raw_video_path: "raw.mp4"
+  annotated_video_path: "annotated.mp4"
+  landmark_data_path: "landmark.yaml"
+  session_config_path: "session_config.json"
+
 # Video Input Criteria
 video:
   format: "mp4"
@@ -27,7 +33,7 @@ logging:
       level: INFO
       colorize: true
 
-# Landmarks Configuration
+# ProcessLandmarks Configuration
 landmarks:
   mapping:
     ear: 8
@@ -39,21 +45,28 @@ landmarks:
     knee: 26
     ankle: 28
   connections:
-    - [8, 12]   # Ear to Shoulder
-    - [12, 14]  # Shoulder to Elbow
-    - [14, 16]  # Elbow to Wrist
-    - [16, 20]  # Wrist to Hand
-    - [12, 24]  # Shoulder to Hip
-    - [24, 26]  # Hip to Knee
-    - [26, 28]  # Knee to Ankle
+    - [ear, shoulder]
+    - [shoulder, elbow]
+    - [elbow, wrist]
+    - [wrist, hand]
+    - [shoulder, hip]
+    - [hip, knee]
+    - [knee, ankle]
 
 # Annotation Configuration
-annotation:
-  landmark_point_colour: [139, 61, 72]
-  landmark_point_radius: 5
-  skeleton_bone_colour: [250, 144, 30]
-  skeleton_bone_thickness: 4
-  opacity: 0.8
+annotation_prefs:
+  landmark:
+    colour: [139, 61, 72]
+    radius: 5
+  bone:
+    colour: [250, 144, 30]
+    thickness: 4
+  reference_line:
+    length: 96
+    colour: [255, 255, 255]
+    thickness: 3
+    dash_factor: 8
+  opacity: 1
 
 # Mediapipe Configuration
 mediapipe:

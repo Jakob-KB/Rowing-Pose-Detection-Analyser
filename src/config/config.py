@@ -30,7 +30,7 @@ CONFIG_DIR = PROJECT_ROOT / cfg.dir.config
 SESSIONS_DIR = PROJECT_ROOT / cfg.dir.sessions
 TEMP_DIR = PROJECT_ROOT / "temp"
 
-# MediaPose Landmarks
+# MediaPose ProcessLandmarks
 LANDMARK_MAP_R = {
     "ear": 8,
     "shoulder": 12,
@@ -52,7 +52,7 @@ LANDMARK_CONNECTIONS_R = [
     (26, 28)   # Knee to Ankle
 ]
 
-# Annotated video config
+# Annotated video_metadata config
 ANNOTATION_CFG = {
     "landmark_point_colour": (255, 0, 0),
     "landmark_point_radius": 9,

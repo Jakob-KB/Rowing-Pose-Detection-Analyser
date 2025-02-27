@@ -3,7 +3,7 @@ from session import Session
 
 from config import DATA_DIR
 from pathlib import Path
-from video_processing import PoseEstimator, AnnotateVideo
+from video_processing import ProcessLandmarks, AnnotateVideo
 
 
 def main() -> None:

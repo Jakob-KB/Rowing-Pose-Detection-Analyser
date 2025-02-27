@@ -3,7 +3,7 @@ import json
 import numpy as np
 import math
 
-# Load video and video_processing data
+# Load video_metadata and video_processing data
 VIDEO_PATH = "../../data/videos/athlete_1.mp4"
 POSE_DATA_PATH = "analyses/athlete_1_report/athlete_1_pose_data.json"
 
@@ -13,7 +13,7 @@ PERP_DIST = 150  # Distance for perpendicular points
 
 cap = cv2.VideoCapture(VIDEO_PATH)
 if not cap.isOpened():
-    raise ValueError("Error: Could not open video. Check file path.")
+    raise ValueError("Error: Could not open video_metadata. Check file path.")
 
 # Load video_processing data from JSON
 with open(POSE_DATA_PATH, "r") as file:
@@ -21,7 +21,7 @@ with open(POSE_DATA_PATH, "r") as file:
 
 
 def get_frame(frame_number):
-    """Retrieve a specific frame from the video."""
+    """Retrieve a specific frame from the video_metadata."""
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
     ret, frame = cap.read()
     if not ret:

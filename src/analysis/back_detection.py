@@ -32,10 +32,10 @@ EXTEND_UP_PIXELS = 10    # extend upward (at the top)
 with open(POSE_DATA_PATH, "r") as file:
     pose_data = json.load(file)
 
-# Open video capture and get properties
+# Open video_metadata capture and get properties
 cap = cv2.VideoCapture(VIDEO_PATH)
 if not cap.isOpened():
-    raise ValueError("Error: Could not open video. Check file path.")
+    raise ValueError("Error: Could not open video_metadata. Check file path.")
 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 fps = cap.get(cv2.CAP_PROP_FPS)
 ret, first_frame = cap.read()
@@ -125,7 +125,7 @@ def median_filter_curve(curve_points, kernel_size=5):
 # Each entry: frame_index -> {'y_range': np.array, 'x_curve': np.array}
 curves = {}
 
-# Reset video capture to beginning
+# Reset video_metadata capture to beginning
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 ret, prev_frame = cap.read()
 if not ret:
@@ -242,7 +242,7 @@ for i in df_smoothed.index:
     df_smoothed.loc[i] = window.mean(axis=0)
 
 # ------------------------------
-# Step 3: Re-read video and draw the final smoothed curve on each frame.
+# Step 3: Re-read video_metadata and draw the final smoothed curve on each frame.
 # (Shift curves back by minus 1: draw the curve computed for frame i+1 on frame i)
 # ------------------------------
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -268,4 +268,4 @@ cap.release()
 final_out.release()
 cv2.destroyAllWindows()
 
-print(f"Output video saved to: {output_filename}")
+print(f"Output video_metadata saved to: {output_filename}")

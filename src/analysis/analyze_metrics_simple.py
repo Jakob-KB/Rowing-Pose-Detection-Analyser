@@ -111,12 +111,12 @@ def main():
     df["direction"] = directions
     df["slide_position"] = slide_positions
 
-    print("Pre-calculation complete. Starting video playback...")
+    print("Pre-calculation complete. Starting video_metadata playback...")
 
-    # Open the video.
+    # Open the video_metadata.
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
-        print(f"Error opening video file: {video_path}")
+        print(f"Error opening video_metadata file: {video_path}")
         return
 
     frame_index = 0
