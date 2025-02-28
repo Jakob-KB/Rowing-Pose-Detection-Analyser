@@ -1,7 +1,7 @@
 # src/utils/file_handler.py
 import shutil
 from pathlib import Path
-from typing import List
+from typing import Tuple
 import mimetypes
 import os
 
@@ -33,3 +33,8 @@ def check_path_exists(path: Path, var_name: str = "File", delete_if_found: bool 
         return False, msg
     elif file_exists is True:
         return True, ""
+
+def check_session_filepath_exists(filepath: Path, description: str, session_title: str) -> Tuple[bool, str]:
+    if not filepath.exists():
+        return False, f"Unable to find {description} for session '{session_title}' at {filepath}"
+    return True, ""

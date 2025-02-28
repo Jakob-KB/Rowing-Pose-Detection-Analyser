@@ -4,7 +4,7 @@ import numpy as np
 
 from src import Session
 from src.landmark_dataclasses import *
-from src.io.io_landmarks import load_landmark_data_from_session
+from src.utils.landmark_data_io import load_landmark_data_from_session
 
 
 class AnnotateVideo:
@@ -130,6 +130,6 @@ if __name__ == "__main__":
 
     title = "athlete_1"
     session_folder = SESSIONS_DIR / title
-    sample_session = Session.load_existing_session(session_folder)
+    sample_session = Session.load(session_folder)
     annotator = AnnotateVideo(sample_session)
     annotator.run()

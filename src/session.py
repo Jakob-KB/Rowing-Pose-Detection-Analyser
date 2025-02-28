@@ -1,94 +1,145 @@
 # src/sessions.py
 import shutil
-from src.io.io_session_config import *
-from src.config import *
-import imageio_ffmpeg as ffmpeg
-import yaml
 import subprocess
-from src.landmark_dataclasses import LandmarkData
+import json
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+import imageio_ffmpeg as ffmpeg
+
+from src.utils.session_config_io import init_session_config, apply_config
+from src.utils.file_handler import check_session_filepath_exists
+from src.config import SESSIONS_DIR, cfg, logger
+
 
 class Session:
-    def __init__(self, session_title: str, temp_video_path: Path, overwrite: bool = False) -> None:
-        # Session identifiers and root path
+    title: str
+    overwrite: bool
+
+    session_dir: Path
+    session_config_path: Path
+    raw_video_path: Path
+    landmark_data_path: Path
+    analysis_data_path: Path
+    annotated_video_path: Path
+
+    def __init__(
+        self, session_title: str,
+        overwrite: bool = False,
+        temp_video_path: Optional[Path] = None,
+        config: Optional[Dict] = None
+    ) -> None:
         self.title = session_title
         self.overwrite = overwrite
 
-        session_dir = Path(SESSIONS_DIR / session_title)
+        self.session_dir = Path(SESSIONS_DIR) / session_title
+        self.session_config_path = self.session_dir / cfg.session_file_names.session_config
+        self.raw_video_path = self.session_dir / cfg.session_file_names.raw_video
+        self.landmark_data_path = self.session_dir / cfg.session_file_names.landmark_data
+        self.analysis_data_path = self.session_dir / cfg.session_file_names.analysis_data
+        self.annotated_video_path = self.session_dir / cfg.session_file_names.annotated_video
 
-        # Clear the session directory if it already exists and overwrite is true
-        if session_dir.exists():
-            if self.overwrite is False:
-                logger.error("A session directory with this name already exists.")
-                raise FileExistsError()
-            else:
-                shutil.rmtree(session_dir)
+        print("About to check config")
+        if config is not None:
+            print("Config is not NONE")
+            apply_config(self, config)
+        else:
+            if self.session_dir.exists():
+                if not self.overwrite:
+                    logger.error("A session directory with this name already exists.")
+                    raise FileExistsError("A session directory with this name already exists.")
+                else:
+                    shutil.rmtree(self.session_dir)
 
-        self.session_dir = session_dir
-        self.raw_video_path = session_dir / cfg.session_file_names.raw_video
-        self.annotated_video_path = session_dir / cfg.session_file_names.annotated_video
-        self.landmark_data_path = session_dir / cfg.session_file_names.landmark_data
-        self.analysis_data_path = session_dir / cfg.session_file_names.analysis_data
-        self.session_config_path = session_dir / cfg.session_file_names.session_config
-
-        # Session config dict
-        self.config: Dict = {}
-
-        # Init methods
-        self._setup_session_directory(temp_video_path)
-        init_session_config(self)
+            self._setup_session_directory(temp_video_path)
+            init_session_config(self)
 
     def _setup_session_directory(self, temp_video_path: Path) -> None:
-        # Attempt to create a session directory
         try:
             self.session_dir.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             logger.error(f"Failed to create session directory {self.session_dir}: {e}")
-            raise Exception()
+            raise
 
-        # Attempt to clone the video_metadata to the session directory
         try:
-            # Get ffmpeg binary path
+            # Get ffmpeg binary path from imageio package to clone raw video with CFR
             ffmpeg_path = ffmpeg.get_ffmpeg_exe()
 
-            # Ffmpeg command to enforce CFR at 30 FPS
             command = [
-                ffmpeg_path, "-y" if self.overwrite else "-n",  # -y = overwrite, -n = skip if exists
-                "-i", str(temp_video_path),  # Input video
-                "-vsync", "cfr",  # Force constant frame rate
-                "-r", str(cfg.video.fps),  # Set FPS
-                "-c:v", "libx264",  # H.264 encoding
-                "-preset", "fast",  # Speed vs quality tradeoff
-                "-crf", "18",  # High-quality compression
-                "-an",  # Remove any existing audio component
-                str(self.raw_video_path)  # Output file
+                ffmpeg_path, "-y" if self.overwrite else "-n",
+                "-i", str(temp_video_path),
+                "-vsync", "cfr",
+                "-r", str(cfg.video.fps),
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "18",
+                "-an",
+                str(self.raw_video_path)
             ]
             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             logger.info(f"Raw video copied to {self.raw_video_path}")
         except Exception as e:
             logger.error(f"Error while cloning raw video: {e}")
-            raise Exception()
+            raise
 
-        # Delete the temp video_metadata now that raw video_metadata is saved to the session directory
-        # os.remove(temp_video_path
+    def is_valid_to_view(self) -> Tuple[bool, str]:
+        # Check all files exist within the
+        paths_to_check = [
+            (self.session_dir, "session directory"),
+            (self.session_config_path, "session config"),
+            (self.raw_video_path, "raw video"),
+            (self.landmark_data_path, "landmark data"),
+            # (self.analysis_data_path, "analysis data"),
+            (self.annotated_video_path, "annotated video")
+        ]
 
-    # Loading Existing Session
+        for path, description in paths_to_check:
+            valid, msg = check_session_filepath_exists(path, description, self.title)
+            if not valid:
+                return False, msg
+
+        return True, ""
+
     @classmethod
-    def load_existing_session(cls, session_dir: Path) -> "Session":
-        config_file_path = session_dir / "session_config.json"
+    def create(cls, session_title: str, original_video_path: Path, overwrite: bool = False) -> "Session":
+        """Alternative constructor for creating a new session."""
+        return cls(session_title, overwrite, original_video_path, config=None)
+
+    @classmethod
+    def load(cls, session_dir) -> "Session":
+        from pathlib import Path
+        session_dir = Path(session_dir)  # Ensure it's a Path object
+
+        print("opened class method load")
+        config_file_path = session_dir / cfg.session_file_names.session_config
+
+        print(f"Looking for session config file at: {config_file_path}")
+
         if not config_file_path.exists():
+            print("Config file does not exist!")
             raise FileNotFoundError(f"No config file found at {config_file_path}")
 
         try:
             with open(config_file_path, "r") as f:
                 config = json.load(f)
         except Exception as e:
-            logger.error(f"Failed to load config from {config_file_path}: {e}")
+            print(f"Error loading config file: {e}")
             raise
 
-        # Create an instance without calling __init__
-        instance = cls.__new__(cls)
-        apply_config(instance, config)
-        return instance
+        print("Config file loaded successfully")
+
+        session = cls.__new__(cls)
+        session.title = config.get("session_title", "Unknown")
+        session.overwrite = config.get("overwrite", False)
+        session.session_dir = session_dir
+        session.session_config_path = config_file_path
+        session.raw_video_path = session_dir / cfg.session_file_names.annotated_video
+        session.landmark_data_path = session_dir / cfg.session_file_names.landmark_data
+        session.analysis_data_path = session_dir / cfg.session_file_names.analysis_data
+        session.annotated_video_path = session_dir / cfg.session_file_names.annotated_video
+
+        print("Returning session object")
+        return session
+
 
 # Example usage:
 if __name__ == "__main__":
@@ -97,14 +148,14 @@ if __name__ == "__main__":
     title = "athlete_1"
     original_video = DATA_DIR / "videos" / f"{title}.mp4"
 
-    # Create a new session with overwrite option (set to False by default)
-    new_session = Session(title, original_video, overwrite=True)
+    # Creating a new session:
+    new_session = Session.create(title, original_video, overwrite=True)
     print("New session config:", new_session.config)
 
     load_existing_session = False
 
     if load_existing_session:
-        # Load an existing session
-        existing_session = SESSIONS_DIR / title
-        loaded_session = Session.load_existing_session(existing_session)
+        # Loading an existing session:
+        existing_session_path = SESSIONS_DIR / title
+        loaded_session = Session.load(existing_session_path)
         print("Loaded session config:", loaded_session.config)

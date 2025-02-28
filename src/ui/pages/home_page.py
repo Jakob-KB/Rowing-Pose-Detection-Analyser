@@ -1,10 +1,13 @@
 # src/pages/home_page.py
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog
+from PyQt6.QtCore import QDir
+from src.config import SESSIONS_DIR
+
 
 class HomePage(QWidget):
     def __init__(self, main_app):
         super().__init__()
-        self.main_app = main_app  # Reference to MainApp for navigation
+        self.main_app = main_app
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -20,5 +23,16 @@ class HomePage(QWidget):
 
         # Open Existing Session Button
         btn_open_session = QPushButton("Open Existing Session")
-        btn_open_session.clicked.connect(lambda: self.main_app.switch_page(self.main_app.session_page))
+        btn_open_session.clicked.connect(self.open_existing_session)
         layout.addWidget(btn_open_session)
+
+    def open_existing_session(self):
+        """Opens a file dialog to select a session folder and loads the session."""
+        session_folder = QFileDialog.getExistingDirectory(
+            self,
+            "Select a Session Folder",
+            str(SESSIONS_DIR),
+            QFileDialog.Option.ShowDirsOnly
+        )
+
+        self.main_app.load_session(session_folder)

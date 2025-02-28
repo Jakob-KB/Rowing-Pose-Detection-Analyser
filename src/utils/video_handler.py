@@ -87,11 +87,3 @@ def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> N
     start_time = time.time()
     while (not output_path.exists() or output_path.stat().st_size == 0) and (time.time() - start_time < timeout):
         time.sleep(0.1)
-
-
-if __name__ == "__main__":
-    sample_input_path = DATA_DIR / "videos" / "athlete_1.mp4"
-    sample_output_path = DATA_DIR / "videos" / "mirrored_athlete_1.mp4"
-
-    mirror_video(sample_input_path, sample_output_path)
-

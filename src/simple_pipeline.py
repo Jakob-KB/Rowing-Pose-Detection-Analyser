@@ -4,7 +4,7 @@ from session import Session
 from config import DATA_DIR
 from pathlib import Path
 
-from src.io.io_landmarks import save_landmark_data_to_session
+from src.utils.landmark_data_io import save_landmark_data_to_session
 from video_processing import ProcessLandmarks, AnnotateVideo
 
 
