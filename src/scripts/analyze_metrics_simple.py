@@ -1,4 +1,4 @@
-# src/analysis/analyze_metrics_simple.py
+# src/scripts/analyze_metrics_simple.py
 import cv2
 import json
 import math
@@ -96,7 +96,7 @@ def main():
     hand_speeds = []
     directions = []
     slide_positions = []
-    print("Pre-calculating analysis...")
+    print("Pre-calculating scripts...")
     for i in range(total_frames):
         avg_speed, net_direction = calculate_hand_speed_from_df(df, i, window=2)
         hand_speeds.append(avg_speed)

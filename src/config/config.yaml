@@ -10,12 +10,6 @@ dir:
   config: "src/config"
   sessions: "sessions"
 
-session_file_names:
-  raw_video: "raw.mp4"
-  annotated_video: "annotated.mp4"
-  landmark_data: "landmark.yaml"
-  analysis_data: "analysis.yaml"
-  session_config: "session_config.json"
 
 # Logging Configuration
 logging:
@@ -54,24 +48,28 @@ video:
   width: 1920
   height: 1080
 
-# Annotation Configuration
-annotation_prefs:
-  landmark:
-    colour: [139, 61, 72]
-    radius: 5
-  bone:
-    colour: [250, 144, 30]
-    thickness: 4
-  reference_line:
-    length: 96
-    colour: [255, 255, 255]
-    thickness: 3
-    dash_factor: 8
-  opacity: 0.8
-
-# Mediapipe Configuration
-mediapipe_prefs:
-  model_complexity: 2
-  smooth_landmarks: true
-  min_detection_confidence: 0.5
-  min_tracking_confidence: 0.5
+session:
+  files:
+    session_config: "session_config.json"
+    raw_video: "raw.mp4"
+    landmark_data: "landmarks.yaml"
+    analysis_data: "scripts.yaml"
+    annotated_video: "annotated.mp4"
+  annotation_prefs:
+    landmark:
+      colour: [139, 61, 72]
+      radius: 5
+    bone:
+      colour: [250, 144, 30]
+      thickness: 4
+    reference_line:
+      length: 96
+      colour: [255, 255, 255]
+      thickness: 3
+      dash_factor: 8
+    opacity: 0.8
+  mediapipe_prefs:
+    model_complexity: 2
+    smooth_landmarks: true
+    min_detection_confidence: 0.5
+    min_tracking_confidence: 0.5

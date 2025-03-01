@@ -1,4 +1,4 @@
-# src/analysis/analyze_metrics.py
+# src/scripts/analyze_metrics.py
 import cv2
 import json
 import math
@@ -58,7 +58,7 @@ class RowingStrokeAnalyzer:
 
     def analyze_video(self):
         """
-        Processes the video_metadata frame-by-frame, computes analysis for each frame,
+        Processes the video_metadata frame-by-frame, computes scripts for each frame,
         and stores the results.
         """
         cap = cv2.VideoCapture(str(self.video_path))

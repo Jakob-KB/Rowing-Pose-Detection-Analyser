@@ -1,47 +1,56 @@
 # src/video_processing/annotate_video.py
 import cv2
 import numpy as np
+from pathlib import Path
 
-from src import Session
-from src.landmark_dataclasses import *
-from src.utils.landmark_data_io import load_landmark_data_from_session
+from typing import List, Tuple
+
+from src.models.annotation_preferences import AnnotationPreferences
+from src.models.landmark_data import LandmarkData, FrameLandmarks, Landmark
+from src.config import logger, cfg
 
 
 class AnnotateVideo:
-    def __init__(self, session: Session) -> None:
-        # Store the session object
-        self.session = session
+    landmark_connection: List = cfg.landmarks.connections
+    reference_line_landmarks: List[str] = ["ankle", "hip"]
+    annotation_prefs: AnnotationPreferences = None
 
-        # ProcessLandmarks to draw reference lines for
-        self.reference_line_landmarks: List[str] = ["ankle", "hip"]
-
-        # Setup landmark data
-        self.landmarks_data = load_landmark_data_from_session(self.session)
-
-
-    def run(self) -> None:
+    def run(
+            self,
+            raw_video_path: Path,
+            annotated_video_path: Path,
+            landmark_data: LandmarkData,
+            annotation_preferences: AnnotationPreferences
+    ) -> None:
         """
         Annotate each frame of the raw video_metadata using landmark data from the YAML file.
         The annotated video_metadata is saved to the annotated_video_path specified in the session.
         """
 
-        # Check that landmarks have been loaded
-        if self.landmarks_data is None:
-            logger.error("Video landmarks need to be loaded first.")
+        self.annotation_prefs = annotation_preferences
+
+        if self.annotation_prefs is None:
+            logger.error("Annotation preferences not set.")
+            return
+
+        if landmark_data is None:
+            logger.error("No landmark data was loaded.")
+            return
 
         # Open raw input video_metadata stream
-        cap = cv2.VideoCapture(str(self.session.raw_video_path))
+        cap = cv2.VideoCapture(str(raw_video_path))
         if not cap.isOpened():
-            logger.error(f"Cannot open raw video_metadata: {self.session.raw_video_path}")
+            logger.error(f"Cannot open raw video_metadata: {raw_video_path}")
             raise
 
         # Configure annotated output video_metadata stream
         out = cv2.VideoWriter(
-            str(self.session.annotated_video_path),
+            str(annotated_video_path),
             cv2.VideoWriter_fourcc(*"mp4v"),
             cfg.video.fps,
             (cfg.video.width, cfg.video.height)
         )
+        # TODO: Handle hard use case of cfg here, or at least reference it
 
         # Iterate through each frame
         frame_num = 0
@@ -53,7 +62,7 @@ class AnnotateVideo:
             frame_num += 1
 
             # Try to get the FrameLandmarks object from the dictionary
-            frame_landmarks = self.landmarks_data.get_frame_landmarks(frame_num)
+            frame_landmarks = landmark_data.get_frame_landmarks(frame_num)
             if frame_landmarks is None:
                 logger.warning(f"No landmark data for frame number {frame_num}")
             else:
@@ -64,7 +73,12 @@ class AnnotateVideo:
         # Release input and output video_metadata streams
         cap.release()
         out.release()
-        logger.info(f"Annotated video_metadata saved to {self.session.annotated_video_path}")
+
+        # Reset annotation preferences to None
+        self.annotation_prefs = None
+
+        logger.info(f"Annotated video_metadata saved to {annotated_video_path}")
+
 
     def __annotate_frame(self, image: np.ndarray, frame_landmarks: FrameLandmarks) -> None:
         """
@@ -75,7 +89,7 @@ class AnnotateVideo:
         overlay = image.copy()
 
         # Draw each bone of the skeleton for each of the connect landmarks
-        for start_landmark_name, end_landmark_name in cfg.landmarks.connections:
+        for start_landmark_name, end_landmark_name in self.landmark_connection:
             start_landmark: Landmark = frame_landmarks.get_landmark(start_landmark_name)
             end_landmark: Landmark = frame_landmarks.get_landmark(end_landmark_name)
 
@@ -86,8 +100,8 @@ class AnnotateVideo:
                 overlay,
                 start_point,
                 end_point,
-                tuple(cfg.annotation_prefs.bone.colour),
-                cfg.annotation_prefs.bone.thickness
+                self.annotation_prefs.bone_colour,
+                self.annotation_prefs.bone_thickness
             )
 
         # Draw each landmark as a point
@@ -95,41 +109,29 @@ class AnnotateVideo:
             cv2.circle(
                 overlay,
                 landmark.get_screen_position(),
-                cfg.annotation_prefs.landmark.radius,
-                cfg.annotation_prefs.landmark.colour,
+                self.annotation_prefs.landmark_radius,
+                self.annotation_prefs.landmark_colour,
                 -1
             )
 
             # Draw reference line for selected landmarks
             if landmark.name in self.reference_line_landmarks:
                 x, y = landmark.get_screen_position()
-                end_y = y - cfg.annotation_prefs.reference_line.length
+                end_y = y - self.annotation_prefs.reference_line_length
                 current_y = y
 
                 # Calculate and draw dash segments of reference line
                 while current_y > end_y:
-                    segment_end = max(current_y - cfg.annotation_prefs.reference_line.dash_factor, end_y)
+                    segment_end = max(current_y - self.annotation_prefs.reference_line_dash_factor, end_y)
                     cv2.line(
                         overlay,
                         (x, current_y),
                         (x, segment_end),
-                        cfg.annotation_prefs.reference_line.colour,
-                        cfg.annotation_prefs.reference_line.thickness
+                        self.annotation_prefs.reference_line_colour,
+                        self.annotation_prefs.reference_line_thickness
                      )
-                    current_y -= (cfg.annotation_prefs.reference_line.dash_factor * 2)
+                    current_y -= (self.annotation_prefs.reference_line_dash_factor * 2)
 
         # Opacity blending
-        alpha = cfg.annotation_prefs.opacity
+        alpha = self.annotation_prefs.opacity
         cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, image)
-
-
-# Example usage:
-if __name__ == "__main__":
-    from src.session import Session
-    from src.config import SESSIONS_DIR
-
-    title = "athlete_1"
-    session_folder = SESSIONS_DIR / title
-    sample_session = Session.load(session_folder)
-    annotator = AnnotateVideo(sample_session)
-    annotator.run()

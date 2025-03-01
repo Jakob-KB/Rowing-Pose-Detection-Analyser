@@ -1,36 +1,35 @@
-# src/video_processing/process_landmarks.py
+# src/modules/process_landmarks.py
 import cv2
 import mediapipe as mp
+from pathlib import Path
 
 from src.config import logger, cfg
-from src.session import Session
 from src.landmark_dataclasses import LandmarkData
+from src.models.mediapipe_preferences import MediapipePreferences
 
 
 class ProcessLandmarks:
-    def __init__(self, session: Session) -> None:
-        self.session = session
-
-    def run(self) -> LandmarkData:
+    @staticmethod
+    def run(raw_video_path: Path, mediapipe_preferences: MediapipePreferences) -> LandmarkData:
         """
         Read the raw video_metadata, run Mediapipe pose detection,
         and return a LandmarkData object containing all frames & landmarks.
         This method does NOT write to any file directly.
         """
+
         # Initialize Mediapipe Pose
         mp_pose = mp.solutions.pose.Pose(
-            min_detection_confidence=cfg.mediapipe_prefs.min_detection_confidence,
-            min_tracking_confidence=cfg.mediapipe_prefs.min_tracking_confidence,
-            model_complexity=cfg.mediapipe_prefs.model_complexity,
-            smooth_landmarks=cfg.mediapipe_prefs.smooth_landmarks
+            model_complexity=mediapipe_preferences.model_complexity,
+            smooth_landmarks=mediapipe_preferences.smooth_landmarks,
+            min_detection_confidence=mediapipe_preferences.min_detection_confidence,
+            min_tracking_confidence=mediapipe_preferences.min_tracking_confidence
         )
 
         # Open the raw video_metadata
-        cap = cv2.VideoCapture(str(self.session.raw_video_path))
+        cap = cv2.VideoCapture(str(raw_video_path))
         if not cap.isOpened():
-            msg = f"Cannot open video_metadata {self.session.raw_video_path}"
-            logger.error(msg)
-            raise RuntimeError(msg)
+            logger.error(f"Cannot open video_metadata {raw_video_path}")
+            raise
 
         # Detect landmarks per frame
         all_landmarks_dict = {}
@@ -67,18 +66,3 @@ class ProcessLandmarks:
         # Convert dict to a LandmarkData object
         landmark_data = LandmarkData.from_dict(all_landmarks_dict)
         return landmark_data
-
-
-# Example usage
-if __name__ == "__main__":
-    from src.config import SESSIONS_DIR
-    from src.session import Session
-
-    title = "athlete_1"
-    session_folder = SESSIONS_DIR / title
-    sample_session = Session.load_existing_session(session_folder)
-
-    pose_estimator = ProcessLandmarks(sample_session)
-    data = pose_estimator.run()
-
-    print("Got LandmarkData:", data)

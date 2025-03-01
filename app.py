@@ -4,14 +4,17 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 from src.ui.pages.home_page import HomePage
 from src.ui.pages.session_page import SessionPage
 from src.config import logger
-from src.session import Session
-
+from src.modules.session_manager import SessionManager
+from src.models.session import Session
 
 class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("My PyQt6 App")
         self.setGeometry(100, 100, 800, 600)
+
+        # Initialize session manager
+        self.session_manager = SessionManager()
 
         # Stack widget to manage multiple pages
         self.stack = QStackedWidget()
@@ -27,57 +30,41 @@ class MainApp(QMainWindow):
         # Show the home page initially
         self.stack.setCurrentWidget(self.home_page)
 
-    def load_session(self, selected_session_folder: Path):
-        """Loads a session and switches to the session page."""
-        try:
-            selected_session_folder = Path(selected_session_folder)
+    def load_session(self, selected_session_dir: Path):
+        selected_session_dir = Path(selected_session_dir)
 
-            logger.info(f"attempting to load selected session from {selected_session_folder}")
+        logger.info(f"attempting to load selected session from {selected_session_dir}")
 
-            # Check if folder exists
-            if not selected_session_folder.exists():
-                logger.error(f"Session folder does not exist: {selected_session_folder}")
-                return
+        # Check if folder exists
+        if not selected_session_dir.exists():
+            logger.error(f"Session folder does not exist: {selected_session_dir}")
+            return
 
-            logger.info("Calling Session.load()")
+        session = self.session_manager.load_existing_session(selected_session_dir)
 
-            try:
-                current_session = Session.load(selected_session_folder)
-            except Exception as e:
-                logger.error(f"Failed to load session: {e}")
-                return
+        logger.info("Session loaded successfully")
 
-            logger.info("Session loaded successfully")
+        video_path = session.files.annotated_video
+        logger.info(f"Annotated video path: {video_path}")
 
-            valid, msg = current_session.is_valid_to_view()
-            if not valid:
-                logger.error(msg)
-                return
+        if not video_path.exists():
+            logger.error("Annotated video does not exist.")
+            return
 
-            video_path = current_session.annotated_video_path
-            logger.info(f"Annotated video path: {video_path}")
+        # Log before switching pages
+        logger.info("Switching to session page")
 
-            if not video_path.exists():
-                logger.error("Annotated video does not exist.")
-                return
+        if self.session_page:
+            self.stack.removeWidget(self.session_page)
 
-            # Log before switching pages
-            logger.info("Switching to session page")
+        self.session_page = SessionPage(self, video_path)
+        logger.info("SessionPage initialized")
 
-            if self.session_page:
-                self.stack.removeWidget(self.session_page)
+        self.stack.addWidget(self.session_page)
+        self.stack.setCurrentWidget(self.session_page)
 
-            self.session_page = SessionPage(self, video_path)
-            logger.info("SessionPage initialized")
+        logger.info("Successfully switched to session page")
 
-            self.stack.addWidget(self.session_page)
-            self.stack.setCurrentWidget(self.session_page)
-
-            logger.info("Successfully switched to session page")
-
-        except Exception as e:
-            logger.error(f"Unexpected error in load_session: {e}")
-            raise
 
     def switch_page(self, page):
         """Switches to the given page."""
