@@ -81,7 +81,7 @@ class SessionManager:
         try:
             with open(config_file, "r") as f:
                 data = f.read()
-            session = Session.parse_raw(data)
+            session = Session.model_validate_json(data)
             logger.info(f"Session loaded from {config_file}.")
             return session
         except Exception as e:
