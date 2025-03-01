@@ -48,9 +48,9 @@ class HomePage(QWidget):
         # Fixed width for both buttons
         fixed_width = 200
 
-        # Create New Session Button
+        # Create New Session Button with modern styling (currently non-functional)
         btn_create_session = QPushButton("Create New Session")
-        btn_create_session.setFixedWidth(200)
+        btn_create_session.setFixedWidth(fixed_width)
         btn_create_session.setStyleSheet("""
             font-size: 16px;
             padding: 12px;
@@ -58,7 +58,6 @@ class HomePage(QWidget):
             background-color: #4CAF50;
             color: white;
         """)
-        btn_create_session.clicked.connect(lambda: self.main_app.show_create_session_page())
         layout.addWidget(btn_create_session, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Open Existing Session Button with similar styling

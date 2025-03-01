@@ -1,4 +1,4 @@
-# src/main.py
+# src/simple_pipeline.py
 
 from pathlib import Path
 

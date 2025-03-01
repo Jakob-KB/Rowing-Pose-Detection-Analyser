@@ -1,8 +1,7 @@
 # src/modules/process_landmarks.py
 import cv2
-import mediapipe as mp
 from pathlib import Path
-
+import mediapipe as mp
 from src.config import logger, cfg
 from src.models.landmark_data import LandmarkData
 from src.models.mediapipe_preferences import MediapipePreferences
