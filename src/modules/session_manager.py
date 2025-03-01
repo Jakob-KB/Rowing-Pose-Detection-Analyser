@@ -7,9 +7,15 @@ import imageio_ffmpeg as ffmpeg
 from src.models.landmark_data import LandmarkData
 from src.config import cfg, logger
 from src.models.session import Session
+from src.utils.file_handler import check_session_file_exists
 import yaml
 
 class SessionManager:
+    active_session: Session = None
+
+    def set_active_session(self, session: Session) -> None:
+        self.active_session = session
+
     @staticmethod
     def new_session(session_title: str, original_video_path: Path, overwrite: bool = False) -> Session:
 
@@ -75,8 +81,9 @@ class SessionManager:
         """
         config_file = session_dir / cfg.session.files.session_config
 
-        if not config_file.exists():
-            raise FileNotFoundError(f"Session configuration file not found at {config_file}")
+        valid, msg = check_session_file_exists(config_file, "config file", session_dir.name)
+        if not valid:
+            raise FileNotFoundError(msg)
 
         try:
             with open(config_file, "r") as f:

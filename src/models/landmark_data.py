@@ -1,10 +1,9 @@
 # src/landmark_dataclasses.py
-from dataclasses import dataclass
 from typing import Dict, List, Tuple
+from pydantic import BaseModel
 from src.config import logger, cfg
 
-@dataclass
-class Landmark:
+class Landmark(BaseModel):
     """
     Represents a single landmark with normalized coordinates (x, y) and visibility.
     """
@@ -16,12 +15,12 @@ class Landmark:
 
     def get_screen_position(self) -> Tuple[int, int]:
         """
-        Convert normalized coordinates to pixel positions based on video_metadata dimensions.
+        Convert normalized coordinates to pixel positions based on video metadata dimensions.
         """
         return int(cfg.video.width * self.x), int(cfg.video.height * self.y)
 
-@dataclass
-class FrameLandmarks:
+
+class FrameLandmarks(BaseModel):
     """
     Encapsulates landmarks for a single frame.
     """
@@ -47,22 +46,22 @@ class FrameLandmarks:
             return self.landmarks[landmark_name]
         else:
             logger.error(f"Failed to get landmark '{landmark_name}' for the current frame")
-            raise KeyError()
+            raise KeyError(f"Landmark '{landmark_name}' not found")
 
     def get_landmarks(self) -> List[Landmark]:
         return list(self.landmarks.values())
 
-@dataclass
-class LandmarkData:
+
+class LandmarkData(BaseModel):
     frames: Dict[int, FrameLandmarks]
 
     @classmethod
-    def from_dict(cls, data: Dict[int, Dict[str, Dict[str, float]]]):
+    def from_dict(cls, data: Dict[int, Dict[str, Dict[str, float]]]) -> "LandmarkData":
         frames = {
             frame_num: FrameLandmarks.from_dict(frame_num, frame_data)
             for frame_num, frame_data in data.items()
         }
-        return cls(frames)
+        return cls(frames=frames)
 
     def to_dict(self) -> Dict[int, Dict[str, Dict[str, float]]]:
         output = {}

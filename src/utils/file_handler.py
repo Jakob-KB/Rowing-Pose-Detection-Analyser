@@ -34,7 +34,7 @@ def check_path_exists(path: Path, var_name: str = "File", delete_if_found: bool 
     elif file_exists is True:
         return True, ""
 
-def check_session_filepath_exists(filepath: Path, description: str, session_title: str) -> Tuple[bool, str]:
+def check_session_file_exists(filepath: Path, description: str, session_title: str) -> Tuple[bool, str]:
     if not filepath.exists():
         return False, f"Unable to find {description} for session '{session_title}' at {filepath}"
     return True, ""

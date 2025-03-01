@@ -27,6 +27,7 @@ logger.add(
 # Paths from config
 DATA_DIR = PROJECT_ROOT / cfg.dir.data
 CONFIG_DIR = PROJECT_ROOT / cfg.dir.config
+SRC_DIR = PROJECT_ROOT / cfg.dir.src
 SESSIONS_DIR = PROJECT_ROOT / cfg.dir.sessions
 TEMP_DIR = PROJECT_ROOT / "temp"
 

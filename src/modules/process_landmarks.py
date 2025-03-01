@@ -4,7 +4,7 @@ import mediapipe as mp
 from pathlib import Path
 
 from src.config import logger, cfg
-from src.landmark_dataclasses import LandmarkData
+from src.models.landmark_data import LandmarkData
 from src.models.mediapipe_preferences import MediapipePreferences
 
 
