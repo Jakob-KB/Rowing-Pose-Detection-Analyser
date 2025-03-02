@@ -1,4 +1,5 @@
 # src/video_processing/annotate_video.py
+
 import cv2
 import numpy as np
 
@@ -6,8 +7,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 from src.models.annotation_preferences import AnnotationPreferences
-from src.models.landmark_data import LandmarkData, FrameLandmarks
+from src.models.landmark_data import LandmarkData, FrameLandmarks, Landmark
 from src.config import logger, cfg
+
+video_width = cfg.video.width
+video_height = cfg.video.height
+video_fps = cfg.video.fps
 
 
 class AnnotateVideo:
@@ -22,10 +27,14 @@ class AnnotateVideo:
             landmark_data: LandmarkData,
             annotation_preferences: AnnotationPreferences
     ) -> None:
+        """
+        Annotate each frame of the raw video_metadata using landmark data from the YAML file.
+        The annotated video_metadata is saved to the annotated_video_path specified in the session.
+        """
 
         self.annotation_prefs = annotation_preferences
 
-        if self.annotation_prefs is None:
+        if self.annotation_prefs is None: \
             raise ValueError("Annotation preferences not provided.")
 
         if landmark_data is None:
@@ -36,17 +45,17 @@ class AnnotateVideo:
         if not cap.isOpened():
             raise ValueError(f"Unable to open raw video stream from path {raw_video_path}")
 
-        # Configure annotated video output stream
-        # TODO: Handle hard use case of cfg here, or at least reference it
+        # Configure annotated output video_metadata stream
         out = cv2.VideoWriter(
             str(annotated_video_path),
             cv2.VideoWriter_fourcc(*"mp4v"),
-            cfg.video.fps,
-            (cfg.video.width, cfg.video.height)
+            video_fps,
+            (video_width, video_height),
         )
 
-        # Iterate through each frame and attempt to annotate it
+        # Iterate through each frame
         frame_num = 0
+
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -60,10 +69,11 @@ class AnnotateVideo:
                 logger.warning(f"Frame {frame_num} not found in landmark data, skipping.")
                 continue
 
+            out.write(frame)
+
         cap.release()
         out.release()
 
-        # Reset annotation preferences to None
         self.annotation_prefs = None
 
         logger.info(f"Annotated video_metadata saved to {annotated_video_path}")
@@ -75,13 +85,13 @@ class AnnotateVideo:
         Returns a dict of drawn landmarks.
         """
         # Create an overlay copy to draw the landmarks and lines
-        overlay = image.copy()
+        annotation_overlay = image.copy()
 
         # Draw each bone of the skeleton for each of the connect landmarks
         for start_landmark_name, end_landmark_name in self.landmark_connection:
             try:
-                start_landmark = frame_landmarks.get_landmark(start_landmark_name)
-                end_landmark = frame_landmarks.get_landmark(end_landmark_name)
+                start_landmark: Landmark = frame_landmarks.get_landmark(start_landmark_name)
+                end_landmark: Landmark = frame_landmarks.get_landmark(end_landmark_name)
             except KeyError:
                 logger.warning(f"Landmark {start_landmark_name} or {end_landmark_name} not found in frame, skipping.")
                 continue
@@ -90,7 +100,7 @@ class AnnotateVideo:
             end_point: Tuple[int, int] = end_landmark.get_screen_position()
 
             cv2.line(
-                overlay,
+                annotation_overlay,
                 start_point,
                 end_point,
                 self.annotation_prefs.bone_colour,
@@ -100,7 +110,7 @@ class AnnotateVideo:
         # Draw each landmark as a point
         for landmark in frame_landmarks.get_landmarks():
             cv2.circle(
-                overlay,
+                annotation_overlay,
                 landmark.get_screen_position(),
                 self.annotation_prefs.landmark_radius,
                 self.annotation_prefs.landmark_colour,
@@ -117,7 +127,7 @@ class AnnotateVideo:
                 while current_y > end_y:
                     segment_end = max(current_y - self.annotation_prefs.reference_line_dash_factor, end_y)
                     cv2.line(
-                        overlay,
+                        annotation_overlay,
                         (x, current_y),
                         (x, segment_end),
                         self.annotation_prefs.reference_line_colour,
@@ -127,4 +137,4 @@ class AnnotateVideo:
 
         # Opacity blending
         alpha = self.annotation_prefs.opacity
-        cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, image)
+        cv2.addWeighted(annotation_overlay, alpha, image, 1 - alpha, 0, image)
