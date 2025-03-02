@@ -19,23 +19,20 @@ from src.modules.annotate_video import AnnotateVideo
 
 
 class SessionManager:
-    active_session: Session = None
-
-    def set_active_session(self, session: Session) -> None:
-        self.active_session = session
 
     @staticmethod
-    def create_session(
-            session_title: str,
-            original_video_path: Path,
-            overwrite: bool = False,
-            progress_callback=None) -> Session:
+    def create_session(session_title: str, original_video_path: Path, overwrite: bool = False) -> Session:
+        return Session.create(
+            session_title=session_title,
+            original_video_path=original_video_path,
+            overwrite=overwrite,
+        )
 
-        session = Session.create(session_title=session_title, original_video_path=original_video_path)
-
+    @staticmethod
+    def setup_session_directory(session: Session, progress_callback=None) -> None:
         # Handle existing session directory
         if session.session_dir.exists():
-            if not overwrite:
+            if not session.overwrite:
                 logger.error("A session directory with this name already exists.")
                 raise FileExistsError("A session directory with this name already exists.")
             else:
@@ -47,13 +44,13 @@ class SessionManager:
 
         # Clone the original video to session directory with CFR at 30fps
         try:
-            total_frames = get_total_frames(original_video_path)
+            total_frames = get_total_frames(session.original_video_path)
 
             ffmpeg_path = ffmpeg.get_ffmpeg_exe()
             command = [
                 ffmpeg_path,
-                "-y" if overwrite else "-n",
-                "-i", str(original_video_path),
+                "-y" if session.overwrite else "-n",
+                "-i", str(session.original_video_path),
                 "-vsync", "cfr",
                 "-r", str(cfg.video.fps),
                 "-c:v", "libx264",
@@ -101,7 +98,7 @@ class SessionManager:
         except Exception as e:
             raise FileNotFoundError(f"Error saving session configuration: {e}")
 
-        return session
+
 
     @staticmethod
     def process_session(session: Session, progress_callback=None) -> None:
@@ -196,7 +193,11 @@ def main():
     sample_session = session_manager.create_session(
         session_title=sample_session_title,
         original_video_path=sample_video_path,
-        overwrite=True,
+        overwrite=True
+    )
+
+    session_manager.setup_session_directory(
+        session=sample_session,
         progress_callback=progress_callback
     )
 
