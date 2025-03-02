@@ -1,6 +1,9 @@
-# src/models/annotation_preferences.py
-from pydantic import BaseModel
+# src/models/session_files.py
+
 from pathlib import Path
+
+from pydantic import BaseModel
+
 
 class SessionFiles(BaseModel):
     session_config: Path

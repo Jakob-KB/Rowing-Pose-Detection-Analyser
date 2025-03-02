@@ -1,17 +1,20 @@
-import sys
-import mediapipe as mp
-from pathlib import Path
-from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFileDialog
-)
-from PyQt6.QtCore import QThread, pyqtSignal
+# src/simple_gui_pipeline.py
 
-# Import your processing modules
+import sys
+from pathlib import Path
+
+import mediapipe as mp
+from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QLineEdit, QPushButton, QFileDialog
+)
+
 from src.config import DATA_DIR
 from src.modules.session_manager import SessionManager
 from src.modules.process_landmarks import ProcessLandmarks
 from src.modules.annotate_video import AnnotateVideo
+
 
 class WorkerThread(QThread):
     finished = pyqtSignal()
@@ -24,7 +27,7 @@ class WorkerThread(QThread):
 
     def run(self):
         try:
-            # --- Main Pipeline Logic ---
+            # Main pipeline logic
             session_title = self.session_title
             input_video_path = Path(self.input_video_path)
 
@@ -35,7 +38,7 @@ class WorkerThread(QThread):
             session_manager = SessionManager()
             session = session_manager.new_session(session_title, input_video_path, overwrite=True)
 
-            # Process landmarks and annotate video...
+            # Process landmarks and annotate video
             processor = ProcessLandmarks()
             landmark_data = processor.run(
                 raw_video_path=session.files.raw_video,

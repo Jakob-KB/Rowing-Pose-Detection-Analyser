@@ -1,19 +1,19 @@
 # src/video_processing/annotate_video.py
 import cv2
 import numpy as np
-from pathlib import Path
 
+from pathlib import Path
 from typing import List, Tuple
 
 from src.models.annotation_preferences import AnnotationPreferences
-from src.models.landmark_data import LandmarkData, FrameLandmarks, Landmark
+from src.models.landmark_data import LandmarkData, FrameLandmarks
 from src.config import logger, cfg
 
 
 class AnnotateVideo:
     landmark_connection: List = cfg.landmarks.connections
     reference_line_landmarks: List[str] = ["ankle", "hip"]
-    annotation_prefs: AnnotationPreferences = None
+    annotation_prefs: AnnotationPreferences or None = None
 
     def run(
             self,
@@ -22,55 +22,44 @@ class AnnotateVideo:
             landmark_data: LandmarkData,
             annotation_preferences: AnnotationPreferences
     ) -> None:
-        """
-        Annotate each frame of the raw video_metadata using landmark data from the YAML file.
-        The annotated video_metadata is saved to the annotated_video_path specified in the session.
-        """
 
         self.annotation_prefs = annotation_preferences
 
         if self.annotation_prefs is None:
-            logger.error("Annotation preferences not set.")
-            return
+            raise ValueError("Annotation preferences not provided.")
 
         if landmark_data is None:
-            logger.error("No landmark data was loaded.")
-            return
+            raise ValueError("Landmark data not provided.")
 
         # Open raw input video_metadata stream
         cap = cv2.VideoCapture(str(raw_video_path))
         if not cap.isOpened():
-            logger.error(f"Cannot open raw video_metadata: {raw_video_path}")
-            raise
+            raise ValueError(f"Unable to open raw video stream from path {raw_video_path}")
 
-        # Configure annotated output video_metadata stream
+        # Configure annotated video output stream
+        # TODO: Handle hard use case of cfg here, or at least reference it
         out = cv2.VideoWriter(
             str(annotated_video_path),
             cv2.VideoWriter_fourcc(*"mp4v"),
             cfg.video.fps,
             (cfg.video.width, cfg.video.height)
         )
-        # TODO: Handle hard use case of cfg here, or at least reference it
 
-        # Iterate through each frame
+        # Iterate through each frame and attempt to annotate it
         frame_num = 0
-
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
             frame_num += 1
 
-            # Try to get the FrameLandmarks object from the dictionary
-            frame_landmarks = landmark_data.get_frame_landmarks(frame_num)
-            if frame_landmarks is None:
-                logger.warning(f"No landmark data for frame number {frame_num}")
-            else:
+            try:
+                frame_landmarks = landmark_data.get_frame_landmarks(frame_num)
                 self.__annotate_frame(frame, frame_landmarks)
+            except KeyError:
+                logger.warning(f"Frame {frame_num} not found in landmark data, skipping.")
+                continue
 
-            out.write(frame)
-
-        # Release input and output video_metadata streams
         cap.release()
         out.release()
 
@@ -90,8 +79,12 @@ class AnnotateVideo:
 
         # Draw each bone of the skeleton for each of the connect landmarks
         for start_landmark_name, end_landmark_name in self.landmark_connection:
-            start_landmark: Landmark = frame_landmarks.get_landmark(start_landmark_name)
-            end_landmark: Landmark = frame_landmarks.get_landmark(end_landmark_name)
+            try:
+                start_landmark = frame_landmarks.get_landmark(start_landmark_name)
+                end_landmark = frame_landmarks.get_landmark(end_landmark_name)
+            except KeyError:
+                logger.warning(f"Landmark {start_landmark_name} or {end_landmark_name} not found in frame, skipping.")
+                continue
 
             start_point: Tuple[int, int] = start_landmark.get_screen_position()
             end_point: Tuple[int, int] = end_landmark.get_screen_position()

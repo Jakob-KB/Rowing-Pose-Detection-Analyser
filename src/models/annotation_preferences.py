@@ -1,17 +1,26 @@
 # src/models/annotation_preferences.py
-from pydantic import BaseModel
+
 from typing import Tuple
 
+from pydantic import BaseModel, conint, confloat
+
+Color = Tuple[
+    conint(ge=0, le=255),
+    conint(ge=0, le=255),
+    conint(ge=0, le=255)
+]
+
+
 class AnnotationPreferences(BaseModel):
-    bone_colour: Tuple[int, int, int]
-    bone_thickness: int
+    bone_colour: Color
+    bone_thickness: conint(gt=0)
 
-    landmark_colour: Tuple[int, int, int]
-    landmark_radius: int
+    landmark_colour: Color
+    landmark_radius: conint(gt=0)
 
-    reference_line_colour: Tuple[int, int, int]
-    reference_line_length: int
-    reference_line_thickness: int
-    reference_line_dash_factor: int
+    reference_line_colour: Color
+    reference_line_length: conint(gt=0)
+    reference_line_thickness: conint(gt=0)
+    reference_line_dash_factor: conint(ge=0)
 
-    opacity: float
+    opacity: confloat(ge=0, le=1)

@@ -1,34 +1,44 @@
-# src/landmark_dataclasses.py
+# src/models/landmark_data.py
+
 from typing import Dict, List, Tuple
-from pydantic import BaseModel
-from src.config import logger, cfg
+
+from pydantic import BaseModel, confloat, conint
+
+from src.config import cfg
+
+video_width = cfg.video.width
+video_height = cfg.video.height
+
 
 class Landmark(BaseModel):
     """
     Represents a single landmark with normalized coordinates (x, y) and visibility.
     """
-    x: float
-    y: float
-    visibility: float
-    frame: int
+    x: confloat(ge=0.0, le=1.0)
+    y: confloat(ge=0.0, le=1.0)
+    visibility: confloat(ge=0.0, le=1.0)
+    frame: conint(ge=0)
     name: str
 
     def get_screen_position(self) -> Tuple[int, int]:
         """
         Convert normalized coordinates to pixel positions based on video metadata dimensions.
         """
-        return int(cfg.video.width * self.x), int(cfg.video.height * self.y)
+        return int(video_width * self.x), int(video_height * self.y)
 
 
 class FrameLandmarks(BaseModel):
     """
     Encapsulates landmarks for a single frame.
     """
-    frame: int
+    frame: conint(ge=0)
     landmarks: Dict[str, Landmark]
 
     @classmethod
     def from_dict(cls, frame_num: int, data: Dict[str, Dict[str, float]]) -> "FrameLandmarks":
+        """
+        Create a FrameLandmarks instance from a dictionary.
+        """
         _landmarks = {
             name: Landmark(
                 x=entry.get("x", 0.0),
@@ -42,18 +52,20 @@ class FrameLandmarks(BaseModel):
         return cls(frame=frame_num, landmarks=_landmarks)
 
     def get_landmark(self, landmark_name: str) -> Landmark:
-        if landmark_name in self.landmarks:
-            return self.landmarks[landmark_name]
-        else:
-            logger.error(f"Failed to get landmark '{landmark_name}' for the current frame")
-            raise KeyError(f"Landmark '{landmark_name}' not found")
+        landmark = self.landmarks.get(landmark_name)
+        if landmark is None:
+            raise KeyError(f"Landmark '{landmark_name}' not found in frame {self.frame}")
+        return landmark
 
     def get_landmarks(self) -> List[Landmark]:
         return list(self.landmarks.values())
 
 
 class LandmarkData(BaseModel):
-    frames: Dict[int, FrameLandmarks]
+    """
+    Encapsulates all landmark data for a given video.
+    """
+    frames: Dict[conint(ge=0), FrameLandmarks]
 
     @classmethod
     def from_dict(cls, data: Dict[int, Dict[str, Dict[str, float]]]) -> "LandmarkData":
@@ -64,22 +76,23 @@ class LandmarkData(BaseModel):
         return cls(frames=frames)
 
     def to_dict(self) -> Dict[int, Dict[str, Dict[str, float]]]:
-        output = {}
-        for frame_num, frame_landmarks in self.frames.items():
-            landmarks_dict = {}
-            for name, landmark_obj in frame_landmarks.landmarks.items():
-                landmarks_dict[name] = {
-                    "x": landmark_obj.x,
-                    "y": landmark_obj.y,
-                    "z": getattr(landmark_obj, "z", 0.0),  # If you store z as well
-                    "visibility": landmark_obj.visibility
+        """
+        Convert LandmarkData to a dictionary format.
+        """
+        return {
+            frame_num: {
+                name: {
+                    "x": landmark.x,
+                    "y": landmark.y,
+                    "visibility": landmark.visibility
                 }
-            output[frame_num] = landmarks_dict
-        return output
+                for name, landmark in frame_landmarks.landmarks.items()
+            }
+            for frame_num, frame_landmarks in self.frames.items()
+        }
 
     def get_frame_landmarks(self, frame_num: int) -> FrameLandmarks:
-        if frame_num in self.frames:
-            return self.frames[frame_num]
-        else:
-            logger.error(f"Failed to get landmarks for frame {frame_num}")
+        frame_landmarks = self.frames.get(frame_num)
+        if frame_landmarks is None:
             raise KeyError(f"Frame {frame_num} not found")
+        return frame_landmarks
