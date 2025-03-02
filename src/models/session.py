@@ -1,6 +1,7 @@
 # src/models/session.py
 
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -8,6 +9,7 @@ from src.config import SESSIONS_DIR, cfg
 from src.models.annotation_preferences import AnnotationPreferences
 from src.models.mediapipe_preferences import MediapipePreferences
 from src.models.session_files import SessionFiles
+from src.models.video_metadata import VideoMetadata
 
 
 class Session(BaseModel):
@@ -17,6 +19,7 @@ class Session(BaseModel):
 
     files: SessionFiles
 
+    video_metadata: Any
     mediapipe_preferences: MediapipePreferences
     annotation_preferences: AnnotationPreferences
 
@@ -36,6 +39,8 @@ class Session(BaseModel):
             analysis_data=session_dir / cfg.session.files.analysis_data,
             annotated_video=session_dir / cfg.session.files.annotated_video,
         )
+
+        video_metadata = None
 
         annotation_preferences = AnnotationPreferences(
             bone_colour=cfg.session.annotation_preferences.bone_colour,
@@ -61,6 +66,7 @@ class Session(BaseModel):
             original_video_path=original_video_path,
             session_dir=session_dir,
             files=files,
+            video_metadata=video_metadata,
             annotation_preferences=annotation_preferences,
             mediapipe_preferences=mediapipe_preferences
         )

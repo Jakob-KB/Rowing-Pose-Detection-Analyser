@@ -1,12 +1,18 @@
 # src/simple_pipeline.py
 
 from pathlib import Path
+import sys
 
 from src.config import DATA_DIR
 from src.models.session import Session
 from src.modules.session_manager import SessionManager
 from src.modules.process_landmarks import ProcessLandmarks
 from src.modules.annotate_video import AnnotateVideo
+
+
+def progress_callback(stage: str, progress: float) -> None:
+    sys.stdout.write(f"\r{stage}: {progress:.2f}% completed")
+    sys.stdout.flush()
 
 
 def main() -> None:
@@ -21,7 +27,10 @@ def main() -> None:
     processor: ProcessLandmarks = ProcessLandmarks()
     landmark_data = processor.run(
         raw_video_path=session.files.raw_video,
-        mediapipe_preferences=session.mediapipe_preferences)
+        mediapipe_preferences=session.mediapipe_preferences,
+        video_metadata=session.video_metadata,
+        progress_callback=progress_callback
+    )
     session_manager.save_landmarks_to_session(session, landmark_data)
 
     # Annotate landmarks and skeleton in a new saved video_metadata
@@ -29,6 +38,7 @@ def main() -> None:
     annotator.run(
         raw_video_path=session.files.raw_video,
         annotated_video_path=session.files.annotated_video,
+        video_metadata=session.video_metadata,
         landmark_data=landmark_data,
         annotation_preferences=session.annotation_preferences
     )

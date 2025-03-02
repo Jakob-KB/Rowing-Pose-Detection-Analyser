@@ -49,6 +49,7 @@ class WorkerThread(QThread):
             annotator.run(
                 raw_video_path=session.files.raw_video,
                 annotated_video_path=session.files.annotated_video,
+                video_metadata=session.video_metadata,
                 landmark_data=landmark_data,
                 annotation_preferences=session.annotation_preferences
             )

@@ -1,14 +1,18 @@
 # src/modules/session_manager.py
+
 import shutil
 import subprocess
 from pathlib import Path
-import imageio_ffmpeg as ffmpeg
 
-from src.models.landmark_data import LandmarkData
-from src.config import cfg, logger
-from src.models.session import Session
-from src.utils.file_handler import check_session_file_exists
+import imageio_ffmpeg as ffmpeg
 import yaml
+
+from src.config import cfg, logger
+from src.models.landmark_data import LandmarkData
+from src.models.session import Session
+from src.models.video_metadata import VideoMetadata
+from src.utils.file_handler import check_session_file_exists
+
 
 class SessionManager:
     active_session: Session = None
@@ -61,6 +65,8 @@ class SessionManager:
         except Exception as e:
             logger.error(f"Error while processing raw video: {e}")
             raise
+
+        session.video_metadata = VideoMetadata.from_file(session.files.raw_video)
 
         # Save the session configuration to a JSON file in the session directory.
         try:

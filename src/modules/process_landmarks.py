@@ -1,22 +1,29 @@
 # src/modules/process_landmarks.py
-import cv2
+
 from pathlib import Path
+
+import cv2
 import mediapipe as mp
+
 from src.config import logger, cfg
 from src.models.landmark_data import LandmarkData
 from src.models.mediapipe_preferences import MediapipePreferences
+from src.models.video_metadata import VideoMetadata
 
 
 class ProcessLandmarks:
     @staticmethod
-    def run(raw_video_path: Path, mediapipe_preferences: MediapipePreferences) -> LandmarkData:
+    def run(
+            raw_video_path: Path,
+            video_metadata: VideoMetadata,
+            mediapipe_preferences: MediapipePreferences,
+            progress_callback = None
+    ) -> LandmarkData:
         """
         Read the raw video_metadata, run Mediapipe pose detection,
         and return a LandmarkData object containing all frames & landmarks.
-        This method does NOT write to any file directly.
         """
 
-        # Initialize Mediapipe Pose
         mp_pose = mp.solutions.pose.Pose(
             model_complexity=mediapipe_preferences.model_complexity,
             smooth_landmarks=mediapipe_preferences.smooth_landmarks,
@@ -24,13 +31,11 @@ class ProcessLandmarks:
             min_tracking_confidence=mediapipe_preferences.min_tracking_confidence
         )
 
-        # Open the raw video_metadata
         cap = cv2.VideoCapture(str(raw_video_path))
         if not cap.isOpened():
             logger.error(f"Cannot open video_metadata {raw_video_path}")
             raise
 
-        # Detect landmarks per frame
         all_landmarks_dict = {}
         frame_num = 0
         landmark_mapping = cfg.landmarks.mapping
@@ -52,13 +57,17 @@ class ProcessLandmarks:
                     for name, idx in landmark_mapping.items():
                         lm = results.pose_landmarks.landmark[idx]
                         frame_landmarks[name] = {
-                            "x": lm.x,
-                            "y": lm.y,
-                            "z": lm.z,
-                            "visibility": lm.visibility
+                            "x": int(round(lm.x * video_metadata.width)),
+                            "y": int(round(lm.y * video_metadata.height))
                         }
 
                     all_landmarks_dict[frame_num] = frame_landmarks
+
+                # Update progress
+                if progress_callback is not None:
+                    progress = (frame_num / video_metadata.total_frames) * 100
+                    if progress_callback and frame_num % 10 == 0:  # Update every 10 frames
+                        progress_callback("Landmark Processing", progress)
 
         cap.release()
 

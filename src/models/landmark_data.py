@@ -4,27 +4,18 @@ from typing import Dict, List, Tuple
 
 from pydantic import BaseModel, confloat, conint
 
-from src.config import cfg
-
-video_width = cfg.video.width
-video_height = cfg.video.height
-
 
 class Landmark(BaseModel):
     """
     Represents a single landmark with normalized coordinates (x, y) and visibility.
     """
-    x: confloat(ge=0.0, le=1.0)
-    y: confloat(ge=0.0, le=1.0)
-    visibility: confloat(ge=0.0, le=1.0)
+    x: int
+    y: int
     frame: conint(ge=0)
     name: str
 
-    def get_screen_position(self) -> Tuple[int, int]:
-        """
-        Convert normalized coordinates to pixel positions based on video metadata dimensions.
-        """
-        return int(video_width * self.x), int(video_height * self.y)
+    def get_position(self) -> Tuple[int, int]:
+        return self.x, self.y
 
 
 class FrameLandmarks(BaseModel):
@@ -43,7 +34,6 @@ class FrameLandmarks(BaseModel):
             name: Landmark(
                 x=entry.get("x", 0.0),
                 y=entry.get("y", 0.0),
-                visibility=entry.get("visibility", 0.0),
                 frame=frame_num,
                 name=name
             )
@@ -84,7 +74,6 @@ class LandmarkData(BaseModel):
                 name: {
                     "x": landmark.x,
                     "y": landmark.y,
-                    "visibility": landmark.visibility
                 }
                 for name, landmark in frame_landmarks.landmarks.items()
             }
