@@ -4,14 +4,25 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import cv2
 import imageio_ffmpeg as ffmpeg
 import yaml
+import re
 
 from src.config import cfg, logger
 from src.models.landmark_data import LandmarkData
 from src.models.session import Session
 from src.models.video_metadata import VideoMetadata
 from src.utils.file_handler import check_session_file_exists
+
+
+def get_total_frames(video_path):
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        raise RuntimeError(f"Cannot open video file: {video_path}")
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap.release()
+    return total
 
 
 class SessionManager:
@@ -21,14 +32,15 @@ class SessionManager:
         self.active_session = session
 
     @staticmethod
-    def new_session(session_title: str, original_video_path: Path, overwrite: bool = False) -> Session:
+    def new_session(
+            session_title: str,
+            original_video_path: Path,
+            overwrite: bool = False,
+            progress_callback=None) -> Session:
 
-        session = Session.create(
-            session_title=session_title,
-            original_video_path=original_video_path
-        )
+        session = Session.create(session_title=session_title, original_video_path=original_video_path)
 
-        # Check if the session directory exists.
+        # Handle existing session directory
         if session.session_dir.exists():
             if not overwrite:
                 logger.error("A session directory with this name already exists.")
@@ -37,16 +49,13 @@ class SessionManager:
                 shutil.rmtree(session.session_dir)
                 logger.info(f"Existing session directory {session.session_dir} removed due to overwrite=True.")
 
-        # Create the session directory.
-        try:
-            session.session_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Session directory created at {session.session_dir}.")
-        except Exception as e:
-            logger.error(f"Failed to create session directory {session.session_dir}: {e}")
-            raise
+        session.session_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Session directory created at {session.session_dir}.")
 
-        # Process the original video: clone it to raw video using ffmpeg.
+        # Clone the original video to session directory with CFR at 30fps
         try:
+            total_frames = get_total_frames(original_video_path)
+
             ffmpeg_path = ffmpeg.get_ffmpeg_exe()
             command = [
                 ffmpeg_path,
@@ -60,23 +69,44 @@ class SessionManager:
                 "-an",
                 str(session.files.raw_video)
             ]
-            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info(f"Raw video processed and saved with CFR to {session.session_dir / 'raw_video_path.mp4'}.")
+
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+
+            frame_regex = re.compile(r"frame=\s*(\d+)")
+
+            # Read ffmpeg output live
+            for line in iter(process.stderr.readline, ""):
+                if "frame=" in line:
+                    match = frame_regex.search(line)
+                    if match:
+                        try:
+                            processed_frames = int(match.group(1))
+                            progress = (processed_frames / total_frames) * 100
+                            if progress_callback or processed_frames == total_frames:
+                                progress_callback("Setting up session", progress)
+                        except ValueError:
+                            pass
+
+            process.wait()
+            if process.returncode != 0:
+                raise RuntimeError(f"FFmpeg error: {process.stderr.read()}")
+
+            logger.info(f"Raw video processed and cloned with CFR to {session.files.raw_video}")
+
         except Exception as e:
             logger.error(f"Error while processing raw video: {e}")
             raise
 
+        # Configure metadata for any video associated with the session
         session.video_metadata = VideoMetadata.from_file(session.files.raw_video)
 
-        # Save the session configuration to a JSON file in the session directory.
+        # Save session configuration
         try:
             with open(session.files.session_config, "w") as f:
-                # Use model_dump_json with indentation for pretty printing
                 f.write(session.model_dump_json(indent=4))
             logger.info(f"Session configuration saved to {session.files.session_config}.")
         except Exception as e:
-            logger.error(f"Error saving session configuration: {e}")
-            raise
+            raise FileNotFoundError(f"Error saving session configuration: {e}")
 
         return session
 

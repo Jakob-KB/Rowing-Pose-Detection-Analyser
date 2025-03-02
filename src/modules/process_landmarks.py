@@ -64,10 +64,9 @@ class ProcessLandmarks:
                     all_landmarks_dict[frame_num] = frame_landmarks
 
                 # Update progress
-                if progress_callback is not None:
-                    progress = (frame_num / video_metadata.total_frames) * 100
-                    if progress_callback and frame_num % 10 == 0:  # Update every 10 frames
-                        progress_callback("Landmark Processing", progress)
+                progress = (frame_num / video_metadata.total_frames) * 100
+                if progress_callback and frame_num % 10 == 0 or frame_num == video_metadata.total_frames:
+                    progress_callback("Processing pose", progress)
 
         cap.release()
 

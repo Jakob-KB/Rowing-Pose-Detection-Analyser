@@ -72,7 +72,7 @@ session:
     reference_line_dash_factor: 8
 
   mediapipe_preferences:
-    model_complexity: 2
+    model_complexity: 0
     smooth_landmarks: true
     min_detection_confidence: 0.5
     min_tracking_confidence: 0.5

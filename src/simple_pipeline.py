@@ -14,14 +14,19 @@ def progress_callback(stage: str, progress: float) -> None:
     sys.stdout.write(f"\r{stage}: {progress:.2f}% completed")
     sys.stdout.flush()
 
+    if progress >= 100:
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+
 
 def main() -> None:
     session_title: str = "athlete_1"
-    input_video_path: Path = DATA_DIR / "videos" / "athlete_1.mp4"
+    input_video_path: Path = DATA_DIR / "videos" / "athlete_6.mp4"
 
     # Create a new session
     session_manager: SessionManager = SessionManager()
-    session: Session = session_manager.new_session(session_title, input_video_path, overwrite=True)
+    session: Session = session_manager.new_session(session_title, input_video_path, overwrite=True,
+                                                   progress_callback=progress_callback)
 
     # Process landmarks in the raw video_metadata and save them to session
     processor: ProcessLandmarks = ProcessLandmarks()
@@ -40,7 +45,8 @@ def main() -> None:
         annotated_video_path=session.files.annotated_video,
         video_metadata=session.video_metadata,
         landmark_data=landmark_data,
-        annotation_preferences=session.annotation_preferences
+        annotation_preferences=session.annotation_preferences,
+        progress_callback=progress_callback
     )
 
 

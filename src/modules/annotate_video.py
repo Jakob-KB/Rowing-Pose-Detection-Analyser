@@ -4,9 +4,8 @@ import cv2
 import numpy as np
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
-from src.models import video_metadata
 from src.models.annotation_preferences import AnnotationPreferences
 from src.models.landmark_data import LandmarkData, FrameLandmarks, Landmark
 from src.models.video_metadata import VideoMetadata
@@ -23,11 +22,12 @@ class AnnotateVideo:
             annotated_video_path: Path,
             video_metadata: VideoMetadata,
             landmark_data: LandmarkData,
-            annotation_preferences: AnnotationPreferences
+            annotation_preferences: AnnotationPreferences,
+            progress_callback = None
     ) -> None:
         """
-        Annotate each frame of the raw video_metadata using landmark data from the YAML file.
-        The annotated video_metadata is saved to the annotated_video_path specified in the session.
+        Annotate each frame of the raw video using landmark data from the YAML file.
+        The annotated video is saved to the annotated_video_path specified in the session.
         """
 
         if annotation_preferences is None:
@@ -39,12 +39,12 @@ class AnnotateVideo:
         if video_metadata is None:
             raise ValueError("Video metadata not provided.")
 
-        # Open raw input video_metadata stream
+        # Open raw input video stream
         cap = cv2.VideoCapture(str(raw_video_path))
         if not cap.isOpened():
             raise ValueError(f"Unable to open raw video stream from path {raw_video_path}")
 
-        # Configure annotated output video_metadata stream
+        # Configure annotated output video stream
         out = cv2.VideoWriter(
             str(annotated_video_path),
             cv2.VideoWriter_fourcc(*"mp4v"),
@@ -73,6 +73,10 @@ class AnnotateVideo:
                 continue
 
             out.write(frame)
+
+            progress = (frame_num / video_metadata.total_frames) * 100
+            if progress_callback and frame_num % 10 == 0 or frame_num == video_metadata.total_frames:
+                progress_callback("Annotating Video", progress)
 
         cap.release()
         out.release()
