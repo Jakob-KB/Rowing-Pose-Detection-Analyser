@@ -1,5 +1,4 @@
 # src/simple_gui_pipeline.py
-
 import sys
 from pathlib import Path
 
@@ -7,7 +6,7 @@ import mediapipe as mp
 from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFileDialog
+    QLineEdit, QPushButton, QFileDialog, QProgressBar
 )
 
 from src.config import DATA_DIR
@@ -19,6 +18,7 @@ from src.modules.annotate_video import AnnotateVideo
 class WorkerThread(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
+    progress_update = pyqtSignal(str, float)  # Signal to update progress (stage, progress%)
 
     def __init__(self, session_title: str, input_video_path: str, parent=None):
         super().__init__(parent)
@@ -26,8 +26,11 @@ class WorkerThread(QThread):
         self.input_video_path = input_video_path
 
     def run(self):
+        # Define a progress callback that emits our custom signal.
+        def gui_progress_callback(stage: str, progress: float) -> None:
+            self.progress_update.emit(stage, progress)
+
         try:
-            # Main pipeline logic
             session_title = self.session_title
             input_video_path = Path(self.input_video_path)
 
@@ -36,13 +39,20 @@ class WorkerThread(QThread):
 
             # Create a new session
             session_manager = SessionManager()
-            session = session_manager.new_session(session_title, input_video_path, overwrite=True)
+            session = session_manager.new_session(
+                session_title=session_title,
+                original_video_path=input_video_path,
+                progress_callback=gui_progress_callback,
+                overwrite=True
+            )
 
             # Process landmarks and annotate video
             processor = ProcessLandmarks()
             landmark_data = processor.run(
                 raw_video_path=session.files.raw_video,
-                mediapipe_preferences=session.mediapipe_preferences
+                video_metadata=session.video_metadata,
+                mediapipe_preferences=session.mediapipe_preferences,
+                progress_callback=gui_progress_callback
             )
             session_manager.save_landmarks_to_session(session, landmark_data)
             annotator = AnnotateVideo()
@@ -51,7 +61,8 @@ class WorkerThread(QThread):
                 annotated_video_path=session.files.annotated_video,
                 video_metadata=session.video_metadata,
                 landmark_data=landmark_data,
-                annotation_preferences=session.annotation_preferences
+                annotation_preferences=session.annotation_preferences,
+                progress_callback=gui_progress_callback
             )
 
             print("Main function completed.")
@@ -59,12 +70,13 @@ class WorkerThread(QThread):
         except Exception as e:
             self.error.emit(str(e))
 
+
 class SimpleMainPage(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Process Session")
-        self.setup_ui()
         self.worker = None
+        self.setup_ui()
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -88,10 +100,18 @@ class SimpleMainPage(QWidget):
         video_layout.addWidget(browse_button)
         layout.addLayout(video_layout)
 
-        # Process Session Button
-        process_button = QPushButton("Process Session")
-        process_button.clicked.connect(self.process_session)
-        layout.addWidget(process_button)
+        # Process Session Button (store reference for disabling/enabling)
+        self.process_button = QPushButton("Process Session")
+        self.process_button.clicked.connect(self.process_session)
+        layout.addWidget(self.process_button)
+
+        # Progress Label & Progress Bar for UI feedback
+        self.progress_label = QLabel("Progress: 0%")
+        layout.addWidget(self.progress_label)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        layout.addWidget(self.progress_bar)
 
         self.setLayout(layout)
 
@@ -116,16 +136,31 @@ class SimpleMainPage(QWidget):
             print("Please select an input video file.")
             return
 
+        # Disable the process button during processing
+        self.process_button.setEnabled(False)
+        # Reset progress bar and label
+        self.progress_bar.setValue(0)
+        self.progress_label.setText("Progress: 0%")
+
         self.worker = WorkerThread(session_title, input_video_path)
         self.worker.finished.connect(self.on_finished)
         self.worker.error.connect(self.on_error)
+        self.worker.progress_update.connect(self.update_progress)
         self.worker.start()
+
+    def update_progress(self, stage: str, progress: float):
+        # Update UI elements with the latest progress data
+        self.progress_label.setText(f"{stage}: {progress:.2f}% completed")
+        self.progress_bar.setValue(int(progress))
 
     def on_finished(self):
         print("Workflow finished successfully.")
+        self.process_button.setEnabled(True)
 
     def on_error(self, error_message):
         print(f"Workflow error: {error_message}")
+        self.process_button.setEnabled(True)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

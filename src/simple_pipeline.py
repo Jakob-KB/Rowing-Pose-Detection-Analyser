@@ -21,7 +21,7 @@ def progress_callback(stage: str, progress: float) -> None:
 
 def main() -> None:
     session_title: str = "athlete_1"
-    input_video_path: Path = DATA_DIR / "videos" / "athlete_6.mp4"
+    input_video_path: Path = DATA_DIR / "videos" / "athlete_1.mp4"
 
     # Create a new session
     session_manager: SessionManager = SessionManager()

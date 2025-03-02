@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Tuple
 
-from pydantic import BaseModel, confloat, conint
+from pydantic import BaseModel, conint
 
 
 class Landmark(BaseModel):

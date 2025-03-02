@@ -74,9 +74,10 @@ class AnnotateVideo:
 
             out.write(frame)
 
-            progress = (frame_num / video_metadata.total_frames) * 100
-            if progress_callback and frame_num % 10 == 0 or frame_num == video_metadata.total_frames:
-                progress_callback("Annotating Video", progress)
+            if progress_callback:
+                progress = (frame_num / video_metadata.total_frames) * 100
+                if frame_num % 10 == 0 or frame_num == video_metadata.total_frames:
+                    progress_callback("Annotating video", progress)
 
         cap.release()
         out.release()

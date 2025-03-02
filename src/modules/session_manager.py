@@ -82,7 +82,7 @@ class SessionManager:
                         try:
                             processed_frames = int(match.group(1))
                             progress = (processed_frames / total_frames) * 100
-                            if progress_callback or processed_frames == total_frames:
+                            if progress_callback:
                                 progress_callback("Setting up session", progress)
                         except ValueError:
                             pass
