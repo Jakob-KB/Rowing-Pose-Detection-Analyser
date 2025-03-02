@@ -4,7 +4,6 @@ import shutil
 import subprocess
 from pathlib import Path
 
-import cv2
 import imageio_ffmpeg as ffmpeg
 import yaml
 import re
@@ -14,15 +13,9 @@ from src.models.landmark_data import LandmarkData
 from src.models.session import Session
 from src.models.video_metadata import VideoMetadata
 from src.utils.file_handler import check_session_file_exists
-
-
-def get_total_frames(video_path):
-    cap = cv2.VideoCapture(str(video_path))
-    if not cap.isOpened():
-        raise RuntimeError(f"Cannot open video file: {video_path}")
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    cap.release()
-    return total
+from src.utils.video_handler import get_total_frames
+from src.modules.process_landmarks import ProcessLandmarks
+from src.modules.annotate_video import AnnotateVideo
 
 
 class SessionManager:
@@ -32,7 +25,7 @@ class SessionManager:
         self.active_session = session
 
     @staticmethod
-    def new_session(
+    def create_session(
             session_title: str,
             original_video_path: Path,
             overwrite: bool = False,
@@ -111,7 +104,29 @@ class SessionManager:
         return session
 
     @staticmethod
-    def load_existing_session(session_dir: Path) -> Session:
+    def process_session(session: Session, progress_callback=None) -> None:
+        processor: ProcessLandmarks = ProcessLandmarks()
+        landmark_data = processor.run(
+            raw_video_path=session.files.raw_video,
+            mediapipe_preferences=session.mediapipe_preferences,
+            video_metadata=session.video_metadata,
+            progress_callback=progress_callback
+        )
+        SessionManager.save_landmarks_to_session(session, landmark_data)
+
+        # Annotate landmarks and skeleton in a new saved video_metadata
+        annotator: AnnotateVideo = AnnotateVideo()
+        annotator.run(
+            raw_video_path=session.files.raw_video,
+            annotated_video_path=session.files.annotated_video,
+            video_metadata=session.video_metadata,
+            landmark_data=landmark_data,
+            annotation_preferences=session.annotation_preferences,
+            progress_callback=progress_callback
+        )
+
+    @staticmethod
+    def load_session(session_dir: Path) -> Session:
         """
         Loads a session configuration from a JSON file in the given session directory.
         """
@@ -130,6 +145,19 @@ class SessionManager:
         except Exception as e:
             logger.error(f"Error loading session configuration: {e}")
             raise
+
+    @staticmethod
+    def delete_session(session: Session) -> None:
+        expected_session_files = session.files.expected_files()
+        all_session_files = [file.name for file in session.session_dir.iterdir()]
+
+        for file in all_session_files:
+            if file not in expected_session_files:
+                raise FileExistsError(f"Foreign file found in session directory, session will have to be deleted"
+                                        f"manually: {file}")
+
+        shutil.rmtree(session.session_dir)
+        logger.info(f"Session '{session.title}' has been deleted from your session directory at {session.session_dir}")
 
     @staticmethod
     def save_landmarks_to_session(session: Session, landmark_data: LandmarkData) -> None:
@@ -154,3 +182,32 @@ class SessionManager:
         landmark_data = LandmarkData.from_dict(data_dict)
         logger.info(f"Landmark data loaded from {session.files.landmark_data}")
         return landmark_data
+
+
+def main():
+    from src.config import DATA_DIR
+    from src.utils.progress_callback import progress_callback
+
+    sample_session_title = "sample_session"
+    sample_video_path = DATA_DIR / "videos" / "athlete_1.mp4"
+
+    session_manager = SessionManager()
+
+    sample_session = session_manager.create_session(
+        session_title=sample_session_title,
+        original_video_path=sample_video_path,
+        overwrite=True,
+        progress_callback=progress_callback
+    )
+
+    session_manager.process_session(
+        session=sample_session,
+        progress_callback=progress_callback
+    )
+
+    input(f"Press any key to delete '{sample_session_title}'...")
+
+    session_manager.delete_session(sample_session)
+
+if __name__ == "__main__":
+    main()

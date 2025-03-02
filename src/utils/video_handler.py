@@ -1,24 +1,27 @@
+# src/utils/video_handler.py
+
 import cv2
 from pathlib import Path
+from typing import Tuple
 import time
 from src.config import cfg, logger
 
-def validate_raw_video(input_path: Path) -> (bool, str):
+def validate_raw_video(video_path: Path) -> Tuple[bool, str]:
     """
     Validate video_metadata file format, duration, and FPS.
     """
 
     # Check video_metadata format
-    if input_path.suffix.lower() != str("." + cfg.video_metadata.format):
+    if video_path.suffix.lower() != str("." + cfg.video_metadata.format):
         msg = f"Video format must be {cfg.video_metadata.format}."
-        logger.warning(f"{msg} Got {input_path.suffix.lower()} instead.")
+        logger.warning(f"{msg} Got {video_path.suffix.lower()} instead.")
         return False, msg
 
     # Attempt to open video_metadata
-    cap = cv2.VideoCapture(str(input_path))
+    cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
         msg = f"Failed to open video_metadata."
-        logger.warning(f"{msg} At path: {str(input_path)}")
+        logger.warning(f"{msg} At path: {str(video_path)}")
         return False, msg
 
     # Get video_metadata metadata
@@ -51,15 +54,15 @@ def validate_raw_video(input_path: Path) -> (bool, str):
     logger.info(f"Video was successfully validated.")
     return True, ""
 
-def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> None:
+def mirror_video(video_path: Path, output_path: Path, timeout: float = 5.0) -> None:
     """
     Mirrors a video_metadata horizontally and saves the output. This function blocks
     until the output file is created and has a nonzero size or until the timeout is reached.
     """
     # Open the input video_metadata file.
-    cap = cv2.VideoCapture(str(input_path))
+    cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
-        raise ValueError(f"Error opening video_metadata file: {input_path}")
+        raise ValueError(f"Error opening video_metadata file: {video_path}")
 
     # Retrieve video_metadata properties.
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -87,3 +90,12 @@ def mirror_video(input_path: Path, output_path: Path, timeout: float = 5.0) -> N
     start_time = time.time()
     while (not output_path.exists() or output_path.stat().st_size == 0) and (time.time() - start_time < timeout):
         time.sleep(0.1)
+
+def get_total_frames(video_path: Path) -> int:
+    """Returns the total number of frames in a videos file."""
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        raise RuntimeError(f"Cannot open video file: {video_path}")
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap.release()
+    return total
