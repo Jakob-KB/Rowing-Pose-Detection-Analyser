@@ -20,7 +20,7 @@ class ProcessLandmarks:
             progress_callback = None
     ) -> LandmarkData:
         """
-        Read the raw video_metadata, run Mediapipe pose detection,
+        Read the raw video, run Mediapipe pose detection,
         and return a LandmarkData object containing all frames & landmarks.
         """
 
@@ -33,7 +33,7 @@ class ProcessLandmarks:
 
         cap = cv2.VideoCapture(str(raw_video_path))
         if not cap.isOpened():
-            logger.error(f"Cannot open video_metadata {raw_video_path}")
+            logger.error(f"Cannot open video {raw_video_path}")
             raise
 
         all_landmarks_dict = {}

@@ -1,4 +1,5 @@
 # src/simple_gui_pipeline.py
+
 import sys
 from pathlib import Path
 
