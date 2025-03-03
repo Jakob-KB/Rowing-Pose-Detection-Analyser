@@ -11,9 +11,12 @@ from PyQt6.QtWidgets import (
 )
 
 from src.config import DATA_DIR
+from src.models.operation_controls import OperationControls
 from src.modules.session_manager import SessionManager
 from src.modules.process_landmarks import ProcessLandmarks
 from src.modules.annotate_video import AnnotateVideo
+from src.utils.progress_callback import progress_callback
+from src.utils.tokens import CancellationToken
 
 
 class WorkerThread(QThread):
@@ -40,7 +43,7 @@ class WorkerThread(QThread):
 
             # Create a new session
             session_manager = SessionManager()
-            session = session_manager.new_session(
+            session = session_manager.create_session(
                 session_title=session_title,
                 original_video_path=input_video_path,
                 progress_callback=gui_progress_callback,
@@ -53,7 +56,11 @@ class WorkerThread(QThread):
                 raw_video_path=session.files.raw_video,
                 video_metadata=session.video_metadata,
                 mediapipe_preferences=session.mediapipe_preferences,
-                progress_callback=gui_progress_callback
+                progress_callback=OperationControls(
+                    overwrite=False,
+                    progress_callback=gui_progress_callback,
+                    cancellation_token=CancellationToken
+                )
             )
             session_manager.save_landmarks_to_session(session, landmark_data)
             annotator = AnnotateVideo()

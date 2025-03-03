@@ -30,3 +30,4 @@ logger.add(
 DATA_DIR = PROJECT_ROOT / cfg.directories.data
 SRC_DIR = PROJECT_ROOT / cfg.directories.src
 SESSIONS_DIR = PROJECT_ROOT / cfg.directories.sessions
+TEMP_DIR = PROJECT_ROOT / cfg.directories.temp

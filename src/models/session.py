@@ -16,7 +16,7 @@ class Session(BaseModel):
     title: str
     original_video_path: Path
     overwrite: bool
-    session_dir: Path
+    directory: Path
 
     files: SessionFiles
 
@@ -67,7 +67,7 @@ class Session(BaseModel):
             title=session_title,
             original_video_path=original_video_path,
             overwrite=overwrite,
-            session_dir=session_dir,
+            directory=session_dir,
             files=files,
             video_metadata=video_metadata,
             annotation_preferences=annotation_preferences,
