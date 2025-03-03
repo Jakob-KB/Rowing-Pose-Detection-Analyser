@@ -4,13 +4,8 @@ import cv2
 from pathlib import Path
 from typing import Tuple
 import time
-import imageio_ffmpeg as ffmpeg
-import re
 
-import subprocess
 from src.config import cfg, logger
-from src.models.operation_controls import OperationControls
-from src.utils.exceptions import CancellationException
 
 def validate_raw_video(video_path: Path) -> Tuple[bool, str]:
     """
@@ -105,62 +100,3 @@ def get_total_frames(video_path: Path) -> int:
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.release()
     return total
-
-def clone_cfr_video_to_path(
-        input_video_path: Path,
-        output_video_path: Path,
-        operation_controls: OperationControls
-) -> None:
-    # Clone the original video to the session directory with CFR at 30fps.
-    total_frames = get_total_frames(input_video_path)
-
-    ffmpeg_path = ffmpeg.get_ffmpeg_exe()
-    command = [
-        ffmpeg_path,
-        "-y" if operation_controls.overwrite else "-n",
-        "-i", str(input_video_path),
-        "-vsync", "cfr",
-        "-r", str(cfg.video.fps),
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "18",
-        "-an",
-        str(output_video_path)
-    ]
-
-    process = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1
-    )
-
-    frame_regex = re.compile(r"frame=\s*(\d+)")
-
-    # Read FFmpeg output live.
-    for line in iter(process.stderr.readline, ""):
-        # Check for cancellation on each line
-        if operation_controls.cancellation_token and operation_controls.cancellation_token.cancelled:
-            logger.info("Cancellation requested, terminating FFmpeg process.")
-            process.kill()
-            process.wait()
-            raise CancellationException("Session setup cancelled by user.")
-
-        if "frame=" in line:
-            match = frame_regex.search(line)
-            if match:
-                try:
-                    processed_frames = int(match.group(1))
-                    progress = (processed_frames / total_frames) * 100
-                    if operation_controls.progress_callback:
-                        operation_controls.progress_callback("Setting up session", progress)
-                except ValueError:
-                    pass
-
-    process.wait()
-
-    if process.returncode != 0:
-        raise RuntimeError(f"FFmpeg error: {process.stderr.read()}")
-
-    logger.info(f"Raw video processed and cloned with CFR to {output_video_path}")

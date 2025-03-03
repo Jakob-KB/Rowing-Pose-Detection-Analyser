@@ -2,7 +2,6 @@
 
 import shutil
 import sys
-from pathlib import Path
 
 import mediapipe as mp
 from PyQt6.QtCore import QThread, pyqtSignal, Qt
@@ -12,21 +11,17 @@ from PyQt6.QtWidgets import (
 )
 
 from src.config import DATA_DIR, logger
-from src.models.operation_controls import OperationControls
-from src.modules.session_manager import SessionManager
-from src.modules.process_landmarks import ProcessLandmarks, CancellationException
+from src.modules.session_manager import SessionManager, SessionSetup
+from src.modules.process_landmarks import ProcessLandmarks
 from src.modules.annotate_video import AnnotateVideo
+from src.utils.exceptions import CancellationException
 from src.modules.data_io import DataIO
-from src.utils.tokens import CancellationToken
 
 
 def create_pipeline_session():
     """
     Create a new session for the pipeline. If the session directory already exists,
     it will be removed.
-
-    Returns:
-        tuple: (session_manager, session)
     """
     session_manager = SessionManager()
     session_title = "sample_session_v0"
@@ -50,95 +45,80 @@ class PipelineWorker(QThread):
     error = pyqtSignal(str)
 
     def __init__(self, session_manager, session, parent=None):
-        """
-        Initialize the pipeline create_session_pipeline.
-
-        Args:
-            session_manager: The session manager instance.
-            session: The session object.
-            parent: Parent widget.
-        """
         super().__init__(parent)
         self.session_manager = session_manager
         self.session = session
-        self.token = CancellationToken()
+
+        # We'll keep references to the cancelable tasks for cancellation.
+        self.session_setup = None
+        self.landmark_processor = None
+        self.video_annotator = None
 
     def run(self):
-        """Run the pipeline operations in a separate thread."""
         try:
-            # Local progress callback to emit progress updates.
-            def progress_cb(stage: str, progress: float):
-                self.progress_update.emit(stage, progress)
+            # Local lambda for progress updates.
+            progress_cb = lambda stage, progress: self.progress_update.emit(stage, progress)
 
             # === Step 1: Setup Session Directory ===
-            setup_controls = OperationControls(
-                overwrite=True,
-                progress_callback=progress_cb,
-                cancellation_token=self.token
-            )
-            self.session_manager.setup_session_directory(self.session, setup_controls)
+            self.session_setup = SessionSetup(self.session)
+            self.session_setup.set_progress_callback(progress_cb)
+            self.session_setup.run()
 
-            # === Process Landmarks ===
-            processor_controls = OperationControls(
-                overwrite=False,
-                progress_callback=progress_cb,
-                cancellation_token=self.token
-            )
-            processor = ProcessLandmarks()
-            landmark_data = processor.run(
+            # === Step 2: Process Landmarks ===
+            self.landmark_processor = ProcessLandmarks(
                 raw_video_path=self.session.files.raw_video,
                 video_metadata=self.session.video_metadata,
-                mediapipe_preferences=self.session.mediapipe_preferences,
-                operation_controls=processor_controls
+                mediapipe_preferences=self.session.mediapipe_preferences
             )
+            self.landmark_processor.set_progress_callback(progress_cb)
+            landmark_data = self.landmark_processor.run()
 
-            data_io = DataIO()
-            data_io.save_landmark_data_to_file(
+            # Save landmark data.
+            DataIO().save_landmark_data_to_file(
                 file_path=self.session.files.landmark_data,
                 landmark_data=landmark_data
             )
 
-            # === Step 2: Annotate Video ===
-            annotation_controls = OperationControls(
-                overwrite=False,
-                progress_callback=progress_cb,
-                cancellation_token=self.token
-            )
-            annotator = AnnotateVideo()
-            annotator.run(
+            # === Step 3: Annotate Video ===
+            self.video_annotator = AnnotateVideo(
                 raw_video_path=self.session.files.raw_video,
                 annotated_video_path=self.session.files.annotated_video,
                 video_metadata=self.session.video_metadata,
                 landmark_data=landmark_data,
                 annotation_preferences=self.session.annotation_preferences,
-                operation_controls=annotation_controls
+                overwrite=False
             )
+            self.video_annotator.set_progress_callback(progress_cb)
+            self.video_annotator.run()
 
             self.finished.emit()
 
         except CancellationException:
             logger.info("Pipeline cancelled by user. Deleting session directory.")
             self.session_manager.delete_session(session=self.session)
-            # Emit finished signal even on cancellation so that the dialog can clean up.
             self.finished.emit()
         except Exception as e:
             self.error.emit(str(e))
-            logger.warning(f"Pipeline failed with error (session has been deleted): {e}")
+            logger.warning(f"Pipeline failed with error (session deleted): {e}")
             self.session_manager.delete_session(session=self.session)
 
     def cancel(self):
-        """Signal the create_session_pipeline to cancel its operations."""
-        self.token.cancelled = True
+        """Cancel any active task in the pipeline."""
+        if self.session_setup:
+            self.session_setup.cancel()
+        if self.landmark_processor:
+            self.landmark_processor.cancel()
+        if self.video_annotator:
+            self.video_annotator.cancel()
 
 
 class PipelineDialog(QDialog):
     """
     Dialog window that displays the pipeline progress and allows cancellation.
-    The dialog disables the window close button and waits for the create_session_pipeline thread to finish.
+    The dialog disables the window close button and waits for the pipeline thread to finish.
     """
     def __init__(self, parent=None):
         super().__init__(parent)
-        # Disable the close ("X") button.
         flags = self.windowFlags()
         flags &= ~Qt.WindowType.WindowCloseButtonHint
         self.setWindowFlags(flags)
@@ -146,7 +126,6 @@ class PipelineDialog(QDialog):
         self.setWindowTitle("Pipeline Progress")
         self.resize(300, 150)
 
-        # Layout and widgets.
         self.layout = QVBoxLayout(self)
         self.progress_label = QLabel("Starting pipeline...", self)
         self.progress_bar = QProgressBar(self)
@@ -157,29 +136,22 @@ class PipelineDialog(QDialog):
         self.layout.addWidget(self.progress_bar)
         self.layout.addWidget(self.cancel_btn)
 
-        # Flag to track if cancellation has been requested.
         self.cancel_requested = False
 
-        # Create a new session for the pipeline.
         self.session_manager, self.session = create_pipeline_session()
-
-        # Initialize and connect the pipeline create_session_pipeline.
         self.worker = PipelineWorker(self.session_manager, self.session, self)
         self.worker.progress_update.connect(self.update_progress)
         self.worker.finished.connect(self.on_finished)
         self.worker.error.connect(self.on_error)
         self.cancel_btn.clicked.connect(self.cancel_pipeline)
 
-        # Start the create_session_pipeline thread.
         self.worker.start()
 
     def update_progress(self, stage: str, progress: float):
-        """Update the progress label and progress bar."""
         self.progress_label.setText(f"{stage}: {progress:.2f}%")
         self.progress_bar.setValue(int(progress))
 
     def on_finished(self):
-        """Handle create_session_pipeline finished signal."""
         if self.cancel_requested:
             self.close()
         else:
@@ -187,14 +159,12 @@ class PipelineDialog(QDialog):
             self.cancel_btn.setEnabled(False)
 
     def on_error(self, err: str):
-        """Handle errors emitted by the create_session_pipeline."""
         self.progress_label.setText(f"Error: {err}")
         if self.cancel_requested:
             self.close()
 
     def cancel_pipeline(self):
-        """Initiate cancellation of the pipeline."""
-        if not self.worker.token.cancelled:
+        if not self.cancel_requested:
             self.cancel_requested = True
             self.worker.cancel()
             self.progress_label.setText("Cancelling pipeline...")
@@ -203,8 +173,7 @@ class PipelineDialog(QDialog):
 
 class MainWindow(QWidget):
     """
-    Main window that displays a single 'Start' button.
-    Clicking the button opens the pipeline dialog.
+    Main window that displays a single 'Start' button to launch the pipeline dialog.
     """
     def __init__(self):
         super().__init__()
@@ -220,13 +189,11 @@ class MainWindow(QWidget):
         self.start_btn.clicked.connect(self.open_pipeline_dialog)
 
     def open_pipeline_dialog(self):
-        """Open the pipeline progress dialog modally."""
         dialog = PipelineDialog(self)
         dialog.exec()
 
 
 def main():
-    """Entry point of the application."""
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
