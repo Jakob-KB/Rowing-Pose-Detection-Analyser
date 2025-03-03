@@ -9,7 +9,6 @@ directories:
   src: "src"
   config: "src/config"
   sessions: "sessions"
-  temp: "temp"
 
 
 # Logging Configuration

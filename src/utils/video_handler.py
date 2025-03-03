@@ -141,7 +141,7 @@ def clone_cfr_video_to_path(
     # Read FFmpeg output live.
     for line in iter(process.stderr.readline, ""):
         # Check for cancellation on each line
-        if operation_controls.cancellation_token.cancelled:
+        if operation_controls.cancellation_token and operation_controls.cancellation_token.cancelled:
             logger.info("Cancellation requested, terminating FFmpeg process.")
             process.kill()
             process.wait()

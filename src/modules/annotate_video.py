@@ -9,7 +9,7 @@ from src.models.annotation_preferences import AnnotationPreferences
 from src.models.landmark_data import LandmarkData, FrameLandmarks, Landmark
 from src.models.video_metadata import VideoMetadata
 from src.models.operation_controls import OperationControls
-from src.config import logger, cfg, TEMP_DIR
+from src.config import logger, cfg
 from src.utils.exceptions import CancellationException
 
 
@@ -28,9 +28,6 @@ class AnnotateVideo:
     ) -> None:
         """
         Annotate each frame of the raw video using landmark data.
-        The annotated video is written to a temporary file first. If processing
-        completes successfully, the temporary file is renamed to the final output path.
-        If cancellation is requested (or an error occurs), the temporary file is deleted.
         """
         if annotation_preferences is None:
             raise ValueError("Annotation preferences not provided.")
@@ -52,10 +49,6 @@ class AnnotateVideo:
         cap = cv2.VideoCapture(str(raw_video_path))
         if not cap.isOpened():
             raise ValueError(f"Unable to open raw video stream from path {raw_video_path}")
-
-        # Create a temporary file path in the same directory.
-        temp_path = TEMP_DIR / f"temp_annotated.mp4"
-        logger.info(f"Writing annotated video to temporary file: {temp_path}")
 
         # Configure annotated output video stream to write to the temp file.
         out = cv2.VideoWriter(

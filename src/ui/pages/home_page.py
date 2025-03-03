@@ -1,88 +1,88 @@
-# src/pages/home_page.py
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QSpacerItem, QSizePolicy
-)
-from PyQt6.QtCore import QDir, Qt
-from PyQt6.QtGui import QPixmap
-from pathlib import Path
-from src.config import SESSIONS_DIR, SRC_DIR
+# src/ui/pages/home_page.py
 
+from pathlib import Path
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QDialog
+from src.config import SESSIONS_DIR, logger
 
 class HomePage(QWidget):
-    def __init__(self, main_app):
-        super().__init__()
-        self.main_app = main_app
+    def __init__(self, app_context, navigate, parent=None):
+        """
+        app_context: Shared application context.
+        navigate: A callback for page switching.
+        """
+        super().__init__(parent)
+        self.app_context = app_context
+        self.navigate = navigate
 
-        # Main layout with improved spacing and margins
-        layout = QVBoxLayout()
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
-        self.setLayout(layout)
+        self.setWindowTitle("Simple Pipeline")
+        self.setFixedSize(400, 400)
 
-        # Title Label with centered alignment and enhanced styling
-        title_label = QLabel("Rowing Session Analyzer")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("""
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffff;
-            margin-bottom: 20px;
-        """)
-        layout.addWidget(title_label)
+        layout = QVBoxLayout(self)
 
-        # Logo Image: Place your logo above the buttons
-        logo_path: Path = SRC_DIR / "assets" / "logo.png"
-        logo_label = QLabel()
-        logo_pixmap = QPixmap(str(logo_path))
-        if logo_pixmap.isNull():
-            print(f"Logo image not found at: {logo_path}")
-        # Scale the logo to 400 pixels wide (2x the button width)
-        logo_pixmap = logo_pixmap.scaledToWidth(400, Qt.TransformationMode.SmoothTransformation)
-        logo_label.setPixmap(logo_pixmap)
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(logo_label)
+        header = QLabel("Welcome to the Simple Pipeline", self)
+        header.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(header)
 
-        # Top spacer to push content toward the center (if desired)
-        layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        self.start_btn = QPushButton("Start", self)
+        layout.addStretch(1)
+        layout.addWidget(self.start_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addStretch(1)
+        self.start_btn.clicked.connect(self.create_session)
 
-        # Fixed width for both buttons
-        fixed_width = 200
+        # Button to load an existing session.
+        self.load_session_btn = QPushButton("Load Existing Session", self)
+        layout.addWidget(self.load_session_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.load_session_btn.clicked.connect(self.load_existing_session)
 
-        # Create New Session Button with modern styling (currently non-functional)
-        btn_create_session = QPushButton("Create New Session")
-        btn_create_session.setFixedWidth(fixed_width)
-        btn_create_session.setStyleSheet("""
-            font-size: 16px;
-            padding: 12px;
-            border-radius: 8px;
-            background-color: #4CAF50;
-            color: white;
-        """)
-        layout.addWidget(btn_create_session, alignment=Qt.AlignmentFlag.AlignCenter)
+    def create_session(self):
+        """
+        Launches the generic loading dialog with the session creation pipeline.
+        On success, navigates to the session page.
+        """
+        from src.ui.pipelines.create_session_pipeline import CreateSessionPipeline
+        from src.ui.components.loading_dialog import LoadingDialog
+        from PyQt6.QtWidgets import QDialog
 
-        # Open Existing Session Button with similar styling
-        btn_open_session = QPushButton("Open Existing Session")
-        btn_open_session.setFixedWidth(fixed_width)
-        btn_open_session.setStyleSheet("""
-            font-size: 16px;
-            padding: 12px;
-            border-radius: 8px;
-            background-color: #2196F3;
-            color: white;
-        """)
-        btn_open_session.clicked.connect(self.open_existing_session)
-        layout.addWidget(btn_open_session, alignment=Qt.AlignmentFlag.AlignCenter)
+        pipeline_worker = CreateSessionPipeline(app_context=self.app_context, parent=self)
+        dialog = LoadingDialog(pipeline_worker=pipeline_worker, parent=self)
+        result = dialog.exec()
 
-        # Bottom spacer for balanced vertical alignment
-        layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        if result == QDialog.DialogCode.Accepted:
+            from src.ui.pages.session_page import SessionPage
+            session_page = SessionPage(app_context=self.app_context, navigate=self.navigate)
+            self.navigate(session_page)
+        else:
+            logger.info("Pipeline cancelled or failed; staying on home page.")
 
-    def open_existing_session(self):
-        """Opens a file dialog to select a session folder and loads the session."""
-        session_folder = QFileDialog.getExistingDirectory(
+    def load_existing_session(self):
+        """
+        Opens a folder selection dialog for loading an existing session.
+        The selected folder is displayed in the main window's status bar.
+        """
+        folder = QFileDialog.getExistingDirectory(
             self,
-            "Select a Session Folder",
+            "Select Session Folder",
             str(SESSIONS_DIR),
             QFileDialog.Option.ShowDirsOnly
         )
-        if session_folder:  # Check if a folder was selected
-            self.main_app.load_session(session_folder)
+
+        from src.ui.pipelines.load_session_pipeline import LoadSessionPipeline
+        from src.ui.components.loading_dialog import LoadingDialog
+        from PyQt6.QtWidgets import QDialog
+
+        pipeline_worker = LoadSessionPipeline(
+            session_directory=Path(folder),
+            app_context=self.app_context,
+            parent=self
+        )
+        dialog = LoadingDialog(pipeline_worker=pipeline_worker, parent=self)
+        result = dialog.exec()
+
+        if result == QDialog.DialogCode.Accepted:
+            from src.ui.pages.session_page import SessionPage
+            session_page = SessionPage(app_context=self.app_context, navigate=self.navigate)
+            self.navigate(session_page)
+        else:
+            logger.info("Pipeline cancelled or failed; staying on home page.")

@@ -7,12 +7,11 @@ from src.config import cfg, logger
 from src.models.operation_controls import OperationControls
 from src.models.session import Session
 from src.models.video_metadata import VideoMetadata
-from src.utils.file_handler import check_session_file_exists
 from src.utils.video_handler import clone_cfr_video_to_path
+from src.utils.exceptions import CancellationException
 
 
 class SessionManager:
-
     @staticmethod
     def create_session(session_title: str, original_video_path: Path, overwrite: bool = False) -> Session:
         return Session.create(
@@ -54,15 +53,23 @@ class SessionManager:
             raise FileNotFoundError(f"Error saving session configuration: {e}")
 
     @staticmethod
-    def load_session(session_directory: Path) -> Session:
+    def load_session(session_directory: Path, operation_controls: OperationControls) -> Session:
         """
         Loads a session configuration from a JSON file in the given session directory.
+        Progress is reported via operation_controls, and cancellation is honored.
         """
         config_file = session_directory / cfg.session.files.session_config
 
-        valid, msg = check_session_file_exists(config_file, "config file", session_directory.name)
-        if not valid:
-            raise FileNotFoundError(msg)
+        # Check for cancellation before starting.
+        if operation_controls.cancellation_token and operation_controls.cancellation_token.cancelled:
+            raise CancellationException("Session loading cancelled by user.")
+
+        # Update progress: start.
+        if operation_controls.progress_callback:
+            operation_controls.progress_callback("Loading session", 0)
+
+        if not config_file.exists():
+            raise FileNotFoundError("Unable to find config file for the selected session.")
 
         try:
             with open(config_file, "r") as f:
@@ -70,6 +77,11 @@ class SessionManager:
             session = Session.model_validate_json(data)
             session.video_metadata = VideoMetadata.from_dict(session.video_metadata)
             logger.info(f"Session loaded from {config_file}.")
+
+            # Update progress: complete.
+            if operation_controls.progress_callback:
+                operation_controls.progress_callback("Loading session", 100)
+
             return session
         except Exception as e:
             logger.error(f"Error loading session configuration: {e}")
@@ -87,33 +99,3 @@ class SessionManager:
 
         shutil.rmtree(session.directory)
         logger.info(f"Session '{session.title}' has been deleted from your session directory at {session.directory}")
-
-
-def main():
-    from src.config import DATA_DIR
-    from src.utils.progress_callback import progress_callback
-
-    sample_session_title = "sample_session"
-    sample_video_path = DATA_DIR / "videos" / "athlete_1.mp4"
-
-    session_manager = SessionManager()
-
-    sample_session = session_manager.create_session(
-        session_title=sample_session_title,
-        original_video_path=sample_video_path,
-        overwrite=True
-    )
-
-    session_manager.setup_session_directory(
-        session=sample_session,
-        progress_callback=progress_callback
-    )
-
-
-
-    input(f"Press any key to delete '{sample_session_title}'...")
-
-    session_manager.delete_session(sample_session)
-
-if __name__ == "__main__":
-    main()

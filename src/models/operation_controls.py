@@ -2,15 +2,15 @@
 
 from pydantic import BaseModel
 
-from typing import Callable, Any
+from typing import Any
 
 from src.utils.tokens import CancellationToken
 
 
 class OperationControls(BaseModel):
-    overwrite: bool
-    progress_callback: Any
-    cancellation_token: CancellationToken
+    overwrite: bool = False
+    progress_callback: Any = None
+    cancellation_token: CancellationToken | None = None
 
     class Config:
         arbitrary_types_allowed = True
