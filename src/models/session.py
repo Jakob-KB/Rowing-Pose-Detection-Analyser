@@ -9,14 +9,14 @@ from src.config import SESSIONS_DIR, cfg
 from src.models.annotation_preferences import AnnotationPreferences
 from src.models.mediapipe_preferences import MediapipePreferences
 from src.models.session_files import SessionFiles
-from src.models.video_metadata import VideoMetadata
+# from src.models.video_metadata import VideoMetadata
 
 
 class Session(BaseModel):
     title: str
     original_video_path: Path
-    session_dir: Path
-
+    overwrite: bool
+    directory: Path | str
     files: SessionFiles
 
     video_metadata: Any
@@ -27,7 +27,8 @@ class Session(BaseModel):
     def create(
         cls,
         session_title: str,
-        original_video_path: Path
+        original_video_path: Path,
+        overwrite: bool
     ) -> "Session":
 
         session_dir = SESSIONS_DIR / session_title
@@ -64,7 +65,8 @@ class Session(BaseModel):
         return cls(
             title=session_title,
             original_video_path=original_video_path,
-            session_dir=session_dir,
+            overwrite=overwrite,
+            directory=session_dir,
             files=files,
             video_metadata=video_metadata,
             annotation_preferences=annotation_preferences,

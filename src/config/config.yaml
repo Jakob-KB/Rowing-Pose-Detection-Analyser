@@ -54,7 +54,7 @@ session:
     session_config: "session_config.json"
     raw_video: "raw.mp4"
     landmark_data: "landmarks.yaml"
-    analysis_data: "scripts.yaml"
+    analysis_data: "analysis.yaml"
     annotated_video: "annotated.mp4"
 
   annotation_preferences:

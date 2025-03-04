@@ -36,5 +36,9 @@ class VideoMetadata(BaseModel):
             width=width
         )
 
+    @classmethod
+    def from_dict(cls, metadata_dict: dict) -> "VideoMetadata":
+        return cls(**metadata_dict)
+
     def get_dimensions(self) -> Tuple[int, int]:
         return self.width, self.height
