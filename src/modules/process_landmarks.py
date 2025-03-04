@@ -19,10 +19,6 @@ class ProcessLandmarks:
             mediapipe_preferences: MediapipePreferences,
             progress_callback = None
     ) -> LandmarkData:
-        """
-        Read the raw video, run Mediapipe pose detection,
-        and return a LandmarkData object containing all frames & landmarks.
-        """
 
         mp_pose = mp.solutions.pose.Pose(
             model_complexity=mediapipe_preferences.model_complexity,
