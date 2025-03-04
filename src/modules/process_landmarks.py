@@ -11,6 +11,7 @@ from src.models.mediapipe_preferences import MediapipePreferences
 from src.models.video_metadata import VideoMetadata
 
 
+
 class ProcessLandmarks:
     @staticmethod
     def run(
