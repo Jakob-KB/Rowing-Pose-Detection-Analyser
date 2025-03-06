@@ -13,7 +13,10 @@ from src.models.video_metadata import VideoMetadata
 
 
 class ProcessLandmarks:
-    def __init__(self, mediapipe_preferences: MediapipePreferences) -> None:
+    def __init__(
+            self,
+            mediapipe_preferences: MediapipePreferences = MediapipePreferences()
+    ) -> None:
         self.mediapipe_preferences: MediapipePreferences = mediapipe_preferences
 
     def run(self,

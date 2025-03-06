@@ -1,4 +1,4 @@
-# src/modules/clone_cfr_video.py
+# src/modules/clone_cfr_video_worker.py
 
 from pathlib import Path
 import imageio_ffmpeg as ffmpeg
