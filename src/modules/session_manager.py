@@ -1,27 +1,73 @@
 # src/modules/session_manager.py
 
 import shutil
+
+from src.models.annotation_preferences import AnnotationPreferences
+from src.models.mediapipe_preferences import MediapipePreferences
 from src.models.session import Session
+from src.models.session_files import SessionFiles
 from src.models.video_metadata import VideoMetadata
 
 from pathlib import Path
-import imageio_ffmpeg as ffmpeg
-import re
-
-import subprocess
 from src.config import cfg, logger
-from src.utils.exceptions import CancellationException
-from src.utils.video_handler import get_total_frames
-from src.models.cancelable_process import CancelableProcess
+
+from src.config import SESSIONS_DIR
 
 class SessionManager:
     @staticmethod
-    def create_session(session_title: str, original_video_path: Path, overwrite: bool = False) -> Session:
-        return Session.create(
-            session_title=session_title,
+    def create_session(
+            session_title: str,
+            original_video_path: Path,
+            mediapipe_preferences: MediapipePreferences = MediapipePreferences(),
+            annotation_preferences: AnnotationPreferences = AnnotationPreferences(),
+            overwrite: bool = False) -> Session:
+
+        session_directory = SESSIONS_DIR / session_title
+        files = SessionFiles.from_session_directory(session_directory=session_directory)
+
+        if session_directory.exists():
+            if overwrite:
+                shutil.rmtree(session_directory)
+                logger.info(f"Session {session_title} already exists, deleting for overwrite.")
+            else:
+                raise FileExistsError(f"Session '{session_title}' already exists.")
+            
+        session = Session(
+            title=session_title,
             original_video_path=original_video_path,
-            overwrite=overwrite,
+            directory=session_directory,
+            files=files,
+            video_metadata=None,
+            mediapipe_preferences=mediapipe_preferences,
+            annotation_preferences=annotation_preferences
         )
+
+        try:
+            # Create the session directory
+            session_directory.mkdir(parents=True, exist_ok=False)
+
+            # Save config to the session directory
+            with open(session.files.session_config, "w") as f:
+                f.write(session.model_dump_json(indent=4))
+            logger.info(f"Session created and saved to {session.directory}.")
+
+            return session
+        except Exception as e:
+            raise Exception(f"Error creating session: {e}")
+
+    @staticmethod
+    def save_session(session: Session) -> None:
+        with open(session.files.session_config, "w") as f:
+            f.write(session.model_dump_json(indent=4))
+        logger.info(f"Session config saved for '{session.title}'.")
+
+    @staticmethod
+    def update_session(session: Session) -> None:
+        if not session.directory.exists():
+            return
+        if session.files.raw_video.exists():
+            session.video_metadata = VideoMetadata.from_file(session.files.raw_video)
+            logger.info(f"Session video metadata updated for '{session.title}'.")
 
     @staticmethod
     def load_session(session_directory: Path, progress_callback=None) -> Session:
@@ -64,89 +110,3 @@ class SessionManager:
 
         shutil.rmtree(session.directory)
         logger.info(f"Session '{session.title}' has been deleted from {session.directory}")
-
-class SessionSetup(CancelableProcess):
-    def __init__(self, session: Session):
-        super().__init__()
-        self.session = session
-
-    def run(self) -> None:
-        """
-        Sets up the session directory, clones the original video with CFR at the configured fps,
-        and saves the session configuration. Cancellation is checked throughout the process.
-        """
-        # Handle existing session directory.
-        if self.session.directory.exists():
-            if not self.session.overwrite:
-                logger.error("A session directory with this name already exists.")
-                raise FileExistsError("A session directory with this name already exists.")
-            else:
-                shutil.rmtree(self.session.directory)
-                logger.info(f"Existing session directory {self.session.directory} removed (overwrite enabled).")
-
-        self.session.directory.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Session directory created at {self.session.directory}.")
-
-        input_video_path = self.session.original_video_path
-        output_video_path = self.session.files.raw_video
-
-        # Clone the original video to the session directory with CFR at the target fps.
-        total_frames = get_total_frames(input_video_path)
-        ffmpeg_path = ffmpeg.get_ffmpeg_exe()
-        command = [
-            ffmpeg_path,
-            "-y" if self.session.overwrite else "-n",
-            "-i", str(input_video_path),
-            "-vsync", "cfr",
-            "-r", str(cfg.video.fps),
-            "-c:v", "libx264",
-            "-preset", "fast",
-            "-crf", "18",
-            "-an",
-            str(output_video_path)
-        ]
-
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1
-        )
-
-        frame_regex = re.compile(r"frame=\s*(\d+)")
-        # Read FFmpeg output live.
-        for line in iter(process.stderr.readline, ""):
-            # Check for cancellation on each line.
-            if self.is_cancelled():
-                logger.info("Cancellation requested, terminating FFmpeg process.")
-                process.kill()
-                process.wait()
-                raise CancellationException("Session setup cancelled by user.")
-
-            if "frame=" in line:
-                match = frame_regex.search(line)
-                if match:
-                    try:
-                        processed_frames = int(match.group(1))
-                        progress = (processed_frames / total_frames) * 100
-                        self.report_progress("Setting up session", progress)
-                    except ValueError:
-                        pass
-
-        process.wait()
-        if process.returncode != 0:
-            raise RuntimeError(f"FFmpeg error: {process.stderr.read()}")
-
-        logger.info(f"Raw video processed and cloned with CFR to {output_video_path}")
-
-        # Configure metadata for the session video.
-        self.session.video_metadata = VideoMetadata.from_file(self.session.files.raw_video)
-
-        # Save session configuration.
-        try:
-            with open(self.session.files.session_config, "w") as f:
-                f.write(self.session.model_dump_json(indent=4))
-            logger.info(f"Session configuration saved to {self.session.files.session_config}.")
-        except Exception as e:
-            raise FileNotFoundError(f"Error saving session configuration: {e}")

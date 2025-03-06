@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Tuple
 
 import cv2
-from pydantic import BaseModel, conint, confloat
+from pydantic import BaseModel, conint
 
 
 class VideoMetadata(BaseModel):
