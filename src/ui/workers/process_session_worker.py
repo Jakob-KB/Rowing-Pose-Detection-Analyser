@@ -1,4 +1,5 @@
 import re
+import shutil
 import subprocess
 from pathlib import Path
 from PyQt6.QtCore import QThread, pyqtSignal
@@ -7,37 +8,46 @@ import imageio_ffmpeg as ffmpeg
 from src.config import cfg, logger
 from src.models.video_metadata import VideoMetadata
 from src.utils.video_handler import get_total_frames
-    
-class CloneCFRVideoWorker(QThread):
-    progress = pyqtSignal(str, int)    # (status message, progress percentage)
+from src.models.session import Session
+from src.ui.utils.session_utils import delete_session
+
+class ProcessSessionWorker(QThread):
+    progress = pyqtSignal(str, object)
     finished = pyqtSignal()
     canceled = pyqtSignal()
     error_occurred = pyqtSignal(str)
 
-    def __init__(
-        self,
-        input_video_path: Path,
-        output_video_path: Path,
-        parent=None
-    ) -> None:
+    def __init__(self, session: Session, overwrite: bool = False, parent=None) -> None:
         super().__init__(parent)
-        self.input_video_path: Path = input_video_path
-        self.output_video_path: Path = output_video_path
-
-        self.video_metadata: VideoMetadata | None = None
+        self.session: Session = session
+        self.overwrite: bool = overwrite
         self._is_canceled: bool = False
 
     def cancel(self):
         """Signal the thread to cancel its work."""
         self._is_canceled = True
 
-    def _cleanup(self):
-        if self.output_video_path.exists():
-            self.output_video_path.unlink()
-            logger.info(f"CFR cloned video remnants deleted.")
+    def update_state(self, message: str, progress: int | None = None):
+        if progress:
+            self.progress.emit(message, progress)
+        else:
+            self.progress.emit(message, None)
 
     def run(self):
+        process = None
         try:
+            # Check that the session doesn't already exist, if it does overwrite it.
+            self.update_state("Checking session validity")
+            if self.session.directory.exists():
+                if self.overwrite:
+                    delete_session(self.session)
+                else:
+                    raise FileExistsError(f"Session '{self.session.title}' already exists in the sessions directory.")
+
+            # Create the session directory
+            self.update_state("Creating session directory")
+            self.session.directory.mkdir(parents=True, exist_ok=False)
+
             # Get the path to the ffmpeg executable.
             ffmpeg_path = ffmpeg.get_ffmpeg_exe()
 
@@ -45,18 +55,18 @@ class CloneCFRVideoWorker(QThread):
             command = [
                 ffmpeg_path,
                 "-y",
-                "-i", str(self.input_video_path),
+                "-i", str(self.session.original_video_path),
                 "-vsync", "cfr",
                 "-r", str(cfg.video.fps),
                 "-c:v", "libx264",
                 "-preset", "fast",
                 "-crf", "18",
                 "-an",
-                str(self.output_video_path)
+                str(self.session.files.raw_video)
             ]
 
             # Retrieve the total frame count for progress calculation.
-            total_frames = get_total_frames(self.input_video_path)
+            total_frames = get_total_frames(self.session.original_video_path)
 
             # Start FFmpeg with pipes so we can read progress.
             process = subprocess.Popen(
@@ -72,34 +82,50 @@ class CloneCFRVideoWorker(QThread):
 
             # Process FFmpeg stderr output line-by-line.
             for line in iter(process.stderr.readline, ""):
-                # Check for cancellation on every line.
                 if self._is_canceled:
                     process.kill()
                     process.wait()
-                    self._cleanup
+                    if self.session.files.raw_video.exists():
+                        self.session.files.raw_video.unlink()
                     self.canceled.emit()
                     return
 
-                # Parse progress information from the output.
                 if "frame=" in line:
                     match = frame_regex.search(line)
                     if match:
                         current_frame = int(match.group(1))
                         progress_percent = int((current_frame / total_frames) * 100) if total_frames > 0 else 0
-                        self.progress.emit("Processing video", progress_percent)
+                        self.update_state("Cloning CFR video to session", progress_percent)
 
             process.wait()
             if process.returncode != 0:
-                # Read the remainder of stderr for error details.
                 error_text = process.stderr.read()
                 raise RuntimeError(f"FFmpeg error: {error_text}")
 
-            self.video_metadata = VideoMetadata.from_file(self.output_video_path)
+            process = None
 
-            # When processing is complete, emit finished.
+            self.session.video_metadata = VideoMetadata.from_file(self.session.files.raw_video)
+
+            self.update_state("Saving session config")
+
+            with open(self.session.files.session_config, "w") as f:
+                f.write(self.session.model_dump_json(indent=4))
+
+            if self._is_canceled:
+                self.session.video_metadata = None
+                delete_session(self.session)
+                self.canceled.emit()
+                return
+
+            self.update_state("Session setup complete")
             self.finished.emit()
 
         except Exception as e:
+            if process is not None:
+                process.kill()
+                process.wait()
+
+            delete_session(self.session)
             error_msg = f"Error processing video: {e}"
             logger.error(error_msg)
             self.error_occurred.emit(error_msg)
