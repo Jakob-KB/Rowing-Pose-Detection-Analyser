@@ -13,11 +13,17 @@ Being open-source, it allows developers to modify the code and add new analytics
 ## Tools & Technologies  
 
 - Python  
-- TensorFlow  
-- PyTorch  
-- Pandas  
+- BlazePose (Implemented via MediaPipe) 
+- PyTorch
+- PyQT6
 - Matplotlib
 - OpenCV
+
+## Data Storage
+
+- JSON
+- H5
+- YAML
 
 ## Sample Pipeline
 ### Input: Rowing Video  
