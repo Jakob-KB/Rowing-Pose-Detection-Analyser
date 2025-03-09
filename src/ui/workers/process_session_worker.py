@@ -1,7 +1,5 @@
 import re
-import shutil
 import subprocess
-from pathlib import Path
 from PyQt6.QtCore import QThread, pyqtSignal
 import imageio_ffmpeg as ffmpeg
 
