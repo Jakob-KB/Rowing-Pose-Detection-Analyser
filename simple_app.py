@@ -98,32 +98,40 @@ class MainWindow(QMainWindow):
             sessions_directory=sessions_directory,
             overwrite=True
         )
+        self.worker.started.connect(self.worker_started)
         self.worker.error.connect(self.worker_error)
+        self.worker.canceled.connect(self.worker_cancelled)
         self.worker.status.connect(self.update_status)
         self.worker.result.connect(self.worker_result)
         self.worker.finished.connect(self.worker_finished)
-        self.worker.run()
+        self.start_worker()
 
     def update_status(self, message: str = "Message", progress: int | float | None = None):
         self.status_manager.update_progress(message, progress)
 
-    def worker_start(self):
+    def worker_started(self):
         self.start_button.setEnabled(False)
         self.cancel_button.setEnabled(True)
-
-    def worker_error(self, error_message):
-        self.status_manager.show_message(f"Error: {error_message}", 3000)
 
     def worker_finished(self):
         self.start_button.setEnabled(True)
         self.cancel_button.setEnabled(False)
 
-    def cancel_worker(self):
-        print("Worker canceled")
+    def worker_cancelled(self):
+        self.status_manager.show_message("Pipeline canceled", 1000)
+
+    def worker_error(self, error_message):
+        self.status_manager.show_message(f"Error: {error_message}", 1000)
 
     def worker_result(self, result):
-        self.status_manager.show_message("Session created successfully.", 3000)
+        self.status_manager.show_message("Session created successfully.", 1000)
         print(result)
+
+    def start_worker(self):
+        self.worker.run()
+
+    def cancel_worker(self):
+        self.worker.cancel()
 
 
 # --- Main Application ---

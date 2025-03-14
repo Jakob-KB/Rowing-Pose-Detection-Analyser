@@ -9,7 +9,7 @@ from src.models.annotation_preferences import AnnotationPreferences
 from src.models.mediapipe_preferences import MediapipePreferences
 from src.models.session_files import SessionFiles
 
-TITLE_REGEX = re.compile(r'^[A-Za-z0-9_-]+$')
+TITLE_REGEX = re.compile(r"^[A-Za-z0-9_-]+$")
 FINAL_MESSAGE_TIMEOUT_TIME = 3000
 
 class CreateSessionWorker(QObject):
@@ -18,6 +18,7 @@ class CreateSessionWorker(QObject):
     """
     started = pyqtSignal()
     error = pyqtSignal(str)
+    canceled = pyqtSignal()
     status = pyqtSignal(str, object)
     finished = pyqtSignal()
     result = pyqtSignal(object)
@@ -45,6 +46,13 @@ class CreateSessionWorker(QObject):
             session_dir = self.check_existing_session()
             session = self.create_session_object(session_dir)
             self.setup_session_directory(session)
+
+            from PyQt6.QtCore import QCoreApplication
+            for i in range(10000000000):
+                if i % 10000 == 0:
+                    self.check_cancelled()
+                    QCoreApplication.processEvents()
+
             self.save_session_config(session)
             self.result.emit(session)
         except Exception as e:
@@ -114,7 +122,6 @@ class CreateSessionWorker(QObject):
 
     def check_cancelled(self) -> None:
         if self._is_canceled:
-            self.status.emit("Cancelled session creation.", None, FINAL_MESSAGE_TIMEOUT_TIME)
             raise Exception("Operation cancelled.")
 
     def update_state(self, message: str, progress_value: int | None = None) -> None:
