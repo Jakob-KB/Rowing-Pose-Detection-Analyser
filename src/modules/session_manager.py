@@ -98,9 +98,15 @@ class SessionManager:
             raise
 
     @staticmethod
-    def delete_session(session: Session) -> None:
-        expected_session_files = session.files.expected_files()
-        all_session_files = [file.name for file in session.directory.iterdir()]
+    def delete_session(session_directory: Path) -> None:
+        expected_session_files = [
+            cfg.session.files.session_config,
+            cfg.session.files.raw_video,
+            cfg.session.files.landmark_data,
+            cfg.session.files.analysis_data,
+            cfg.session.files.annotated_video
+        ]
+        all_session_files = [file.name for file in session_directory.iterdir()]
 
         for file in all_session_files:
             if file not in expected_session_files:
@@ -108,5 +114,5 @@ class SessionManager:
                     f"Foreign file found in session directory, session will have to be deleted manually: {file}"
                 )
 
-        shutil.rmtree(session.directory)
-        logger.info(f"Session '{session.title}' has been deleted from {session.directory}")
+        shutil.rmtree(session_directory)
+        logger.info(f"Session has been deleted from {session_directory}")
