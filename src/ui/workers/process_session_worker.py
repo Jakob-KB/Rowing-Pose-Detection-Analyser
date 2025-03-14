@@ -10,6 +10,7 @@ from src.models.session import Session
 from src.ui.utils.session_utils import delete_session
 
 class ProcessSessionWorker(QThread):
+    started = pyqtSignal()
     progress = pyqtSignal(str, object)
     finished = pyqtSignal()
     canceled = pyqtSignal()

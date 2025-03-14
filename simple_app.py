@@ -3,15 +3,14 @@ import mediapipe as mp
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QStatusBar
 from pathlib import Path
 
-from src.models.annotation_preferences import AnnotationPreferences
-from src.models.landmark_data import LandmarkData
-from src.models.mediapipe_preferences import MediapipePreferences
+
 from src.models.session import Session
 from src.models.session_files import SessionFiles
 from src.ui.workers.process_session_worker import ProcessSessionWorker
 from src.ui.workers.annotate_video_worker import AnnotateVideoWorker
 from src.config import DATA_DIR, SESSIONS_DIR
 from src.ui.workers.process_landmarks_worker import ProcessLandmarksWorker
+from src.ui.workers.session_operations import CreateSessionWorker
 
 
 def exception_hook(exctype, value, traceback):
@@ -37,6 +36,19 @@ class StatusBarManager:
             self.show_message(message)
         else:
             self.show_message(f"{message}: {progress}%")
+
+    def pipeline_finished(self):
+        self.show_message("Pipeline finished")
+
+    def pipeline_cancelled(self):
+        self.show_message("Pipeline canceled")
+
+    def worker_error(self, error_message: str):
+        self.show_message(f"Error: {error_message}")
+
+    def reset(self):
+        self.show_message("Ready")
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -68,64 +80,50 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.cancel_button)
 
         # Reference to the current worker thread.
-        self.current_worker = None
+        self.worker = None
 
         # Variables
         self.session: Session | None = None
         self.landmark_data: LandmarkData | None = None
 
     def start_pipeline(self):
-        self.start_button.setEnabled(False)
-        self.cancel_button.setEnabled(True)
-        self.status_manager.show_message("Pipeline started")
-
-        # Dummy parameters for the worker.
         session_title = "test_session"
         original_video_path = DATA_DIR / "videos" / "athlete_1.mp4"
-        session_directory = SESSIONS_DIR / session_title
-        mediapipe_preferences = MediapipePreferences()
-        annotation_preferences = AnnotationPreferences()
+        sessions_directory = SESSIONS_DIR
 
-        # Instantiate the Session model.
-        self.session = Session(
-            title=session_title,
+
+        self.worker = CreateSessionWorker(
+            session_title=session_title,
             original_video_path=original_video_path,
-            directory=session_directory,
-            files=SessionFiles.from_session_directory(SESSIONS_DIR / session_title),
-            video_metadata=None,
-            mediapipe_preferences=mediapipe_preferences,
-            annotation_preferences=annotation_preferences
-        )
-
-        self.current_worker = ProcessSessionWorker(
-            session=self.session,
+            sessions_directory=sessions_directory,
             overwrite=True
         )
-        self.current_worker.progress.connect(self.update_progress)
-        self.current_worker.canceled.connect(self.pipeline_cancelled)
-        self.current_worker.error_occurred.connect(self.worker_error)
-        self.current_worker.finished.connect(self.worker_finished)
-        self.current_worker.start()
+        self.worker.error.connect(self.worker_error)
+        self.worker.status.connect(self.update_status)
+        self.worker.result.connect(self.worker_result)
+        self.worker.finished.connect(self.worker_finished)
+        self.worker.run()
 
-
-    def update_progress(self, message: str = "Message", progress: int | float | None = None):
+    def update_status(self, message: str = "Message", progress: int | float | None = None):
         self.status_manager.update_progress(message, progress)
 
-    def worker_finished(self):
-        self.status_manager.show_message("Pipeline finished", 1)
-        print('!!')
-        self.start_button.setEnabled(True)
-        self.cancel_button.setEnabled(False)
-
-    def pipeline_cancelled(self):
-        self.status_manager.pipeline_cancelled()
-        self.start_button.setEnabled(True)
-        self.cancel_button.setEnabled(False)
+    def worker_start(self):
+        self.start_button.setEnabled(False)
+        self.cancel_button.setEnabled(True)
 
     def worker_error(self, error_message):
-        self.status_manager.worker_error(error_message)
+        self.status_manager.show_message(f"Error: {error_message}", 3000)
+
+    def worker_finished(self):
         self.start_button.setEnabled(True)
         self.cancel_button.setEnabled(False)
+
+    def cancel_worker(self):
+        print("Worker canceled")
+
+    def worker_result(self, result):
+        self.status_manager.show_message("Session created successfully.", 3000)
+        print(result)
 
 
 # --- Main Application ---
