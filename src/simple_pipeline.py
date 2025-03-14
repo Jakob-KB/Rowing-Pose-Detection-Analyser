@@ -1,6 +1,4 @@
 from src.config import DATA_DIR
-from src.models.annotation_preferences import AnnotationPreferences
-from src.models.mediapipe_preferences import MediapipePreferences
 from src.modules.annotate_video import AnnotateVideo
 from src.modules.clone_cfr_video import CloneCFRVideo
 from src.modules.process_landmarks import ProcessLandmarks
@@ -11,24 +9,15 @@ def main():
     session_title = "test_session"
     original_video_path = DATA_DIR / "videos" / "athlete_1.mp4"
 
-    mediapipe_preferences = MediapipePreferences()
-    annotation_preferences = AnnotationPreferences()
-
     session_manager = SessionManager()
     clone_cfr_video = CloneCFRVideo()
 
-    landmark_processor = ProcessLandmarks(
-        mediapipe_preferences=mediapipe_preferences
-    )
-    annotator = AnnotateVideo(
-        annotation_preferences=annotation_preferences
-    )
+    landmark_processor = ProcessLandmarks()
+    annotator = AnnotateVideo()
 
     session = session_manager.create_session(
         session_title=session_title,
         original_video_path=original_video_path,
-        mediapipe_preferences=mediapipe_preferences,
-        annotation_preferences=annotation_preferences,
         overwrite=True
     )
 

@@ -83,7 +83,7 @@ if shoulder and hip:
     # Apply mask: Keep only the region inside the bounding box
     frame_masked = cv2.bitwise_and(frame, mask)
 
-    # Display result
+    # Display success
     cv2.imshow("Clipped Bounding Box on Pose", frame_masked)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

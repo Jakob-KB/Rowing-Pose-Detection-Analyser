@@ -12,10 +12,10 @@ from src.config import logger, cfg
 
 
 class AnnotateVideo:
-    landmark_connection: List = cfg.landmarks.connections
+    landmark_connection:List = cfg.landmarks.connections
     reference_line_landmarks: List[str] = ["ankle", "hip"]
 
-    def __init__(self, annotation_preferences: AnnotationPreferences) -> None:
+    def __init__(self, annotation_preferences: AnnotationPreferences=AnnotationPreferences()) -> None:
         self.annotation_preferences: AnnotationPreferences = annotation_preferences
 
     def run(self,
