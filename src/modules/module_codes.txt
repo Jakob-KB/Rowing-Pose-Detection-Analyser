@@ -1,0 +1,10 @@
+0001 - validation information
+0002 - stage information
+0003 - progress of stage information
+0011 - success
+
+0020 - validation error
+
+0030 - Cancelled
+
+0000 - generic
