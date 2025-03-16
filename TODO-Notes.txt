@@ -1,0 +1,2 @@
+- Add error checking to the main app gui entry script to check that VLC is installed and located correctly
+so that we can use it for embedding a media player in a tkinter GUI.
