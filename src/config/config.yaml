@@ -19,7 +19,7 @@ logging:
       level: INFO
       colorize: true
 
-# ProcessLandmarks Configuration
+# LandmarkProcessor Configuration
 landmarks:
   mapping:
     ear: 8

@@ -1,7 +1,7 @@
 from src.config import DATA_DIR
-from src.modules.annotate_video import AnnotateVideo
-from src.modules.clone_cfr_video import CloneCFRVideo
-from src.modules.process_landmarks import ProcessLandmarks
+from src.modules.video_annotator import VideoAnnotator
+from src.modules.cfr_video_processor import ProcessCFRVideo
+from src.modules.landmark_processor import LandmarkProcessor
 from src.modules.session_manager import SessionManager
 
 
@@ -10,10 +10,10 @@ def main():
     original_video_path = DATA_DIR / "videos" / "athlete_1.mp4"
 
     session_manager = SessionManager()
-    clone_cfr_video = CloneCFRVideo()
+    clone_cfr_video = ProcessCFRVideo()
 
-    landmark_processor = ProcessLandmarks()
-    annotator = AnnotateVideo()
+    landmark_processor = LandmarkProcessor()
+    annotator = VideoAnnotator()
 
     session = session_manager.create_session(
         session_title=session_title,

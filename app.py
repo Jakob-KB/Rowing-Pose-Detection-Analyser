@@ -1,130 +1,162 @@
 import tkinter as tk
 import threading
+from tkinter import ttk
 
 from src.config import DATA_DIR
-from src.modules.annotate_video import AnnotateVideo
-from src.modules.clone_cfr_video import CloneCFRVideo
-from src.modules.process_landmarks import ProcessLandmarks
+from src.modules.video_annotator import VideoAnnotator
+from src.modules.cfr_video_processor import ProcessCFRVideo
+from src.modules.landmark_processor import LandmarkProcessor
 from src.modules.session_manager import SessionManager
+from src.utils.exceptions import ProcessCancelled
 
-class PipelineRunner:
-    def __init__(self, status_label, start_button):
-        self.status_label = status_label
+
+class StatusBar(tk.Frame):
+    def __init__(self, parent, fixed_height=25, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        # Set a fixed height.
+        self.config(height=fixed_height, relief=tk.SUNKEN, borderwidth=1)
+        self.pack_propagate(False)  # Prevent the frame from resizing to fit its content.
+
+        self.status_label = tk.Label(self, text="Idle", anchor=tk.W)
+        self.status_label.pack(side=tk.LEFT, padx=5)
+
+        self.progress_bar = ttk.Progressbar(self, orient=tk.HORIZONTAL, mode='determinate', length=200)
+        # Initially hide the progress bar.
+        self.progress_bar.pack_forget()
+
+    def update_status(self, message, progress_value=None):
+        self.status_label.config(text=message)
+        if progress_value is not None:
+            if not self.progress_bar.winfo_ismapped():
+                # Pack it to the right if it's not already visible.
+                self.progress_bar.pack(side=tk.RIGHT, padx=5, pady=5)
+            self.progress_bar['value'] = progress_value
+        else:
+            if self.progress_bar.winfo_ismapped():
+                self.progress_bar.pack_forget()
+
+
+class PipelineManager:
+    def __init__(self, status_bar, start_button):
+        self.status_bar = status_bar
         self.start_button = start_button
         self.cancel_requested = False
         self.thread = None
+        self.session_manager = SessionManager()
+        self.cfr_video_processor = ProcessCFRVideo()
+        self.landmark_processor = LandmarkProcessor()
+        self.video_annotator = VideoAnnotator()
+
+        self.session = None
 
     def run(self):
-        # Disable start button during processing.
+        # Disable the start button during processing.
         self.start_button.config(state="disabled")
         self.cancel_requested = False
         self.thread = threading.Thread(target=self._run_pipeline)
         self.thread.start()
 
-    def _update_status(self, message):
-        # Thread-safe update of the status label.
-        self.status_label.after(0, lambda: self.status_label.config(text=message))
-
-    def _check_cancel(self):
-        if self.cancel_requested:
-            raise Exception("Pipeline cancelled")
+    def _update_status(self, message="Sample Message.", progress_value=None):
+        # Delegate the update to the StatusBar component.
+        self.status_bar.update_status(message, progress_value)
 
     def _run_pipeline(self):
         try:
-            self._update_status("Starting pipeline...")
-
-            # Define pipeline inputs and create objects.
             session_title = "test_session"
             original_video_path = DATA_DIR / "videos" / "athlete_1.mp4"
 
-            session_manager = SessionManager()
-            clone_cfr_video = CloneCFRVideo()
-            landmark_processor = ProcessLandmarks()
-            annotator = AnnotateVideo()
-
-            # Create session.
-            self._update_status("Creating session...")
-            session = session_manager.create_session(
+            self.session = self.session_manager.create_session(
                 session_title=session_title,
                 original_video_path=original_video_path,
                 overwrite=True
             )
-            self._check_cancel()
 
-            # Clone video.
-            self._update_status("Cloning video...")
-            clone_cfr_video.run(
+            video_metadata = self.cfr_video_processor.run(
                 input_video_path=original_video_path,
-                output_video_path=session.files.raw_video
+                output_video_path=self.session.files.raw_video,
+                status=self._update_status
             )
-            self._check_cancel()
+            self.session.video_metadata = video_metadata
 
-            # Update and save session.
-            self._update_status("Updating session...")
-            session_manager.update_session(session)
-            session_manager.save_session(session)
-            self._check_cancel()
-
-            # Process landmarks.
-            self._update_status("Processing landmarks...")
-            landmark_data = landmark_processor.run(
-                raw_video_path=session.files.raw_video,
-                video_metadata=session.video_metadata
+            landmark_data = self.landmark_processor.run(
+                raw_video_path=self.session.files.raw_video,
+                video_metadata=self.session.video_metadata,
+                file_path=self.session.files.landmark_data,
+                status=self._update_status
             )
-            self._check_cancel()
 
-            # Save landmark data.
-            self._update_status("Saving landmark data...")
-            landmark_processor.save_landmark_data_to_file(
+            self.video_annotator.run(
+                raw_video_path=self.session.files.raw_video,
+                annotated_video_path=self.session.files.annotated_video,
+                video_metadata=self.session.video_metadata,
                 landmark_data=landmark_data,
-                file_path=session.files.landmark_data
+                status=self._update_status
             )
-            self._check_cancel()
-
-            # Annotate video.
-            self._update_status("Annotating video...")
-            annotator.run(
-                raw_video_path=session.files.raw_video,
-                annotated_video_path=session.files.annotated_video,
-                video_metadata=session.video_metadata,
-                landmark_data=landmark_data,
-            )
-
-            self._update_status("Pipeline completed!")
+        except ProcessCancelled as e:
+            self._update_status(message=str(e))
         except Exception as e:
-            # Catch cancellation or other exceptions.
-            self._update_status(f"Pipeline terminated: {str(e)}")
+            self._update_status(message=f"Error: {e}")
         finally:
-            # Re-enable the start button when finished.
             self.start_button.after(0, lambda: self.start_button.config(state="normal"))
+            self._update_status(message="Idle")
 
     def cancel(self):
         self.cancel_requested = True
-        self._update_status("Cancellation requested...")
+        self.cfr_video_processor.cancel()
+        self.landmark_processor.cancel()
+        self.video_annotator.cancel()
+        if self.session is not None:
+            # Start asynchronous deletion of the session directory.
+            self._delete_session_async(self.session.directory)
+
+    def _delete_session_async(self, session_directory, attempts=10, delay=500):
+        """
+        Attempts to delete the session directory asynchronously using after().
+        If deletion fails due to a PermissionError (file in use),
+        it will retry for a maximum number of attempts (each delayed by 'delay' ms).
+        """
+        try:
+            import shutil
+            shutil.rmtree(session_directory)
+            self._update_status("Session deleted.", progress_value=None)
+        except PermissionError as e:
+            if attempts > 0:
+                # Schedule a retry after 'delay' milliseconds.
+                self.status_bar.after(delay,
+                                      lambda: self._delete_session_async(session_directory, attempts - 1, delay))
+            else:
+                self._update_status(f"Failed to delete session: {e}", progress_value=None)
+
 
 def main():
     root = tk.Tk()
     root.title("Video Processing Pipeline")
+    root.geometry("600x400")
 
-    # A label to show pipeline status.
-    status_label = tk.Label(root, text="Idle", wraplength=300)
-    status_label.pack(pady=10)
+    # Main content frame.
+    content_frame = tk.Frame(root)
+    content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-    # Create the PipelineRunner instance.
-    # (start_button will be created next and passed into PipelineRunner)
-    pipeline_runner = PipelineRunner(status_label, None)
+    # Button frame at the top.
+    button_frame = tk.Frame(content_frame)
+    button_frame.pack(side=tk.TOP, pady=(0, 10))
 
-    # Create Start and Cancel buttons.
-    start_button = tk.Button(root, text="Start", command=pipeline_runner.run)
-    start_button.pack(side=tk.LEFT, padx=10, pady=10)
+    start_button = tk.Button(button_frame, text="Start")
+    start_button.pack(side=tk.LEFT, padx=10)
+    cancel_button = tk.Button(button_frame, text="Cancel")
+    cancel_button.pack(side=tk.LEFT, padx=10)
 
-    cancel_button = tk.Button(root, text="Cancel", command=pipeline_runner.cancel)
-    cancel_button.pack(side=tk.LEFT, padx=10, pady=10)
+    # Create the StatusBar at the bottom of the window.
+    status_bar = StatusBar(root, fixed_height=25)
+    status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-    # Now that the start_button is created, assign it to the pipeline_runner.
-    pipeline_runner.start_button = start_button
+    # Create the PipelineManager and wire up the buttons.
+    pipeline_manager = PipelineManager(status_bar, start_button)
+    start_button.config(command=pipeline_manager.run)
+    cancel_button.config(command=pipeline_manager.cancel)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()
