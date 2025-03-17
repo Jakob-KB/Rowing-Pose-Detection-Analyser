@@ -2,8 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import shutil
-import datetime
-import vlc  # Requires python-vlc installed
+import vlc
 
 # Project-specific imports; adjust paths as needed.
 from src.config import DATA_DIR
