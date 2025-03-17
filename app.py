@@ -4,7 +4,6 @@ import threading
 import shutil
 import vlc
 
-# Project-specific imports; adjust paths as needed.
 from src.config import DATA_DIR
 from src.modules.video_annotator import VideoAnnotator
 from src.modules.cfr_video_processor import ProcessCFRVideo
