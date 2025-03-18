@@ -97,11 +97,16 @@ class PipelineManager:
             self._update_status(message="Idle")
 
     def _open_video_player(self, video_path):
-        # Clear the video frame and embed the TkinterVideoPlayer.
+        # Clear the video frame.
         for widget in self.video_frame.winfo_children():
             widget.destroy()
-        video_player = TkinterVideoPlayer(self.video_frame, video_path=str(video_path))
-        video_player.pack(fill=tk.BOTH, expand=True)
+        # Create the robust video widget within the existing video frame.
+        video_player = TkinterVideo(scaled=True, master=self.video_frame, consistant_frame_rate=True)
+        video_player.load(str(video_path))
+        video_player.pack(expand=True, fill="both")
+        # Bind the <<Ended>> event so that the video loops when it finishes.
+        video_player.bind("<<Ended>>", lambda e: video_player.play())
+        video_player.play()
 
     def cancel(self):
         self.cancel_requested = True

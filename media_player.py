@@ -1,121 +1,161 @@
-# Author Paul
-
-# MIT License
-#
-# Copyright (c) 2021 Paul
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-# This is same as sample_player example but this doesn't makes use of control variable to update the slider
-
-# import sys
-# sys.path.append('./')
-
 import datetime
+import time
 import tkinter as tk
-from tkinter import filedialog
 from tkintervideoplayer import TkinterVideo
+from src.config import DATA_DIR
 
 
-def update_duration(event):
-    """ updates the duration after finding the duration """
-    duration = vid_player.video_info()["duration"]
-    end_time["text"] = str(datetime.timedelta(seconds=duration))
-    progress_slider["to"] = duration
+def format_time(seconds: float) -> str:
+    """Formats seconds into MM:SS:cs (minutes:seconds:centiseconds)."""
+    minutes = int(seconds // 60)
+    sec = int(seconds % 60)
+    centis = int(round((seconds - int(seconds)) * 100))
+    return f"{minutes:02d}:{sec:02d}:{centis:02d}"
 
 
-def update_scale(event):
-    """ updates the scale value """
-    progress_slider.set(vid_player.current_duration())
+class VideoPlayerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Tkinter Media Player")
+
+        # Playback timing state
+        self.video_offset = 0.0
+        self.playback_started_at = None
+
+        # Slider state
+        self.slider_dragging = False
+        self.was_playing = False
+
+        # Initialize video player widget
+        self.vid_player = TkinterVideo(scaled=True, master=root)
+        self.vid_player.pack(expand=True, fill="both")
+        self.vid_player.bind("<<Duration>>", self.update_duration)
+        self.vid_player.bind("<<Ended>>", self.video_ended)
+
+        # Build control UI
+        self.build_controls()
+
+        # Load the video and schedule playback startup
+        video_path = str(DATA_DIR / "videos" / "athlete_1.mp4")
+        self.vid_player.load(video_path)
+        self.root.after(100, self.start_playback)
+
+        # Instead of a 10ms interval, update every 33ms (~30fps)
+        self.root.after(33, self.update_slider)
+
+    def build_controls(self):
+        control_frame = tk.Frame(self.root)
+        control_frame.pack(fill="x", padx=5, pady=5)
+
+        self.play_pause_btn = tk.Button(control_frame, text="Play", command=self.play_pause)
+        self.play_pause_btn.pack(side="left")
+
+        tk.Button(control_frame, text="Skip -5 sec", command=lambda: self.skip(-5)).pack(side="left")
+
+        self.start_time = tk.Label(control_frame, text="00:00:00")
+        self.start_time.pack(side="left", padx=5)
+
+        # Update slider resolution to match frame rate (1/30 ≈ 0.033 sec)
+        self.progress_slider = tk.Scale(
+            control_frame, from_=0, to=0, orient="horizontal",
+            resolution=0.033, showvalue=0, length=300
+        )
+        self.progress_slider.bind("<ButtonPress-1>", self.slider_press)
+        self.progress_slider.bind("<B1-Motion>", self.slider_motion)
+        self.progress_slider.bind("<ButtonRelease-1>", self.slider_release)
+        # Disable right-click
+        self.progress_slider.bind("<Button-3>", lambda event: "break")
+        self.progress_slider.pack(side="left", fill="x", expand=True, padx=5)
+
+        self.end_time = tk.Label(control_frame, text="00:00:00")
+        self.end_time.pack(side="left", padx=5)
+
+        tk.Button(control_frame, text="Skip +5 sec", command=lambda: self.skip(5)).pack(side="left")
+
+    def update_duration(self, event):
+        duration = self.vid_player.video_info()["duration"]
+        self.end_time.config(text=format_time(duration))
+        self.progress_slider.config(to=duration)
+
+    def get_current_time(self):
+        if self.playback_started_at is not None:
+            return self.video_offset + (time.time() - self.playback_started_at)
+        return self.video_offset
+
+    def update_slider(self):
+        if not self.slider_dragging:
+            current_time = self.get_current_time()
+            self.progress_slider.set(current_time)
+            self.start_time.config(text=format_time(current_time))
+        # Update at ~33ms intervals to match 30fps
+        self.root.after(33, self.update_slider)
+
+    def slider_press(self, event):
+        self.slider_dragging = True
+        self.was_playing = (self.playback_started_at is not None)
+        if self.was_playing:
+            self.pause_video()
+        self.update_slider_position(event)
+
+    def slider_motion(self, event):
+        self.update_slider_position(event)
+
+    def slider_release(self, event):
+        self.slider_dragging = False
+        self.update_slider_position(event)
+        self.video_offset = float(self.progress_slider.get())
+        if self.was_playing:
+            self.resume_video()
+
+    def update_slider_position(self, event):
+        widget = self.progress_slider
+        width = widget.winfo_width()
+        fraction = event.x / width if width > 0 else 0
+        slider_from = float(widget["from"])
+        slider_to = float(widget["to"])
+        new_value = slider_from + (slider_to - slider_from) * fraction
+        widget.set(new_value)
+        self.vid_player.seek(new_value)
+        # Update the left time label to reflect the slider's current position
+        self.start_time.config(text=format_time(new_value))
+
+    def skip(self, value: int):
+        new_time = float(self.progress_slider.get()) + value
+        self.video_offset = new_time
+        self.vid_player.seek(new_time)
+        self.progress_slider.set(new_time)
+
+    def play_pause(self):
+        if self.playback_started_at is None:
+            self.resume_video()
+        else:
+            self.pause_video()
+
+    def resume_video(self):
+        self.vid_player.play()
+        self.play_pause_btn.config(text="Pause")
+        self.playback_started_at = time.time()
+
+    def pause_video(self):
+        if self.playback_started_at is not None:
+            self.video_offset += time.time() - self.playback_started_at
+        self.vid_player.pause()
+        self.play_pause_btn.config(text="Play")
+        self.playback_started_at = None
+
+    def video_ended(self, event):
+        self.progress_slider.set(self.progress_slider["to"])
+        self.play_pause_btn.config(text="Play")
+        self.progress_slider.set(0)
+        self.video_offset = 0.0
+        self.playback_started_at = None
+
+    def start_playback(self):
+        self.resume_video()
+        self.play_pause_btn.config(text="Pause")
 
 
-def load_video():
-    """ loads the video """
-    file_path = filedialog.askopenfilename(filetypes=[("Mp4", "*.mp4",)])
-
-    if file_path:
-        vid_player.load(file_path)
-
-        progress_slider.config(to=0, from_=0)
-        play_pause_btn["text"] = "Play"
-        progress_slider.set(0)
-
-
-def seek(event=None):
-    """ used to seek a specific timeframe """
-    vid_player.seek(int(progress_slider.get()))
-
-
-def skip(value: int):
-    """ skip seconds """
-    vid_player.seek(int(progress_slider.get())+value)
-    progress_slider.set(progress_slider.get() + value)
-
-
-def play_pause():
-    """ pauses and plays """
-    if vid_player.is_paused():
-        vid_player.play()
-        play_pause_btn["text"] = "Pause"
-
-    else:
-        vid_player.pause()
-        play_pause_btn["text"] = "Play"
-
-
-def video_ended(event):
-    """ handle video ended """
-    progress_slider.set(progress_slider["to"])
-    play_pause_btn["text"] = "Play"
-    progress_slider.set(0)
-
-
-root = tk.Tk()
-root.title("Tkinter media")
-
-load_btn = tk.Button(root, text="Load", command=load_video)
-load_btn.pack()
-
-vid_player = TkinterVideo(scaled=True, master=root)
-vid_player.pack(expand=True, fill="both")
-
-play_pause_btn = tk.Button(root, text="Play", command=play_pause)
-play_pause_btn.pack()
-
-skip_plus_5sec = tk.Button(root, text="Skip -5 sec", command=lambda: skip(-5))
-skip_plus_5sec.pack(side="left")
-
-start_time = tk.Label(root, text=str(datetime.timedelta(seconds=0)))
-start_time.pack(side="left")
-
-progress_slider = tk.Scale(root, from_=0, to=0, orient="horizontal")
-progress_slider.bind("<ButtonRelease-1>", seek)
-progress_slider.pack(side="left", fill="x", expand=True)
-
-end_time = tk.Label(root, text=str(datetime.timedelta(seconds=0)))
-end_time.pack(side="left")
-
-vid_player.bind("<<Duration>>", update_duration)
-vid_player.bind("<<SecondChanged>>", update_scale)
-vid_player.bind("<<Ended>>", video_ended )
-
-skip_plus_5sec = tk.Button(root, text="Skip +5 sec", command=lambda: skip(5))
-skip_plus_5sec.pack(side="left")
-
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = VideoPlayerApp(root)
+    root.mainloop()
