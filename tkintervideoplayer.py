@@ -92,7 +92,7 @@ class TkinterVideo(tk.Label):
                 except tk.TclError:
                     pass
 
-                now = time.time_ns() // 1_000_000  # current time in ms
+                now = time.time_ns() // 1_000_000
                 then = now
                 time_per_frame = (1 / 30) * 1000
 

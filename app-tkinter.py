@@ -10,7 +10,6 @@ from src.modules.landmark_processor import LandmarkProcessor
 from src.modules.session_manager import SessionManager
 from src.utils.exceptions import ProcessCancelled
 
-# Import the robust video player widget.
 from tkintervideoplayer import TkinterVideo
 
 
