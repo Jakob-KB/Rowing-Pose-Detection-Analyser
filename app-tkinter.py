@@ -13,7 +13,7 @@ from src.utils.exceptions import ProcessCancelled
 from tkintervideoplayer import TkinterVideo
 
 
-# --- StatusBar Component ---
+# StatusBar Component
 class StatusBar(tk.Frame):
     def __init__(self, parent, fixed_height=25, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -35,7 +35,7 @@ class StatusBar(tk.Frame):
                 self.progress_bar.pack_forget()
 
 
-# --- PipelineManager ---
+# Pipeline Manager
 class PipelineManager:
     def __init__(self, status_bar, start_button, video_frame):
         self.status_bar = status_bar
@@ -127,7 +127,7 @@ class PipelineManager:
                 self._update_status(f"Failed to delete session: {e}", progress_value=None)
 
 
-# --- Main Application ---
+# Main Application
 def main():
     root = tk.Tk()
     root.title("Video Processing Pipeline")
