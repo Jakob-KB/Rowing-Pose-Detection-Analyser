@@ -5,6 +5,9 @@ from tkintervideoplayer import TkinterVideo
 from src.config import DATA_DIR
 
 
+# TODO: Rewrite and test playback speed consistency
+
+
 def format_time(seconds: float) -> str:
     """Formats seconds into MM:SS:cs (minutes:seconds:centiseconds)."""
     minutes = int(seconds // 60)
