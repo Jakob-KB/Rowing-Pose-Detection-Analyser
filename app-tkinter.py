@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import shutil
-import vlc
 
 from src.config import DATA_DIR
 from src.modules.video_annotator import VideoAnnotator
@@ -10,6 +9,10 @@ from src.modules.cfr_video_processor import ProcessCFRVideo
 from src.modules.landmark_processor import LandmarkProcessor
 from src.modules.session_manager import SessionManager
 from src.utils.exceptions import ProcessCancelled
+
+# Import the robust video player widget.
+from tkintervideoplayer import TkinterVideo
+
 
 # --- StatusBar Component ---
 class StatusBar(tk.Frame):
@@ -32,61 +35,6 @@ class StatusBar(tk.Frame):
             if self.progress_bar.winfo_ismapped():
                 self.progress_bar.pack_forget()
 
-# --- EmbeddedVideoPlayer Component using VLC (Simplified: Only Play/Pause) ---
-class EmbeddedVideoPlayer(tk.Frame):
-    def __init__(self, parent, video_path, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.video_path = video_path
-        self.is_paused = True
-
-        # Create VLC instance and player.
-        self.instance = vlc.Instance()
-        self.player = self.instance.media_player_new()
-
-        # Attach an event to loop the video when it ends.
-        self.events = self.player.event_manager()
-        self.events.event_attach(vlc.EventType.MediaPlayerEndReached, self._on_end_reached)
-
-        # Create canvas for video display.
-        self.canvas = tk.Canvas(self, bg='black')
-        self.canvas.pack(fill=tk.BOTH, expand=True)
-
-        # Simple control panel with only a play/pause button.
-        control_panel = tk.Frame(self)
-        control_panel.pack(fill=tk.X, padx=5, pady=5)
-        self.play_pause_btn = tk.Button(control_panel, text="Play", command=self.toggle_play_pause)
-        self.play_pause_btn.pack(side=tk.LEFT, padx=5)
-
-        self.bind("<Configure>", self._on_configure)
-
-    def _on_configure(self, event):
-        # Set VLC output to the canvas window.
-        if hasattr(self.player, "set_hwnd"):  # Windows.
-            self.player.set_hwnd(self.canvas.winfo_id())
-        else:
-            self.player.set_xwindow(self.canvas.winfo_id())
-
-    def _on_end_reached(self, event):
-        # Loop: restart playback.
-        self.player.stop()
-        self.player.play()
-
-    def toggle_play_pause(self):
-        if self.player.is_playing():
-            self.player.pause()
-            self.play_pause_btn.config(text="Play")
-            self.is_paused = True
-        else:
-            self.player.play()
-            self.play_pause_btn.config(text="Pause")
-            self.is_paused = False
-
-    def load_and_play(self):
-        media = self.instance.media_new(self.video_path)
-        self.player.set_media(media)
-        self.player.play()
-        self.play_pause_btn.config(text="Pause")
-        self.is_paused = False
 
 # --- PipelineManager ---
 class PipelineManager:
@@ -149,12 +97,11 @@ class PipelineManager:
             self._update_status(message="Idle")
 
     def _open_video_player(self, video_path):
-        # Clear the video frame and embed the player.
+        # Clear the video frame and embed the TkinterVideoPlayer.
         for widget in self.video_frame.winfo_children():
             widget.destroy()
-        video_player = EmbeddedVideoPlayer(self.video_frame, str(video_path))
+        video_player = TkinterVideoPlayer(self.video_frame, video_path=str(video_path))
         video_player.pack(fill=tk.BOTH, expand=True)
-        video_player.load_and_play()
 
     def cancel(self):
         self.cancel_requested = True
@@ -174,6 +121,7 @@ class PipelineManager:
                     lambda: self._delete_session_async(session_directory, attempts - 1, delay))
             else:
                 self._update_status(f"Failed to delete session: {e}", progress_value=None)
+
 
 # --- Main Application ---
 def main():
@@ -206,6 +154,7 @@ def main():
     cancel_button.config(command=pipeline_manager.cancel)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()
