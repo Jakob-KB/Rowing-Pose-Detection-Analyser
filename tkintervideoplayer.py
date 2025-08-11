@@ -5,6 +5,8 @@ import threading
 import tkinter as tk
 from PIL import ImageTk, Image, ImageOps
 from typing import Tuple, Dict
+from collections import deque
+from pathlib import Path
 
 class TkinterVideo(tk.Label):
     def __init__(self, master, scaled: bool = True, consistant_frame_rate: bool = True, keep_aspect: bool = False, *args, **kwargs):
@@ -27,6 +29,9 @@ class TkinterVideo(tk.Label):
         self._resampling_method: int = Image.NEAREST
         self.bind("<<Destroy>>", self.stop)
         self.bind("<<FrameGenerated>>", self._display_frame)
+
+        # Using a deque to record recent frame delays (a rolling window)
+        self.frame_delays = deque(maxlen=100)
 
     def keep_aspect(self, keep_aspect: bool):
         self._keep_aspect_ratio = keep_aspect
@@ -92,9 +97,11 @@ class TkinterVideo(tk.Label):
                 except tk.TclError:
                     pass
 
-                now = time.time_ns() // 1_000_000
-                then = now
-                time_per_frame = (1 / 30) * 1000
+                # Compute ideal time per frame in milliseconds
+                time_per_frame = (1 / self._video_info["framerate"]) * 1000
+                # Record the global start time
+                start_time = time.time_ns() // 1_000_000  # in ms
+                frame_count = 0
 
                 while self._load_thread == current_thread and not self._stop:
                     if self._seek:
@@ -107,9 +114,16 @@ class TkinterVideo(tk.Label):
                         time.sleep(0.0001)
                         continue
 
+                    # Calculate when this frame should ideally be displayed
+                    expected_time = start_time + frame_count * time_per_frame
                     now = time.time_ns() // 1_000_000
-                    delta = now - then
-                    then = now
+                    sleep_time = expected_time - now
+                    if sleep_time > 0:
+                        time.sleep(sleep_time / 1000)  # sleep expects seconds
+
+                    # Record the actual deviation (delay) from the expected time
+                    actual_delay = (time.time_ns() // 1_000_000) - expected_time
+                    self.frame_delays.append(actual_delay)
 
                     try:
                         frame = next(self._container.decode(video=0))
@@ -125,11 +139,17 @@ class TkinterVideo(tk.Label):
                                     width = round(frame.width / frame.height * height)
                         self._current_img = frame.to_image(width=width, height=height, interpolation="FAST_BILINEAR")
                         self._frame_number += 1
+                        frame_count += 1
                         self.event_generate("<<FrameGenerated>>")
-                        if self._frame_number % self._video_info["framerate"] == 0:
-                            self.event_generate("<<SecondChanged>>")
-                        if self.consistant_frame_rate:
-                            time.sleep(max((time_per_frame - delta) / 1000, 0))
+
+                        # Every second (i.e. after N frames), print consistency stats
+                        if frame_count % self._video_info["framerate"] == 0:
+                            delays = list(self.frame_delays)
+                            avg_delay = sum(delays) / len(delays)
+                            max_delay = max(delays)
+                            min_delay = min(delays)
+                            print(f"Playback Delay (ms) - Avg: {avg_delay:.2f}, Max: {max_delay}, Min: {min_delay}")
+
                     except (StopIteration, av.error.EOFError, tk.TclError):
                         break
                 self._container.close()
@@ -208,6 +228,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     tkvideo = TkinterVideo(scaled=True, master=root)
+    # Update the path to a valid video file on your system
     from src.config import DATA_DIR
     tkvideo.load(str(DATA_DIR / "videos" / "athlete_1.mp4"))
     tkvideo.pack(expand=True, fill="both")

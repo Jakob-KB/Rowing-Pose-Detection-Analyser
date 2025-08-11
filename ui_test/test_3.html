@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Video Skeleton · Velocity</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#0f1117; --card:#151821; --text:#e5e7eb; --muted:#9aa3b2;
+    --accent:#5aa9ff; --accent-2:#22d3ee; --border:#232634; --good:#34d399;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#475569;
+      --accent:#2563eb; --accent-2:#06b6d4; --border:#e2e8f0; --good:#10b981;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:14px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  }
+  .wrap{max-width:min(1200px,92vw); margin:24px auto 48px;}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px;}
+  h1{font-size:18px; margin:0}
+  .badge{color:var(--muted); font-size:12px}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.25);}
+  .grid{display:grid; gap:16px; grid-template-columns:1fr;}
+  @media (min-width:900px){ .grid{grid-template-columns:3fr 2fr;} }
+  .panel{padding:14px;}
+  .videoBox{
+    position:relative; width:100%; aspect-ratio:16 / 9; overflow:hidden;
+    border-radius:10px; background:#000;
+  }
+  video, canvas#overlay{
+    position:absolute; inset:0; width:100%; height:100%;
+  }
+  canvas#overlay{ pointer-events:none; z-index:2; } /* ensure above video */
+  video{ z-index:1; background:#000; }
+
+  .controls{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    padding:10px 14px; border-top:1px solid var(--border);
+  }
+  .controls .spacer{flex:1}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+    border:1px solid var(--border); background:transparent; color:var(--text);
+    border-radius:10px; cursor:pointer;
+  }
+  .btn.primary{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border-color:transparent; }
+  .select, .range, .number{
+    display:flex; align-items:center; gap:8px; color:var(--muted);
+    padding:6px 8px; border:1px solid var(--border); border-radius:10px; background:transparent;
+  }
+  .select select, .range input[type="range"], .number input{ accent-color:var(--accent); }
+  .number input{
+    width:80px; padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text);
+  }
+  .legend{font-size:12px; color:var(--muted); padding:10px 14px; border-top:1px solid var(--border);}
+  .chartBox{ padding:14px; display:flex; flex-direction:column; gap:10px;}
+  .chartCanvas{ width:100%; height:340px; }
+  .sr-only{position:absolute; left:-9999px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Video Skeleton · <span class="badge">Rolling Velocity</span></h1>
+    <label class="select" style="user-select:none">
+      <span>Theme</span>
+      <select id="themeToggle">
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+  </header>
+
+  <div class="grid">
+    <!-- Left: Video + overlay + transport + knobs -->
+    <section class="card">
+      <div class="panel">
+        <div class="videoBox" id="videoBox">
+          <video id="video" muted autoplay loop playsinline>
+            <source src="test.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <canvas id="overlay"></canvas>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="playPause" class="btn primary">⏸ Pause</button>
+
+        <label class="select">Speed
+          <select id="speed">
+            <option value="0.5">0.5×</option>
+            <option value="0.75">0.75×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
+
+        <label class="range">EMA α
+          <input id="emaAlpha" type="range" min="0.01" max="0.5" step="0.01" value="0.03">
+          <span id="emaAlphaVal">0.03</span>
+        </label>
+
+        <label class="range">Window (s)
+          <input id="winSec" type="range" min="1" max="10" step="0.5" value="2">
+          <span id="winSecVal">2</span>
+        </label>
+
+        <div class="spacer"></div>
+
+        <label class="number">Ymin
+          <input id="yMin" type="number" value="500" step="10">
+        </label>
+        <label class="number">Ymax
+          <input id="yMax" type="number" value="1500" step="10">
+        </label>
+      </div>
+
+      <div class="legend">
+        <strong>Tips:</strong> EMA smooths noisy motion; the window tracks the playhead. Use speed to review fast motions.
+      </div>
+    </section>
+
+    <!-- Right: Chart -->
+    <section class="card chartBox">
+      <canvas id="velocityChart" class="chartCanvas"></canvas>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+
+<script>
+/* ------------ DOM refs ------------- */
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const octx = overlay.getContext('2d');
+const videoBox = document.getElementById('videoBox');
+
+const playPauseBtn = document.getElementById('playPause');
+const speedSel     = document.getElementById('speed');
+const emaAlphaEl   = document.getElementById('emaAlpha');
+const emaAlphaVal  = document.getElementById('emaAlphaVal');
+const winSecEl     = document.getElementById('winSec');
+const winSecVal    = document.getElementById('winSecVal');
+const yMinEl       = document.getElementById('yMin');
+const yMaxEl       = document.getElementById('yMax');
+const themeToggle  = document.getElementById('themeToggle');
+
+/* ------------ Parameters ------------- */
+let fps = 30;
+let windowSize = parseFloat(winSecEl.value); // seconds
+let VEL_MIN = parseFloat(yMinEl.value);
+let VEL_MAX = parseFloat(yMaxEl.value);
+let EMA_ALPHA = parseFloat(emaAlphaEl.value);
+
+const originalWidth = 1920, originalHeight = 1080;
+const skeletonPairs = [
+  ['ankle','knee'], ['knee','hip'], ['hip','shoulder'], ['shoulder','ear'],
+  ['shoulder','elbow'], ['elbow','wrist'], ['wrist','hand']
+];
+
+/* ------------ State ------------- */
+let landmarks = {};
+let frameKeys = [];
+let handVelocities = []; // [{time, velocity}]
+let emaValue = null;
+let nextIdx = 0;
+let lastTime = 0;
+let chart;
+
+/* ------------ Theme control ------------- */
+function applyTheme(mode){
+  document.documentElement.style.colorScheme = 'dark';
+}
+applyTheme('dark');
+themeToggle.addEventListener('change', () => applyTheme(themeToggle.value));
+
+/* ------------ Load data then init ------------- */
+Promise.all([
+  fetch('landmarks.yaml').then(r => r.text()).then(t => jsyaml.load(t)),
+  new Promise(res => video.addEventListener('loadedmetadata', res, { once:true }))
+]).then(([lm]) => {
+  landmarks = lm || {};
+  frameKeys = Object.keys(landmarks).map(Number).sort((a,b)=>a-b);
+
+  // If YAML included fps, use it (optional)
+  if (landmarks.__meta__ && typeof landmarks.__meta__.fps === 'number') {
+    fps = landmarks.__meta__.fps;
+  }
+
+  computeHandVelocities();
+  initChart();
+  sizeOverlayToBox();
+
+  // Start the loop now that everything is ready
+  requestAnimationFrame(drawLoop);
+
+  // Detect loop/restart by time going backwards
+  video.addEventListener('timeupdate', () => {
+    if (video.currentTime < lastTime) resetStream();
+    lastTime = video.currentTime;
+  });
+
+  // Keep overlay sized to the displayed box
+  new ResizeObserver(sizeOverlayToBox).observe(videoBox);
+});
+
+/* ------------ Build velocity series ------------- */
+function computeHandVelocities(){
+  handVelocities = [];
+  for (let i=1;i<frameKeys.length;i++){
+    const prev = landmarks[frameKeys[i-1]].hand;
+    const curr = landmarks[frameKeys[i]].hand;
+    if (!prev || !curr) continue;
+    const dx = curr.x - prev.x, dy = curr.y - prev.y;
+    const velocity = Math.hypot(dx, dy) * fps; // px/sec
+    const time = frameKeys[i] / fps;
+    handVelocities.push({ time, velocity });
+  }
+  // Ensure clean start at t=0
+  if (handVelocities.length && handVelocities[0].time > 0){
+    handVelocities.unshift({ time: 0, velocity: handVelocities[0].velocity });
+  }
+}
+
+/* ------------ Chart.js ------------- */
+function initChart(){
+  const ctxChart = document.getElementById('velocityChart').getContext('2d');
+
+  const gradient = ctxChart.createLinearGradient(0,0,0,300);
+  gradient.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#5aa9ff');
+  gradient.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--accent-2') || '#22d3ee');
+
+  chart = new Chart(ctxChart, {
+    type: 'line',
+    data: { labels: [], datasets: [{
+      label:'Hand velocity',
+      data: [],
+      borderColor: gradient,
+      backgroundColor: 'rgba(90,169,255,.12)',
+      fill: true,
+      tension: 0.25,
+      pointRadius: 0,
+      borderWidth: 2
+    }]},
+    options: {
+      animation: false,
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'nearest', intersect:false },
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display:true, text:'Time (s)' },
+          min: 0, max: windowSize,
+          grid: { color: 'rgba(148,163,184,.15)' },
+          ticks: { color: 'rgba(148,163,184,.9)' }
+        },
+        y: {
+          type: 'linear',
+          title: { display:true, text:'Hand Velocity (px/s)' },
+          min: VEL_MIN, max: VEL_MAX,
+          grid: { color: 'rgba(148,163,184,.15)' },
+          ticks: { color: 'rgba(148,163,184,.9)' }
+        }
+      },
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          displayColors:false,
+          callbacks:{
+            label: ctx => ` ${ctx.parsed.y.toFixed(0)} px/s @ ${ctx.parsed.x.toFixed(2)} s`
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ------------ Rolling window aligned to playhead ------------- */
+function updateChart(currentTime){
+  // Append all samples up to currentTime
+  while (nextIdx < handVelocities.length && handVelocities[nextIdx].time <= currentTime){
+    const { time, velocity } = handVelocities[nextIdx];
+    emaValue = (emaValue === null) ? velocity : EMA_ALPHA * velocity + (1 - EMA_ALPHA) * emaValue;
+    chart.data.labels.push(time);
+    chart.data.datasets[0].data.push(emaValue);
+    nextIdx++;
+  }
+
+  // Rolling window [max(0, t-W), t]
+  const xmin = Math.max(0, currentTime - windowSize);
+  const xmax = xmin + windowSize;
+  chart.options.scales.x.min = 0;
+  chart.options.scales.x.max = windowSize;
+
+  // Prune old points
+  while (chart.data.labels.length && chart.data.labels[0] < xmin){
+    chart.data.labels.shift();
+    chart.data.datasets[0].data.shift();
+  }
+
+  chart.update();
+}
+
+/* ------------ Draw loop ------------- */
+function drawLoop(){
+  // Always update the chart so it "runs by itself"
+  updateChart(video.currentTime);
+
+  // Then render overlay if we can find a nearby frame
+  octx.clearRect(0,0,overlay.width, overlay.height);
+  const frameData = getNearestFrameData(video.currentTime);
+  if (frameData) drawSkeleton(frameData);
+
+  requestAnimationFrame(drawLoop);
+}
+
+/* Robust frame lookup: round -> floor -> ceil */
+function getNearestFrameData(t){
+  if (!frameKeys.length) return null;
+  const idx = Math.round(t * fps);
+  return landmarks[idx] || landmarks[idx-1] || landmarks[idx+1] || null;
+}
+
+function drawSkeleton(points){
+  const sx = overlay.width / originalWidth;
+  const sy = overlay.height / originalHeight;
+
+  octx.lineWidth = 2;
+  octx.strokeStyle = '#ff5a87';
+  octx.fillStyle = '#5aa9ff';
+
+  skeletonPairs.forEach(([a,b]) => {
+    if (points[a] && points[b]){
+      octx.beginPath();
+      octx.moveTo(points[a].x * sx, points[a].y * sy);
+      octx.lineTo(points[b].x * sx, points[b].y * sy);
+      octx.stroke();
+    }
+  });
+
+  for (const key in points){
+    if (!points[key]) continue;
+    const {x,y} = points[key];
+    octx.beginPath();
+    octx.arc(x * sx, y * sy, 4, 0, Math.PI*2);
+    octx.fill();
+  }
+}
+
+/* ------------ Utilities ------------- */
+function sizeOverlayToBox(){
+  // Use rendered CSS size of the videoBox for crisp DPR canvas
+  const rect = videoBox.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  overlay.width  = Math.max(2, Math.round(rect.width  * dpr));
+  overlay.height = Math.max(2, Math.round(rect.height * dpr));
+  overlay.style.width  = rect.width + 'px';
+  overlay.style.height = rect.height + 'px';
+  octx.setTransform(1,0,0,1,0,0);
+}
+
+function resetStream(){
+  chart.data.labels.length = 0;
+  chart.data.datasets[0].data.length = 0;
+  chart.options.scales.x.min = 0;
+  chart.options.scales.x.max = windowSize;
+  chart.options.scales.y.min = VEL_MIN;
+  chart.options.scales.y.max = VEL_MAX;
+  chart.update();
+  emaValue = null;
+  nextIdx = 0;
+}
+
+/* ------------ Controls ------------- */
+playPauseBtn.addEventListener('click', () => {
+  if (video.paused) {
+    video.play();
+    playPauseBtn.textContent = '⏸ Pause';
+    playPauseBtn.classList.add('primary');
+  } else {
+    video.pause();
+    playPauseBtn.textContent = '▶️ Play';
+    playPauseBtn.classList.remove('primary');
+  }
+});
+speedSel.addEventListener('change', () => { video.playbackRate = parseFloat(speedSel.value); });
+
+emaAlphaEl.addEventListener('input', () => {
+  EMA_ALPHA = parseFloat(emaAlphaEl.value);
+  emaAlphaVal.textContent = EMA_ALPHA.toFixed(2);
+  // Rebuild EMA stream from scratch for consistency
+  const t = video.currentTime;
+  resetStream();
+  // Fast-forward stream to current time using new alpha
+  updateChart(t);
+});
+
+winSecEl.addEventListener('input', () => {
+  windowSize = parseFloat(winSecEl.value);
+  winSecVal.textContent = windowSize;
+  updateChart(video.currentTime);
+});
+
+yMinEl.addEventListener('change', () => {
+  VEL_MIN = parseFloat(yMinEl.value);
+  chart.options.scales.y.min = VEL_MIN;
+  chart.update();
+});
+yMaxEl.addEventListener('change', () => {
+  VEL_MAX = parseFloat(yMaxEl.value);
+  chart.options.scales.y.max = VEL_MAX;
+  chart.update();
+});
+</script>
+</body>
+</html>

@@ -30,3 +30,4 @@ src/config/secrets.yaml
 # Ignore System Files
 .DS_Store
 Thumbs.db
+/ui_test/athlete_1.mp4

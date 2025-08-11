@@ -1,0 +1,5725 @@
+1:
+  ankle:
+    x: 1026
+    y: 787
+  ear:
+    x: 786
+    y: 183
+  elbow:
+    x: 935
+    y: 414
+  hand:
+    x: 1150
+    y: 475
+  hip:
+    x: 691
+    y: 645
+  knee:
+    x: 948
+    y: 508
+  shoulder:
+    x: 752
+    y: 317
+  wrist:
+    x: 1110
+    y: 468
+2:
+  ankle:
+    x: 1032
+    y: 782
+  ear:
+    x: 753
+    y: 180
+  elbow:
+    x: 905
+    y: 410
+  hand:
+    x: 1107
+    y: 465
+  hip:
+    x: 679
+    y: 644
+  knee:
+    x: 932
+    y: 507
+  shoulder:
+    x: 719
+    y: 314
+  wrist:
+    x: 1073
+    y: 461
+3:
+  ankle:
+    x: 1035
+    y: 782
+  ear:
+    x: 704
+    y: 178
+  elbow:
+    x: 851
+    y: 406
+  hand:
+    x: 1060
+    y: 456
+  hip:
+    x: 652
+    y: 644
+  knee:
+    x: 912
+    y: 514
+  shoulder:
+    x: 672
+    y: 314
+  wrist:
+    x: 1022
+    y: 453
+4:
+  ankle:
+    x: 1035
+    y: 780
+  ear:
+    x: 649
+    y: 177
+  elbow:
+    x: 804
+    y: 405
+  hand:
+    x: 1017
+    y: 457
+  hip:
+    x: 632
+    y: 644
+  knee:
+    x: 890
+    y: 519
+  shoulder:
+    x: 623
+    y: 314
+  wrist:
+    x: 974
+    y: 455
+5:
+  ankle:
+    x: 1035
+    y: 782
+  ear:
+    x: 599
+    y: 177
+  elbow:
+    x: 768
+    y: 405
+  hand:
+    x: 975
+    y: 457
+  hip:
+    x: 608
+    y: 643
+  knee:
+    x: 871
+    y: 543
+  shoulder:
+    x: 575
+    y: 314
+  wrist:
+    x: 933
+    y: 455
+6:
+  ankle:
+    x: 1035
+    y: 782
+  ear:
+    x: 546
+    y: 175
+  elbow:
+    x: 701
+    y: 405
+  hand:
+    x: 911
+    y: 454
+  hip:
+    x: 597
+    y: 638
+  knee:
+    x: 864
+    y: 552
+  shoulder:
+    x: 524
+    y: 314
+  wrist:
+    x: 865
+    y: 446
+7:
+  ankle:
+    x: 1035
+    y: 776
+  ear:
+    x: 544
+    y: 172
+  elbow:
+    x: 702
+    y: 407
+  hand:
+    x: 916
+    y: 453
+  hip:
+    x: 592
+    y: 636
+  knee:
+    x: 863
+    y: 553
+  shoulder:
+    x: 519
+    y: 315
+  wrist:
+    x: 864
+    y: 443
+8:
+  ankle:
+    x: 1039
+    y: 775
+  ear:
+    x: 503
+    y: 168
+  elbow:
+    x: 653
+    y: 407
+  hand:
+    x: 868
+    y: 449
+  hip:
+    x: 572
+    y: 634
+  knee:
+    x: 840
+    y: 570
+  shoulder:
+    x: 476
+    y: 314
+  wrist:
+    x: 818
+    y: 440
+9:
+  ankle:
+    x: 1037
+    y: 775
+  ear:
+    x: 450
+    y: 169
+  elbow:
+    x: 607
+    y: 417
+  hand:
+    x: 830
+    y: 451
+  hip:
+    x: 551
+    y: 635
+  knee:
+    x: 822
+    y: 590
+  shoulder:
+    x: 426
+    y: 321
+  wrist:
+    x: 787
+    y: 442
+10:
+  ankle:
+    x: 1037
+    y: 773
+  ear:
+    x: 412
+    y: 172
+  elbow:
+    x: 548
+    y: 430
+  hand:
+    x: 771
+    y: 451
+  hip:
+    x: 528
+    y: 635
+  knee:
+    x: 810
+    y: 597
+  shoulder:
+    x: 381
+    y: 327
+  wrist:
+    x: 730
+    y: 443
+11:
+  ankle:
+    x: 1040
+    y: 773
+  ear:
+    x: 370
+    y: 178
+  elbow:
+    x: 490
+    y: 444
+  hand:
+    x: 712
+    y: 447
+  hip:
+    x: 506
+    y: 638
+  knee:
+    x: 789
+    y: 621
+  shoulder:
+    x: 337
+    y: 330
+  wrist:
+    x: 659
+    y: 443
+12:
+  ankle:
+    x: 1040
+    y: 773
+  ear:
+    x: 334
+    y: 185
+  elbow:
+    x: 444
+    y: 466
+  hand:
+    x: 658
+    y: 441
+  hip:
+    x: 495
+    y: 642
+  knee:
+    x: 773
+    y: 648
+  shoulder:
+    x: 307
+    y: 338
+  wrist:
+    x: 614
+    y: 444
+13:
+  ankle:
+    x: 1042
+    y: 776
+  ear:
+    x: 332
+    y: 193
+  elbow:
+    x: 431
+    y: 470
+  hand:
+    x: 654
+    y: 441
+  hip:
+    x: 486
+    y: 643
+  knee:
+    x: 772
+    y: 649
+  shoulder:
+    x: 297
+    y: 340
+  wrist:
+    x: 608
+    y: 444
+14:
+  ankle:
+    x: 1045
+    y: 779
+  ear:
+    x: 311
+    y: 199
+  elbow:
+    x: 390
+    y: 482
+  hand:
+    x: 616
+    y: 442
+  hip:
+    x: 477
+    y: 645
+  knee:
+    x: 759
+    y: 658
+  shoulder:
+    x: 272
+    y: 344
+  wrist:
+    x: 575
+    y: 444
+15:
+  ankle:
+    x: 1042
+    y: 781
+  ear:
+    x: 289
+    y: 204
+  elbow:
+    x: 354
+    y: 488
+  hand:
+    x: 566
+    y: 441
+  hip:
+    x: 463
+    y: 648
+  knee:
+    x: 746
+    y: 672
+  shoulder:
+    x: 249
+    y: 344
+  wrist:
+    x: 533
+    y: 446
+16:
+  ankle:
+    x: 1040
+    y: 781
+  ear:
+    x: 276
+    y: 210
+  elbow:
+    x: 293
+    y: 488
+  hand:
+    x: 502
+    y: 434
+  hip:
+    x: 456
+    y: 652
+  knee:
+    x: 733
+    y: 690
+  shoulder:
+    x: 243
+    y: 348
+  wrist:
+    x: 465
+    y: 445
+17:
+  ankle:
+    x: 1040
+    y: 781
+  ear:
+    x: 265
+    y: 215
+  elbow:
+    x: 257
+    y: 490
+  hand:
+    x: 444
+    y: 423
+  hip:
+    x: 461
+    y: 653
+  knee:
+    x: 740
+    y: 700
+  shoulder:
+    x: 235
+    y: 351
+  wrist:
+    x: 413
+    y: 440
+18:
+  ankle:
+    x: 1040
+    y: 782
+  ear:
+    x: 256
+    y: 219
+  elbow:
+    x: 230
+    y: 488
+  hand:
+    x: 404
+    y: 402
+  hip:
+    x: 458
+    y: 652
+  knee:
+    x: 740
+    y: 705
+  shoulder:
+    x: 218
+    y: 352
+  wrist:
+    x: 375
+    y: 420
+19:
+  ankle:
+    x: 1040
+    y: 781
+  ear:
+    x: 254
+    y: 221
+  elbow:
+    x: 226
+    y: 496
+  hand:
+    x: 407
+    y: 396
+  hip:
+    x: 457
+    y: 653
+  knee:
+    x: 744
+    y: 706
+  shoulder:
+    x: 220
+    y: 352
+  wrist:
+    x: 379
+    y: 416
+20:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 250
+    y: 222
+  elbow:
+    x: 213
+    y: 491
+  hand:
+    x: 380
+    y: 395
+  hip:
+    x: 458
+    y: 652
+  knee:
+    x: 745
+    y: 709
+  shoulder:
+    x: 213
+    y: 353
+  wrist:
+    x: 351
+    y: 412
+21:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 246
+    y: 223
+  elbow:
+    x: 197
+    y: 495
+  hand:
+    x: 361
+    y: 394
+  hip:
+    x: 460
+    y: 649
+  knee:
+    x: 746
+    y: 704
+  shoulder:
+    x: 208
+    y: 353
+  wrist:
+    x: 333
+    y: 411
+22:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 244
+    y: 226
+  elbow:
+    x: 194
+    y: 492
+  hand:
+    x: 357
+    y: 394
+  hip:
+    x: 459
+    y: 648
+  knee:
+    x: 744
+    y: 705
+  shoulder:
+    x: 207
+    y: 354
+  wrist:
+    x: 332
+    y: 411
+23:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 246
+    y: 227
+  elbow:
+    x: 191
+    y: 500
+  hand:
+    x: 356
+    y: 398
+  hip:
+    x: 458
+    y: 647
+  knee:
+    x: 742
+    y: 712
+  shoulder:
+    x: 209
+    y: 355
+  wrist:
+    x: 329
+    y: 413
+24:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 244
+    y: 228
+  elbow:
+    x: 193
+    y: 500
+  hand:
+    x: 357
+    y: 400
+  hip:
+    x: 460
+    y: 647
+  knee:
+    x: 742
+    y: 713
+  shoulder:
+    x: 211
+    y: 356
+  wrist:
+    x: 330
+    y: 414
+25:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 246
+    y: 228
+  elbow:
+    x: 193
+    y: 501
+  hand:
+    x: 358
+    y: 401
+  hip:
+    x: 460
+    y: 647
+  knee:
+    x: 741
+    y: 710
+  shoulder:
+    x: 213
+    y: 356
+  wrist:
+    x: 328
+    y: 415
+26:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 249
+    y: 228
+  elbow:
+    x: 197
+    y: 500
+  hand:
+    x: 367
+    y: 402
+  hip:
+    x: 461
+    y: 647
+  knee:
+    x: 742
+    y: 710
+  shoulder:
+    x: 215
+    y: 356
+  wrist:
+    x: 339
+    y: 415
+27:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 250
+    y: 228
+  elbow:
+    x: 198
+    y: 499
+  hand:
+    x: 369
+    y: 402
+  hip:
+    x: 462
+    y: 648
+  knee:
+    x: 743
+    y: 710
+  shoulder:
+    x: 216
+    y: 357
+  wrist:
+    x: 341
+    y: 416
+28:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 253
+    y: 227
+  elbow:
+    x: 200
+    y: 495
+  hand:
+    x: 372
+    y: 411
+  hip:
+    x: 462
+    y: 648
+  knee:
+    x: 742
+    y: 709
+  shoulder:
+    x: 219
+    y: 356
+  wrist:
+    x: 344
+    y: 420
+29:
+  ankle:
+    x: 1043
+    y: 781
+  ear:
+    x: 254
+    y: 227
+  elbow:
+    x: 203
+    y: 494
+  hand:
+    x: 381
+    y: 417
+  hip:
+    x: 458
+    y: 643
+  knee:
+    x: 739
+    y: 708
+  shoulder:
+    x: 221
+    y: 355
+  wrist:
+    x: 353
+    y: 423
+30:
+  ankle:
+    x: 1041
+    y: 781
+  ear:
+    x: 264
+    y: 227
+  elbow:
+    x: 208
+    y: 491
+  hand:
+    x: 395
+    y: 433
+  hip:
+    x: 455
+    y: 639
+  knee:
+    x: 739
+    y: 707
+  shoulder:
+    x: 222
+    y: 355
+  wrist:
+    x: 365
+    y: 436
+31:
+  ankle:
+    x: 1041
+    y: 782
+  ear:
+    x: 269
+    y: 227
+  elbow:
+    x: 210
+    y: 488
+  hand:
+    x: 402
+    y: 438
+  hip:
+    x: 455
+    y: 637
+  knee:
+    x: 739
+    y: 706
+  shoulder:
+    x: 222
+    y: 354
+  wrist:
+    x: 371
+    y: 441
+32:
+  ankle:
+    x: 1042
+    y: 782
+  ear:
+    x: 282
+    y: 224
+  elbow:
+    x: 211
+    y: 488
+  hand:
+    x: 422
+    y: 453
+  hip:
+    x: 455
+    y: 637
+  knee:
+    x: 739
+    y: 705
+  shoulder:
+    x: 229
+    y: 354
+  wrist:
+    x: 391
+    y: 454
+33:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 292
+    y: 223
+  elbow:
+    x: 221
+    y: 492
+  hand:
+    x: 448
+    y: 478
+  hip:
+    x: 455
+    y: 642
+  knee:
+    x: 741
+    y: 707
+  shoulder:
+    x: 234
+    y: 354
+  wrist:
+    x: 414
+    y: 474
+34:
+  ankle:
+    x: 1043
+    y: 782
+  ear:
+    x: 307
+    y: 219
+  elbow:
+    x: 237
+    y: 496
+  hand:
+    x: 472
+    y: 499
+  hip:
+    x: 455
+    y: 642
+  knee:
+    x: 741
+    y: 707
+  shoulder:
+    x: 241
+    y: 343
+  wrist:
+    x: 434
+    y: 493
+35:
+  ankle:
+    x: 1046
+    y: 783
+  ear:
+    x: 325
+    y: 215
+  elbow:
+    x: 266
+    y: 500
+  hand:
+    x: 499
+    y: 515
+  hip:
+    x: 460
+    y: 645
+  knee:
+    x: 743
+    y: 713
+  shoulder:
+    x: 257
+    y: 336
+  wrist:
+    x: 456
+    y: 511
+36:
+  ankle:
+    x: 1046
+    y: 785
+  ear:
+    x: 345
+    y: 207
+  elbow:
+    x: 296
+    y: 502
+  hand:
+    x: 526
+    y: 530
+  hip:
+    x: 460
+    y: 649
+  knee:
+    x: 743
+    y: 717
+  shoulder:
+    x: 277
+    y: 328
+  wrist:
+    x: 482
+    y: 529
+37:
+  ankle:
+    x: 1047
+    y: 787
+  ear:
+    x: 351
+    y: 204
+  elbow:
+    x: 299
+    y: 504
+  hand:
+    x: 527
+    y: 531
+  hip:
+    x: 464
+    y: 649
+  knee:
+    x: 747
+    y: 716
+  shoulder:
+    x: 290
+    y: 328
+  wrist:
+    x: 480
+    y: 527
+38:
+  ankle:
+    x: 1047
+    y: 787
+  ear:
+    x: 370
+    y: 198
+  elbow:
+    x: 337
+    y: 513
+  hand:
+    x: 561
+    y: 540
+  hip:
+    x: 468
+    y: 656
+  knee:
+    x: 749
+    y: 712
+  shoulder:
+    x: 309
+    y: 329
+  wrist:
+    x: 520
+    y: 539
+39:
+  ankle:
+    x: 1047
+    y: 788
+  ear:
+    x: 393
+    y: 194
+  elbow:
+    x: 383
+    y: 517
+  hand:
+    x: 593
+    y: 553
+  hip:
+    x: 467
+    y: 658
+  knee:
+    x: 752
+    y: 712
+  shoulder:
+    x: 329
+    y: 330
+  wrist:
+    x: 557
+    y: 549
+40:
+  ankle:
+    x: 1042
+    y: 764
+  ear:
+    x: 422
+    y: 194
+  elbow:
+    x: 406
+    y: 517
+  hand:
+    x: 614
+    y: 571
+  hip:
+    x: 468
+    y: 654
+  knee:
+    x: 752
+    y: 698
+  shoulder:
+    x: 352
+    y: 328
+  wrist:
+    x: 577
+    y: 561
+41:
+  ankle:
+    x: 1037
+    y: 761
+  ear:
+    x: 446
+    y: 188
+  elbow:
+    x: 433
+    y: 516
+  hand:
+    x: 643
+    y: 574
+  hip:
+    x: 471
+    y: 651
+  knee:
+    x: 760
+    y: 693
+  shoulder:
+    x: 375
+    y: 325
+  wrist:
+    x: 600
+    y: 564
+42:
+  ankle:
+    x: 1034
+    y: 764
+  ear:
+    x: 470
+    y: 187
+  elbow:
+    x: 456
+    y: 516
+  hand:
+    x: 662
+    y: 583
+  hip:
+    x: 476
+    y: 645
+  knee:
+    x: 765
+    y: 677
+  shoulder:
+    x: 399
+    y: 324
+  wrist:
+    x: 617
+    y: 569
+43:
+  ankle:
+    x: 1034
+    y: 766
+  ear:
+    x: 469
+    y: 185
+  elbow:
+    x: 467
+    y: 515
+  hand:
+    x: 677
+    y: 586
+  hip:
+    x: 476
+    y: 643
+  knee:
+    x: 764
+    y: 681
+  shoulder:
+    x: 404
+    y: 323
+  wrist:
+    x: 638
+    y: 573
+44:
+  ankle:
+    x: 1036
+    y: 775
+  ear:
+    x: 496
+    y: 183
+  elbow:
+    x: 494
+    y: 512
+  hand:
+    x: 703
+    y: 586
+  hip:
+    x: 477
+    y: 642
+  knee:
+    x: 761
+    y: 683
+  shoulder:
+    x: 421
+    y: 319
+  wrist:
+    x: 663
+    y: 572
+45:
+  ankle:
+    x: 1029
+    y: 775
+  ear:
+    x: 520
+    y: 183
+  elbow:
+    x: 527
+    y: 507
+  hand:
+    x: 735
+    y: 593
+  hip:
+    x: 482
+    y: 644
+  knee:
+    x: 760
+    y: 684
+  shoulder:
+    x: 443
+    y: 318
+  wrist:
+    x: 692
+    y: 580
+46:
+  ankle:
+    x: 1024
+    y: 780
+  ear:
+    x: 544
+    y: 184
+  elbow:
+    x: 560
+    y: 506
+  hand:
+    x: 762
+    y: 604
+  hip:
+    x: 482
+    y: 646
+  knee:
+    x: 760
+    y: 672
+  shoulder:
+    x: 465
+    y: 318
+  wrist:
+    x: 717
+    y: 595
+47:
+  ankle:
+    x: 1022
+    y: 790
+  ear:
+    x: 565
+    y: 184
+  elbow:
+    x: 587
+    y: 506
+  hand:
+    x: 801
+    y: 605
+  hip:
+    x: 482
+    y: 651
+  knee:
+    x: 765
+    y: 659
+  shoulder:
+    x: 486
+    y: 318
+  wrist:
+    x: 752
+    y: 595
+48:
+  ankle:
+    x: 1017
+    y: 789
+  ear:
+    x: 594
+    y: 185
+  elbow:
+    x: 618
+    y: 501
+  hand:
+    x: 815
+    y: 607
+  hip:
+    x: 485
+    y: 650
+  knee:
+    x: 764
+    y: 628
+  shoulder:
+    x: 515
+    y: 318
+  wrist:
+    x: 768
+    y: 596
+49:
+  ankle:
+    x: 1010
+    y: 790
+  ear:
+    x: 596
+    y: 185
+  elbow:
+    x: 620
+    y: 501
+  hand:
+    x: 814
+    y: 616
+  hip:
+    x: 486
+    y: 650
+  knee:
+    x: 765
+    y: 630
+  shoulder:
+    x: 521
+    y: 318
+  wrist:
+    x: 769
+    y: 606
+50:
+  ankle:
+    x: 1011
+    y: 795
+  ear:
+    x: 615
+    y: 188
+  elbow:
+    x: 659
+    y: 502
+  hand:
+    x: 841
+    y: 615
+  hip:
+    x: 488
+    y: 651
+  knee:
+    x: 765
+    y: 635
+  shoulder:
+    x: 546
+    y: 319
+  wrist:
+    x: 803
+    y: 604
+51:
+  ankle:
+    x: 1002
+    y: 782
+  ear:
+    x: 642
+    y: 192
+  elbow:
+    x: 694
+    y: 506
+  hand:
+    x: 876
+    y: 628
+  hip:
+    x: 496
+    y: 651
+  knee:
+    x: 766
+    y: 609
+  shoulder:
+    x: 573
+    y: 322
+  wrist:
+    x: 855
+    y: 606
+52:
+  ankle:
+    x: 1002
+    y: 782
+  ear:
+    x: 665
+    y: 198
+  elbow:
+    x: 715
+    y: 506
+  hand:
+    x: 902
+    y: 634
+  hip:
+    x: 517
+    y: 650
+  knee:
+    x: 778
+    y: 601
+  shoulder:
+    x: 597
+    y: 323
+  wrist:
+    x: 865
+    y: 612
+53:
+  ankle:
+    x: 1007
+    y: 781
+  ear:
+    x: 694
+    y: 203
+  elbow:
+    x: 752
+    y: 509
+  hand:
+    x: 933
+    y: 640
+  hip:
+    x: 537
+    y: 650
+  knee:
+    x: 801
+    y: 563
+  shoulder:
+    x: 626
+    y: 326
+  wrist:
+    x: 892
+    y: 625
+54:
+  ankle:
+    x: 1007
+    y: 775
+  ear:
+    x: 714
+    y: 209
+  elbow:
+    x: 785
+    y: 515
+  hand:
+    x: 964
+    y: 646
+  hip:
+    x: 560
+    y: 650
+  knee:
+    x: 819
+    y: 553
+  shoulder:
+    x: 656
+    y: 332
+  wrist:
+    x: 922
+    y: 634
+55:
+  ankle:
+    x: 1008
+    y: 773
+  ear:
+    x: 721
+    y: 211
+  elbow:
+    x: 786
+    y: 514
+  hand:
+    x: 963
+    y: 648
+  hip:
+    x: 558
+    y: 648
+  knee:
+    x: 821
+    y: 544
+  shoulder:
+    x: 655
+    y: 334
+  wrist:
+    x: 918
+    y: 630
+56:
+  ankle:
+    x: 1016
+    y: 772
+  ear:
+    x: 722
+    y: 210
+  elbow:
+    x: 789
+    y: 515
+  hand:
+    x: 973
+    y: 654
+  hip:
+    x: 561
+    y: 645
+  knee:
+    x: 825
+    y: 546
+  shoulder:
+    x: 657
+    y: 334
+  wrist:
+    x: 930
+    y: 641
+57:
+  ankle:
+    x: 1021
+    y: 769
+  ear:
+    x: 744
+    y: 212
+  elbow:
+    x: 812
+    y: 519
+  hand:
+    x: 987
+    y: 657
+  hip:
+    x: 565
+    y: 645
+  knee:
+    x: 831
+    y: 543
+  shoulder:
+    x: 679
+    y: 337
+  wrist:
+    x: 949
+    y: 639
+58:
+  ankle:
+    x: 1028
+    y: 769
+  ear:
+    x: 767
+    y: 214
+  elbow:
+    x: 836
+    y: 524
+  hand:
+    x: 1018
+    y: 653
+  hip:
+    x: 586
+    y: 645
+  knee:
+    x: 847
+    y: 541
+  shoulder:
+    x: 703
+    y: 340
+  wrist:
+    x: 975
+    y: 635
+59:
+  ankle:
+    x: 1029
+    y: 770
+  ear:
+    x: 792
+    y: 218
+  elbow:
+    x: 860
+    y: 528
+  hand:
+    x: 1051
+    y: 657
+  hip:
+    x: 605
+    y: 646
+  knee:
+    x: 866
+    y: 533
+  shoulder:
+    x: 728
+    y: 341
+  wrist:
+    x: 1007
+    y: 642
+60:
+  ankle:
+    x: 1029
+    y: 771
+  ear:
+    x: 813
+    y: 221
+  elbow:
+    x: 888
+    y: 528
+  hand:
+    x: 1076
+    y: 655
+  hip:
+    x: 623
+    y: 653
+  knee:
+    x: 884
+    y: 528
+  shoulder:
+    x: 754
+    y: 343
+  wrist:
+    x: 1038
+    y: 640
+61:
+  ankle:
+    x: 1027
+    y: 772
+  ear:
+    x: 817
+    y: 221
+  elbow:
+    x: 896
+    y: 531
+  hand:
+    x: 1093
+    y: 654
+  hip:
+    x: 626
+    y: 653
+  knee:
+    x: 885
+    y: 524
+  shoulder:
+    x: 757
+    y: 346
+  wrist:
+    x: 1052
+    y: 640
+62:
+  ankle:
+    x: 1031
+    y: 774
+  ear:
+    x: 840
+    y: 221
+  elbow:
+    x: 915
+    y: 530
+  hand:
+    x: 1113
+    y: 651
+  hip:
+    x: 642
+    y: 653
+  knee:
+    x: 899
+    y: 521
+  shoulder:
+    x: 782
+    y: 346
+  wrist:
+    x: 1077
+    y: 635
+63:
+  ankle:
+    x: 1034
+    y: 774
+  ear:
+    x: 865
+    y: 222
+  elbow:
+    x: 937
+    y: 530
+  hand:
+    x: 1135
+    y: 635
+  hip:
+    x: 671
+    y: 650
+  knee:
+    x: 920
+    y: 506
+  shoulder:
+    x: 809
+    y: 346
+  wrist:
+    x: 1099
+    y: 624
+64:
+  ankle:
+    x: 1047
+    y: 774
+  ear:
+    x: 885
+    y: 223
+  elbow:
+    x: 955
+    y: 525
+  hand:
+    x: 1153
+    y: 620
+  hip:
+    x: 698
+    y: 649
+  knee:
+    x: 944
+    y: 501
+  shoulder:
+    x: 830
+    y: 346
+  wrist:
+    x: 1111
+    y: 610
+65:
+  ankle:
+    x: 1063
+    y: 776
+  ear:
+    x: 906
+    y: 224
+  elbow:
+    x: 979
+    y: 518
+  hand:
+    x: 1174
+    y: 622
+  hip:
+    x: 722
+    y: 648
+  knee:
+    x: 967
+    y: 499
+  shoulder:
+    x: 854
+    y: 345
+  wrist:
+    x: 1135
+    y: 611
+66:
+  ankle:
+    x: 1068
+    y: 776
+  ear:
+    x: 931
+    y: 224
+  elbow:
+    x: 1006
+    y: 516
+  hand:
+    x: 1210
+    y: 623
+  hip:
+    x: 748
+    y: 647
+  knee:
+    x: 991
+    y: 492
+  shoulder:
+    x: 880
+    y: 345
+  wrist:
+    x: 1168
+    y: 612
+67:
+  ankle:
+    x: 1064
+    y: 773
+  ear:
+    x: 934
+    y: 225
+  elbow:
+    x: 1014
+    y: 516
+  hand:
+    x: 1217
+    y: 619
+  hip:
+    x: 747
+    y: 645
+  knee:
+    x: 995
+    y: 496
+  shoulder:
+    x: 883
+    y: 346
+  wrist:
+    x: 1179
+    y: 608
+68:
+  ankle:
+    x: 1061
+    y: 771
+  ear:
+    x: 955
+    y: 225
+  elbow:
+    x: 1028
+    y: 509
+  hand:
+    x: 1232
+    y: 616
+  hip:
+    x: 765
+    y: 644
+  knee:
+    x: 1010
+    y: 489
+  shoulder:
+    x: 901
+    y: 345
+  wrist:
+    x: 1192
+    y: 603
+69:
+  ankle:
+    x: 1057
+    y: 749
+  ear:
+    x: 976
+    y: 226
+  elbow:
+    x: 1057
+    y: 504
+  hand:
+    x: 1252
+    y: 614
+  hip:
+    x: 791
+    y: 641
+  knee:
+    x: 1028
+    y: 477
+  shoulder:
+    x: 929
+    y: 344
+  wrist:
+    x: 1215
+    y: 602
+70:
+  ankle:
+    x: 1047
+    y: 743
+  ear:
+    x: 999
+    y: 225
+  elbow:
+    x: 1080
+    y: 498
+  hand:
+    x: 1277
+    y: 608
+  hip:
+    x: 805
+    y: 640
+  knee:
+    x: 1046
+    y: 472
+  shoulder:
+    x: 950
+    y: 344
+  wrist:
+    x: 1243
+    y: 599
+71:
+  ankle:
+    x: 1032
+    y: 735
+  ear:
+    x: 1019
+    y: 225
+  elbow:
+    x: 1101
+    y: 490
+  hand:
+    x: 1309
+    y: 595
+  hip:
+    x: 822
+    y: 639
+  knee:
+    x: 1058
+    y: 471
+  shoulder:
+    x: 972
+    y: 343
+  wrist:
+    x: 1266
+    y: 591
+72:
+  ankle:
+    x: 1029
+    y: 735
+  ear:
+    x: 1038
+    y: 225
+  elbow:
+    x: 1123
+    y: 482
+  hand:
+    x: 1333
+    y: 588
+  hip:
+    x: 841
+    y: 639
+  knee:
+    x: 1081
+    y: 471
+  shoulder:
+    x: 993
+    y: 342
+  wrist:
+    x: 1287
+    y: 584
+73:
+  ankle:
+    x: 1028
+    y: 736
+  ear:
+    x: 1034
+    y: 225
+  elbow:
+    x: 1126
+    y: 481
+  hand:
+    x: 1334
+    y: 590
+  hip:
+    x: 838
+    y: 639
+  knee:
+    x: 1088
+    y: 471
+  shoulder:
+    x: 990
+    y: 342
+  wrist:
+    x: 1292
+    y: 582
+74:
+  ankle:
+    x: 1027
+    y: 734
+  ear:
+    x: 1048
+    y: 225
+  elbow:
+    x: 1146
+    y: 471
+  hand:
+    x: 1352
+    y: 580
+  hip:
+    x: 847
+    y: 639
+  knee:
+    x: 1095
+    y: 471
+  shoulder:
+    x: 1006
+    y: 342
+  wrist:
+    x: 1306
+    y: 569
+75:
+  ankle:
+    x: 1026
+    y: 730
+  ear:
+    x: 1065
+    y: 225
+  elbow:
+    x: 1166
+    y: 465
+  hand:
+    x: 1378
+    y: 567
+  hip:
+    x: 863
+    y: 637
+  knee:
+    x: 1108
+    y: 469
+  shoulder:
+    x: 1024
+    y: 340
+  wrist:
+    x: 1332
+    y: 560
+76:
+  ankle:
+    x: 1026
+    y: 728
+  ear:
+    x: 1074
+    y: 225
+  elbow:
+    x: 1188
+    y: 460
+  hand:
+    x: 1408
+    y: 543
+  hip:
+    x: 871
+    y: 637
+  knee:
+    x: 1108
+    y: 467
+  shoulder:
+    x: 1035
+    y: 340
+  wrist:
+    x: 1360
+    y: 544
+77:
+  ankle:
+    x: 1032
+    y: 730
+  ear:
+    x: 1084
+    y: 224
+  elbow:
+    x: 1220
+    y: 455
+  hand:
+    x: 1427
+    y: 538
+  hip:
+    x: 883
+    y: 639
+  knee:
+    x: 1117
+    y: 464
+  shoulder:
+    x: 1047
+    y: 341
+  wrist:
+    x: 1388
+    y: 537
+78:
+  ankle:
+    x: 1036
+    y: 727
+  ear:
+    x: 1089
+    y: 224
+  elbow:
+    x: 1241
+    y: 451
+  hand:
+    x: 1444
+    y: 536
+  hip:
+    x: 891
+    y: 639
+  knee:
+    x: 1126
+    y: 464
+  shoulder:
+    x: 1056
+    y: 343
+  wrist:
+    x: 1413
+    y: 530
+79:
+  ankle:
+    x: 1038
+    y: 723
+  ear:
+    x: 1089
+    y: 224
+  elbow:
+    x: 1250
+    y: 450
+  hand:
+    x: 1444
+    y: 532
+  hip:
+    x: 893
+    y: 640
+  knee:
+    x: 1126
+    y: 455
+  shoulder:
+    x: 1060
+    y: 343
+  wrist:
+    x: 1410
+    y: 527
+80:
+  ankle:
+    x: 1042
+    y: 722
+  ear:
+    x: 1091
+    y: 224
+  elbow:
+    x: 1248
+    y: 446
+  hand:
+    x: 1444
+    y: 516
+  hip:
+    x: 894
+    y: 642
+  knee:
+    x: 1123
+    y: 457
+  shoulder:
+    x: 1062
+    y: 343
+  wrist:
+    x: 1412
+    y: 510
+81:
+  ankle:
+    x: 1043
+    y: 723
+  ear:
+    x: 1090
+    y: 224
+  elbow:
+    x: 1243
+    y: 440
+  hand:
+    x: 1438
+    y: 504
+  hip:
+    x: 892
+    y: 643
+  knee:
+    x: 1118
+    y: 467
+  shoulder:
+    x: 1058
+    y: 343
+  wrist:
+    x: 1405
+    y: 497
+82:
+  ankle:
+    x: 1043
+    y: 724
+  ear:
+    x: 1083
+    y: 223
+  elbow:
+    x: 1228
+    y: 432
+  hand:
+    x: 1431
+    y: 491
+  hip:
+    x: 885
+    y: 643
+  knee:
+    x: 1116
+    y: 476
+  shoulder:
+    x: 1049
+    y: 342
+  wrist:
+    x: 1396
+    y: 484
+83:
+  ankle:
+    x: 1043
+    y: 728
+  ear:
+    x: 1080
+    y: 221
+  elbow:
+    x: 1218
+    y: 429
+  hand:
+    x: 1422
+    y: 489
+  hip:
+    x: 883
+    y: 640
+  knee:
+    x: 1116
+    y: 478
+  shoulder:
+    x: 1047
+    y: 340
+  wrist:
+    x: 1384
+    y: 477
+84:
+  ankle:
+    x: 1043
+    y: 729
+  ear:
+    x: 1078
+    y: 219
+  elbow:
+    x: 1214
+    y: 426
+  hand:
+    x: 1419
+    y: 489
+  hip:
+    x: 881
+    y: 638
+  knee:
+    x: 1114
+    y: 479
+  shoulder:
+    x: 1047
+    y: 339
+  wrist:
+    x: 1378
+    y: 478
+85:
+  ankle:
+    x: 1043
+    y: 730
+  ear:
+    x: 1076
+    y: 218
+  elbow:
+    x: 1211
+    y: 424
+  hand:
+    x: 1417
+    y: 488
+  hip:
+    x: 878
+    y: 637
+  knee:
+    x: 1111
+    y: 481
+  shoulder:
+    x: 1045
+    y: 338
+  wrist:
+    x: 1375
+    y: 476
+86:
+  ankle:
+    x: 1043
+    y: 730
+  ear:
+    x: 1059
+    y: 216
+  elbow:
+    x: 1199
+    y: 424
+  hand:
+    x: 1413
+    y: 485
+  hip:
+    x: 868
+    y: 636
+  knee:
+    x: 1104
+    y: 486
+  shoulder:
+    x: 1015
+    y: 337
+  wrist:
+    x: 1366
+    y: 474
+87:
+  ankle:
+    x: 1042
+    y: 732
+  ear:
+    x: 1027
+    y: 211
+  elbow:
+    x: 1157
+    y: 427
+  hand:
+    x: 1374
+    y: 479
+  hip:
+    x: 848
+    y: 636
+  knee:
+    x: 1084
+    y: 489
+  shoulder:
+    x: 982
+    y: 337
+  wrist:
+    x: 1322
+    y: 470
+88:
+  ankle:
+    x: 1042
+    y: 736
+  ear:
+    x: 991
+    y: 208
+  elbow:
+    x: 1107
+    y: 427
+  hand:
+    x: 1301
+    y: 477
+  hip:
+    x: 820
+    y: 634
+  knee:
+    x: 1064
+    y: 487
+  shoulder:
+    x: 950
+    y: 332
+  wrist:
+    x: 1258
+    y: 470
+89:
+  ankle:
+    x: 1045
+    y: 744
+  ear:
+    x: 950
+    y: 204
+  elbow:
+    x: 1075
+    y: 432
+  hand:
+    x: 1271
+    y: 480
+  hip:
+    x: 791
+    y: 632
+  knee:
+    x: 1038
+    y: 487
+  shoulder:
+    x: 912
+    y: 331
+  wrist:
+    x: 1228
+    y: 471
+90:
+  ankle:
+    x: 1057
+    y: 768
+  ear:
+    x: 904
+    y: 201
+  elbow:
+    x: 1036
+    y: 433
+  hand:
+    x: 1229
+    y: 473
+  hip:
+    x: 760
+    y: 631
+  knee:
+    x: 1009
+    y: 490
+  shoulder:
+    x: 869
+    y: 330
+  wrist:
+    x: 1187
+    y: 469
+91:
+  ankle:
+    x: 1050
+    y: 762
+  ear:
+    x: 900
+    y: 199
+  elbow:
+    x: 1026
+    y: 428
+  hand:
+    x: 1229
+    y: 474
+  hip:
+    x: 765
+    y: 633
+  knee:
+    x: 1005
+    y: 489
+  shoulder:
+    x: 851
+    y: 326
+  wrist:
+    x: 1190
+    y: 472
+92:
+  ankle:
+    x: 1049
+    y: 759
+  ear:
+    x: 863
+    y: 195
+  elbow:
+    x: 988
+    y: 426
+  hand:
+    x: 1200
+    y: 476
+  hip:
+    x: 737
+    y: 634
+  knee:
+    x: 977
+    y: 489
+  shoulder:
+    x: 818
+    y: 324
+  wrist:
+    x: 1148
+    y: 473
+93:
+  ankle:
+    x: 1049
+    y: 769
+  ear:
+    x: 814
+    y: 188
+  elbow:
+    x: 948
+    y: 421
+  hand:
+    x: 1164
+    y: 476
+  hip:
+    x: 696
+    y: 634
+  knee:
+    x: 951
+    y: 490
+  shoulder:
+    x: 773
+    y: 321
+  wrist:
+    x: 1116
+    y: 473
+94:
+  ankle:
+    x: 1050
+    y: 777
+  ear:
+    x: 765
+    y: 182
+  elbow:
+    x: 907
+    y: 413
+  hand:
+    x: 1117
+    y: 474
+  hip:
+    x: 678
+    y: 636
+  knee:
+    x: 926
+    y: 500
+  shoulder:
+    x: 730
+    y: 318
+  wrist:
+    x: 1078
+    y: 465
+95:
+  ankle:
+    x: 1048
+    y: 774
+  ear:
+    x: 718
+    y: 180
+  elbow:
+    x: 866
+    y: 407
+  hand:
+    x: 1069
+    y: 461
+  hip:
+    x: 650
+    y: 639
+  knee:
+    x: 906
+    y: 504
+  shoulder:
+    x: 682
+    y: 318
+  wrist:
+    x: 1030
+    y: 454
+96:
+  ankle:
+    x: 1038
+    y: 774
+  ear:
+    x: 663
+    y: 178
+  elbow:
+    x: 813
+    y: 406
+  hand:
+    x: 1026
+    y: 456
+  hip:
+    x: 631
+    y: 640
+  knee:
+    x: 886
+    y: 512
+  shoulder:
+    x: 634
+    y: 318
+  wrist:
+    x: 989
+    y: 454
+97:
+  ankle:
+    x: 1039
+    y: 782
+  ear:
+    x: 661
+    y: 176
+  elbow:
+    x: 815
+    y: 408
+  hand:
+    x: 1018
+    y: 454
+  hip:
+    x: 628
+    y: 639
+  knee:
+    x: 882
+    y: 522
+  shoulder:
+    x: 627
+    y: 316
+  wrist:
+    x: 977
+    y: 454
+98:
+  ankle:
+    x: 1038
+    y: 784
+  ear:
+    x: 608
+    y: 173
+  elbow:
+    x: 766
+    y: 409
+  hand:
+    x: 977
+    y: 458
+  hip:
+    x: 618
+    y: 639
+  knee:
+    x: 870
+    y: 535
+  shoulder:
+    x: 580
+    y: 315
+  wrist:
+    x: 936
+    y: 455
+99:
+  ankle:
+    x: 1037
+    y: 789
+  ear:
+    x: 546
+    y: 174
+  elbow:
+    x: 711
+    y: 410
+  hand:
+    x: 927
+    y: 456
+  hip:
+    x: 594
+    y: 636
+  knee:
+    x: 859
+    y: 551
+  shoulder:
+    x: 525
+    y: 315
+  wrist:
+    x: 878
+    y: 451
+100:
+  ankle:
+    x: 1035
+    y: 786
+  ear:
+    x: 502
+    y: 171
+  elbow:
+    x: 656
+    y: 411
+  hand:
+    x: 876
+    y: 453
+  hip:
+    x: 562
+    y: 636
+  knee:
+    x: 833
+    y: 565
+  shoulder:
+    x: 472
+    y: 316
+  wrist:
+    x: 827
+    y: 445
+101:
+  ankle:
+    x: 1035
+    y: 784
+  ear:
+    x: 457
+    y: 171
+  elbow:
+    x: 598
+    y: 413
+  hand:
+    x: 819
+    y: 451
+  hip:
+    x: 536
+    y: 636
+  knee:
+    x: 812
+    y: 589
+  shoulder:
+    x: 422
+    y: 317
+  wrist:
+    x: 777
+    y: 444
+102:
+  ankle:
+    x: 1035
+    y: 783
+  ear:
+    x: 413
+    y: 171
+  elbow:
+    x: 554
+    y: 434
+  hand:
+    x: 777
+    y: 452
+  hip:
+    x: 522
+    y: 637
+  knee:
+    x: 807
+    y: 601
+  shoulder:
+    x: 385
+    y: 327
+  wrist:
+    x: 739
+    y: 445
+103:
+  ankle:
+    x: 1035
+    y: 778
+  ear:
+    x: 411
+    y: 171
+  elbow:
+    x: 549
+    y: 435
+  hand:
+    x: 787
+    y: 448
+  hip:
+    x: 524
+    y: 637
+  knee:
+    x: 809
+    y: 599
+  shoulder:
+    x: 376
+    y: 328
+  wrist:
+    x: 744
+    y: 443
+104:
+  ankle:
+    x: 1036
+    y: 781
+  ear:
+    x: 372
+    y: 175
+  elbow:
+    x: 498
+    y: 449
+  hand:
+    x: 716
+    y: 443
+  hip:
+    x: 505
+    y: 640
+  knee:
+    x: 779
+    y: 630
+  shoulder:
+    x: 340
+    y: 332
+  wrist:
+    x: 669
+    y: 444
+105:
+  ankle:
+    x: 1036
+    y: 781
+  ear:
+    x: 344
+    y: 185
+  elbow:
+    x: 435
+    y: 472
+  hand:
+    x: 654
+    y: 442
+  hip:
+    x: 488
+    y: 642
+  knee:
+    x: 772
+    y: 649
+  shoulder:
+    x: 305
+    y: 337
+  wrist:
+    x: 611
+    y: 445
+106:
+  ankle:
+    x: 1038
+    y: 781
+  ear:
+    x: 316
+    y: 195
+  elbow:
+    x: 387
+    y: 488
+  hand:
+    x: 611
+    y: 443
+  hip:
+    x: 478
+    y: 652
+  knee:
+    x: 761
+    y: 665
+  shoulder:
+    x: 277
+    y: 339
+  wrist:
+    x: 571
+    y: 447
+107:
+  ankle:
+    x: 1038
+    y: 782
+  ear:
+    x: 297
+    y: 204
+  elbow:
+    x: 346
+    y: 492
+  hand:
+    x: 556
+    y: 444
+  hip:
+    x: 461
+    y: 652
+  knee:
+    x: 741
+    y: 681
+  shoulder:
+    x: 256
+    y: 341
+  wrist:
+    x: 521
+    y: 450
+108:
+  ankle:
+    x: 1041
+    y: 783
+  ear:
+    x: 279
+    y: 211
+  elbow:
+    x: 289
+    y: 496
+  hand:
+    x: 491
+    y: 437
+  hip:
+    x: 465
+    y: 656
+  knee:
+    x: 744
+    y: 698
+  shoulder:
+    x: 245
+    y: 348
+  wrist:
+    x: 456
+    y: 449
+109:
+  ankle:
+    x: 1041
+    y: 784
+  ear:
+    x: 279
+    y: 215
+  elbow:
+    x: 275
+    y: 497
+  hand:
+    x: 482
+    y: 435
+  hip:
+    x: 465
+    y: 660
+  knee:
+    x: 739
+    y: 694
+  shoulder:
+    x: 244
+    y: 354
+  wrist:
+    x: 448
+    y: 449
+110:
+  ankle:
+    x: 1041
+    y: 784
+  ear:
+    x: 269
+    y: 219
+  elbow:
+    x: 246
+    y: 499
+  hand:
+    x: 435
+    y: 426
+  hip:
+    x: 460
+    y: 659
+  knee:
+    x: 739
+    y: 695
+  shoulder:
+    x: 233
+    y: 355
+  wrist:
+    x: 405
+    y: 442
+111:
+  ankle:
+    x: 1041
+    y: 784
+  ear:
+    x: 260
+    y: 222
+  elbow:
+    x: 225
+    y: 494
+  hand:
+    x: 401
+    y: 409
+  hip:
+    x: 453
+    y: 657
+  knee:
+    x: 738
+    y: 695
+  shoulder:
+    x: 217
+    y: 356
+  wrist:
+    x: 371
+    y: 425
+112:
+  ankle:
+    x: 1041
+    y: 783
+  ear:
+    x: 256
+    y: 223
+  elbow:
+    x: 206
+    y: 492
+  hand:
+    x: 369
+    y: 403
+  hip:
+    x: 456
+    y: 649
+  knee:
+    x: 742
+    y: 700
+  shoulder:
+    x: 216
+    y: 355
+  wrist:
+    x: 342
+    y: 419
+113:
+  ankle:
+    x: 1042
+    y: 781
+  ear:
+    x: 251
+    y: 223
+  elbow:
+    x: 197
+    y: 495
+  hand:
+    x: 353
+    y: 399
+  hip:
+    x: 455
+    y: 648
+  knee:
+    x: 742
+    y: 708
+  shoulder:
+    x: 211
+    y: 354
+  wrist:
+    x: 325
+    y: 416
+114:
+  ankle:
+    x: 1041
+    y: 781
+  ear:
+    x: 248
+    y: 226
+  elbow:
+    x: 194
+    y: 494
+  hand:
+    x: 350
+    y: 398
+  hip:
+    x: 456
+    y: 646
+  knee:
+    x: 742
+    y: 708
+  shoulder:
+    x: 208
+    y: 354
+  wrist:
+    x: 321
+    y: 417
+115:
+  ankle:
+    x: 1042
+    y: 781
+  ear:
+    x: 247
+    y: 227
+  elbow:
+    x: 196
+    y: 495
+  hand:
+    x: 356
+    y: 400
+  hip:
+    x: 457
+    y: 646
+  knee:
+    x: 741
+    y: 708
+  shoulder:
+    x: 207
+    y: 354
+  wrist:
+    x: 329
+    y: 417
+116:
+  ankle:
+    x: 1042
+    y: 781
+  ear:
+    x: 245
+    y: 228
+  elbow:
+    x: 195
+    y: 496
+  hand:
+    x: 356
+    y: 400
+  hip:
+    x: 457
+    y: 647
+  knee:
+    x: 740
+    y: 708
+  shoulder:
+    x: 206
+    y: 354
+  wrist:
+    x: 328
+    y: 417
+117:
+  ankle:
+    x: 1042
+    y: 782
+  ear:
+    x: 246
+    y: 229
+  elbow:
+    x: 198
+    y: 495
+  hand:
+    x: 359
+    y: 402
+  hip:
+    x: 458
+    y: 648
+  knee:
+    x: 740
+    y: 709
+  shoulder:
+    x: 209
+    y: 355
+  wrist:
+    x: 333
+    y: 418
+118:
+  ankle:
+    x: 1042
+    y: 784
+  ear:
+    x: 248
+    y: 228
+  elbow:
+    x: 196
+    y: 498
+  hand:
+    x: 361
+    y: 407
+  hip:
+    x: 460
+    y: 651
+  knee:
+    x: 742
+    y: 713
+  shoulder:
+    x: 215
+    y: 356
+  wrist:
+    x: 333
+    y: 421
+119:
+  ankle:
+    x: 1043
+    y: 784
+  ear:
+    x: 254
+    y: 228
+  elbow:
+    x: 197
+    y: 497
+  hand:
+    x: 372
+    y: 409
+  hip:
+    x: 461
+    y: 651
+  knee:
+    x: 743
+    y: 713
+  shoulder:
+    x: 220
+    y: 356
+  wrist:
+    x: 343
+    y: 422
+120:
+  ankle:
+    x: 1043
+    y: 784
+  ear:
+    x: 258
+    y: 225
+  elbow:
+    x: 201
+    y: 498
+  hand:
+    x: 384
+    y: 412
+  hip:
+    x: 459
+    y: 651
+  knee:
+    x: 743
+    y: 711
+  shoulder:
+    x: 221
+    y: 355
+  wrist:
+    x: 352
+    y: 425
+121:
+  ankle:
+    x: 1042
+    y: 784
+  ear:
+    x: 260
+    y: 225
+  elbow:
+    x: 204
+    y: 497
+  hand:
+    x: 387
+    y: 414
+  hip:
+    x: 458
+    y: 651
+  knee:
+    x: 742
+    y: 710
+  shoulder:
+    x: 223
+    y: 354
+  wrist:
+    x: 355
+    y: 428
+122:
+  ankle:
+    x: 1041
+    y: 784
+  ear:
+    x: 267
+    y: 224
+  elbow:
+    x: 209
+    y: 498
+  hand:
+    x: 388
+    y: 427
+  hip:
+    x: 456
+    y: 650
+  knee:
+    x: 741
+    y: 710
+  shoulder:
+    x: 224
+    y: 354
+  wrist:
+    x: 356
+    y: 438
+123:
+  ankle:
+    x: 1042
+    y: 783
+  ear:
+    x: 284
+    y: 222
+  elbow:
+    x: 211
+    y: 497
+  hand:
+    x: 414
+    y: 441
+  hip:
+    x: 455
+    y: 648
+  knee:
+    x: 741
+    y: 709
+  shoulder:
+    x: 232
+    y: 353
+  wrist:
+    x: 379
+    y: 446
+124:
+  ankle:
+    x: 1042
+    y: 782
+  ear:
+    x: 295
+    y: 221
+  elbow:
+    x: 219
+    y: 497
+  hand:
+    x: 444
+    y: 469
+  hip:
+    x: 455
+    y: 648
+  knee:
+    x: 742
+    y: 708
+  shoulder:
+    x: 238
+    y: 352
+  wrist:
+    x: 413
+    y: 468
+125:
+  ankle:
+    x: 1043
+    y: 780
+  ear:
+    x: 315
+    y: 217
+  elbow:
+    x: 238
+    y: 498
+  hand:
+    x: 474
+    y: 492
+  hip:
+    x: 456
+    y: 647
+  knee:
+    x: 742
+    y: 708
+  shoulder:
+    x: 246
+    y: 344
+  wrist:
+    x: 434
+    y: 489
+126:
+  ankle:
+    x: 1045
+    y: 780
+  ear:
+    x: 336
+    y: 210
+  elbow:
+    x: 267
+    y: 499
+  hand:
+    x: 502
+    y: 512
+  hip:
+    x: 459
+    y: 645
+  knee:
+    x: 743
+    y: 712
+  shoulder:
+    x: 263
+    y: 333
+  wrist:
+    x: 458
+    y: 512
+127:
+  ankle:
+    x: 1051
+    y: 780
+  ear:
+    x: 340
+    y: 207
+  elbow:
+    x: 274
+    y: 502
+  hand:
+    x: 510
+    y: 513
+  hip:
+    x: 466
+    y: 645
+  knee:
+    x: 748
+    y: 711
+  shoulder:
+    x: 271
+    y: 331
+  wrist:
+    x: 466
+    y: 513
+128:
+  ankle:
+    x: 1051
+    y: 787
+  ear:
+    x: 357
+    y: 203
+  elbow:
+    x: 300
+    y: 503
+  hand:
+    x: 534
+    y: 531
+  hip:
+    x: 467
+    y: 645
+  knee:
+    x: 749
+    y: 710
+  shoulder:
+    x: 288
+    y: 329
+  wrist:
+    x: 490
+    y: 527
+129:
+  ankle:
+    x: 1046
+    y: 785
+  ear:
+    x: 381
+    y: 198
+  elbow:
+    x: 342
+    y: 511
+  hand:
+    x: 560
+    y: 540
+  hip:
+    x: 473
+    y: 648
+  knee:
+    x: 753
+    y: 708
+  shoulder:
+    x: 312
+    y: 328
+  wrist:
+    x: 522
+    y: 539
+130:
+  ankle:
+    x: 1044
+    y: 788
+  ear:
+    x: 407
+    y: 193
+  elbow:
+    x: 377
+    y: 515
+  hand:
+    x: 594
+    y: 552
+  hip:
+    x: 472
+    y: 652
+  knee:
+    x: 753
+    y: 708
+  shoulder:
+    x: 332
+    y: 328
+  wrist:
+    x: 558
+    y: 546
+131:
+  ankle:
+    x: 1043
+    y: 778
+  ear:
+    x: 430
+    y: 189
+  elbow:
+    x: 414
+    y: 515
+  hand:
+    x: 622
+    y: 575
+  hip:
+    x: 472
+    y: 652
+  knee:
+    x: 754
+    y: 706
+  shoulder:
+    x: 356
+    y: 325
+  wrist:
+    x: 584
+    y: 563
+132:
+  ankle:
+    x: 1038
+    y: 778
+  ear:
+    x: 458
+    y: 189
+  elbow:
+    x: 442
+    y: 514
+  hand:
+    x: 649
+    y: 578
+  hip:
+    x: 475
+    y: 645
+  knee:
+    x: 761
+    y: 706
+  shoulder:
+    x: 384
+    y: 322
+  wrist:
+    x: 604
+    y: 564
+133:
+  ankle:
+    x: 1030
+    y: 779
+  ear:
+    x: 462
+    y: 187
+  elbow:
+    x: 445
+    y: 513
+  hand:
+    x: 655
+    y: 578
+  hip:
+    x: 475
+    y: 644
+  knee:
+    x: 761
+    y: 699
+  shoulder:
+    x: 393
+    y: 321
+  wrist:
+    x: 612
+    y: 565
+134:
+  ankle:
+    x: 1020
+    y: 778
+  ear:
+    x: 487
+    y: 186
+  elbow:
+    x: 477
+    y: 509
+  hand:
+    x: 680
+    y: 588
+  hip:
+    x: 474
+    y: 639
+  knee:
+    x: 754
+    y: 658
+  shoulder:
+    x: 413
+    y: 319
+  wrist:
+    x: 642
+    y: 572
+135:
+  ankle:
+    x: 1022
+    y: 768
+  ear:
+    x: 518
+    y: 185
+  elbow:
+    x: 509
+    y: 507
+  hand:
+    x: 723
+    y: 590
+  hip:
+    x: 482
+    y: 640
+  knee:
+    x: 755
+    y: 669
+  shoulder:
+    x: 435
+    y: 317
+  wrist:
+    x: 679
+    y: 576
+136:
+  ankle:
+    x: 1019
+    y: 769
+  ear:
+    x: 543
+    y: 186
+  elbow:
+    x: 557
+    y: 507
+  hand:
+    x: 760
+    y: 596
+  hip:
+    x: 484
+    y: 644
+  knee:
+    x: 755
+    y: 668
+  shoulder:
+    x: 460
+    y: 318
+  wrist:
+    x: 716
+    y: 590
+137:
+  ankle:
+    x: 1019
+    y: 783
+  ear:
+    x: 564
+    y: 186
+  elbow:
+    x: 575
+    y: 506
+  hand:
+    x: 783
+    y: 593
+  hip:
+    x: 484
+    y: 646
+  knee:
+    x: 756
+    y: 650
+  shoulder:
+    x: 482
+    y: 318
+  wrist:
+    x: 740
+    y: 587
+138:
+  ankle:
+    x: 1018
+    y: 783
+  ear:
+    x: 594
+    y: 186
+  elbow:
+    x: 613
+    y: 505
+  hand:
+    x: 816
+    y: 604
+  hip:
+    x: 487
+    y: 647
+  knee:
+    x: 759
+    y: 623
+  shoulder:
+    x: 510
+    y: 318
+  wrist:
+    x: 769
+    y: 597
+139:
+  ankle:
+    x: 1012
+    y: 788
+  ear:
+    x: 593
+    y: 187
+  elbow:
+    x: 609
+    y: 502
+  hand:
+    x: 815
+    y: 608
+  hip:
+    x: 487
+    y: 647
+  knee:
+    x: 766
+    y: 637
+  shoulder:
+    x: 515
+    y: 318
+  wrist:
+    x: 768
+    y: 597
+140:
+  ankle:
+    x: 1008
+    y: 792
+  ear:
+    x: 618
+    y: 190
+  elbow:
+    x: 654
+    y: 502
+  hand:
+    x: 844
+    y: 608
+  hip:
+    x: 489
+    y: 647
+  knee:
+    x: 765
+    y: 632
+  shoulder:
+    x: 542
+    y: 319
+  wrist:
+    x: 822
+    y: 593
+141:
+  ankle:
+    x: 1006
+    y: 785
+  ear:
+    x: 641
+    y: 193
+  elbow:
+    x: 697
+    y: 506
+  hand:
+    x: 878
+    y: 619
+  hip:
+    x: 500
+    y: 650
+  knee:
+    x: 769
+    y: 603
+  shoulder:
+    x: 571
+    y: 323
+  wrist:
+    x: 863
+    y: 603
+142:
+  ankle:
+    x: 1003
+    y: 785
+  ear:
+    x: 668
+    y: 197
+  elbow:
+    x: 716
+    y: 506
+  hand:
+    x: 909
+    y: 631
+  hip:
+    x: 522
+    y: 649
+  knee:
+    x: 781
+    y: 591
+  shoulder:
+    x: 600
+    y: 324
+  wrist:
+    x: 882
+    y: 606
+143:
+  ankle:
+    x: 1014
+    y: 785
+  ear:
+    x: 667
+    y: 199
+  elbow:
+    x: 721
+    y: 508
+  hand:
+    x: 911
+    y: 640
+  hip:
+    x: 521
+    y: 648
+  knee:
+    x: 788
+    y: 594
+  shoulder:
+    x: 601
+    y: 327
+  wrist:
+    x: 870
+    y: 616
+144:
+  ankle:
+    x: 1012
+    y: 781
+  ear:
+    x: 695
+    y: 202
+  elbow:
+    x: 755
+    y: 513
+  hand:
+    x: 954
+    y: 644
+  hip:
+    x: 540
+    y: 648
+  knee:
+    x: 811
+    y: 565
+  shoulder:
+    x: 629
+    y: 332
+  wrist:
+    x: 907
+    y: 629
+145:
+  ankle:
+    x: 1011
+    y: 781
+  ear:
+    x: 697
+    y: 203
+  elbow:
+    x: 752
+    y: 514
+  hand:
+    x: 945
+    y: 644
+  hip:
+    x: 543
+    y: 647
+  knee:
+    x: 809
+    y: 561
+  shoulder:
+    x: 631
+    y: 333
+  wrist:
+    x: 907
+    y: 633
+146:
+  ankle:
+    x: 1011
+    y: 778
+  ear:
+    x: 720
+    y: 207
+  elbow:
+    x: 783
+    y: 517
+  hand:
+    x: 972
+    y: 652
+  hip:
+    x: 559
+    y: 646
+  knee:
+    x: 823
+    y: 550
+  shoulder:
+    x: 654
+    y: 336
+  wrist:
+    x: 924
+    y: 638
+147:
+  ankle:
+    x: 1020
+    y: 776
+  ear:
+    x: 743
+    y: 210
+  elbow:
+    x: 815
+    y: 521
+  hand:
+    x: 1003
+    y: 648
+  hip:
+    x: 572
+    y: 646
+  knee:
+    x: 838
+    y: 544
+  shoulder:
+    x: 679
+    y: 337
+  wrist:
+    x: 985
+    y: 632
+148:
+  ankle:
+    x: 1027
+    y: 776
+  ear:
+    x: 770
+    y: 211
+  elbow:
+    x: 845
+    y: 526
+  hand:
+    x: 1051
+    y: 646
+  hip:
+    x: 587
+    y: 646
+  knee:
+    x: 850
+    y: 538
+  shoulder:
+    x: 707
+    y: 339
+  wrist:
+    x: 1006
+    y: 634
+149:
+  ankle:
+    x: 1029
+    y: 774
+  ear:
+    x: 794
+    y: 215
+  elbow:
+    x: 863
+    y: 532
+  hand:
+    x: 1058
+    y: 662
+  hip:
+    x: 601
+    y: 648
+  knee:
+    x: 864
+    y: 535
+  shoulder:
+    x: 729
+    y: 342
+  wrist:
+    x: 1014
+    y: 645
+150:
+  ankle:
+    x: 1038
+    y: 776
+  ear:
+    x: 815
+    y: 221
+  elbow:
+    x: 886
+    y: 530
+  hand:
+    x: 1082
+    y: 657
+  hip:
+    x: 621
+    y: 651
+  knee:
+    x: 883
+    y: 531
+  shoulder:
+    x: 755
+    y: 343
+  wrist:
+    x: 1045
+    y: 639
+151:
+  ankle:
+    x: 1036
+    y: 777
+  ear:
+    x: 821
+    y: 220
+  elbow:
+    x: 896
+    y: 530
+  hand:
+    x: 1096
+    y: 653
+  hip:
+    x: 625
+    y: 651
+  knee:
+    x: 886
+    y: 525
+  shoulder:
+    x: 758
+    y: 345
+  wrist:
+    x: 1061
+    y: 636
+152:
+  ankle:
+    x: 1032
+    y: 778
+  ear:
+    x: 841
+    y: 223
+  elbow:
+    x: 916
+    y: 530
+  hand:
+    x: 1115
+    y: 634
+  hip:
+    x: 641
+    y: 651
+  knee:
+    x: 900
+    y: 517
+  shoulder:
+    x: 778
+    y: 346
+  wrist:
+    x: 1074
+    y: 628
+153:
+  ankle:
+    x: 1037
+    y: 775
+  ear:
+    x: 863
+    y: 224
+  elbow:
+    x: 939
+    y: 527
+  hand:
+    x: 1134
+    y: 629
+  hip:
+    x: 667
+    y: 647
+  knee:
+    x: 920
+    y: 505
+  shoulder:
+    x: 806
+    y: 346
+  wrist:
+    x: 1096
+    y: 622
+154:
+  ankle:
+    x: 1042
+    y: 772
+  ear:
+    x: 887
+    y: 225
+  elbow:
+    x: 955
+    y: 523
+  hand:
+    x: 1149
+    y: 623
+  hip:
+    x: 691
+    y: 646
+  knee:
+    x: 942
+    y: 501
+  shoulder:
+    x: 832
+    y: 346
+  wrist:
+    x: 1110
+    y: 615
+155:
+  ankle:
+    x: 1059
+    y: 778
+  ear:
+    x: 909
+    y: 226
+  elbow:
+    x: 975
+    y: 517
+  hand:
+    x: 1173
+    y: 622
+  hip:
+    x: 722
+    y: 646
+  knee:
+    x: 969
+    y: 499
+  shoulder:
+    x: 853
+    y: 345
+  wrist:
+    x: 1133
+    y: 611
+156:
+  ankle:
+    x: 1063
+    y: 779
+  ear:
+    x: 934
+    y: 226
+  elbow:
+    x: 1002
+    y: 514
+  hand:
+    x: 1209
+    y: 622
+  hip:
+    x: 745
+    y: 646
+  knee:
+    x: 991
+    y: 492
+  shoulder:
+    x: 879
+    y: 345
+  wrist:
+    x: 1163
+    y: 610
+157:
+  ankle:
+    x: 1064
+    y: 779
+  ear:
+    x: 935
+    y: 227
+  elbow:
+    x: 1010
+    y: 513
+  hand:
+    x: 1209
+    y: 621
+  hip:
+    x: 745
+    y: 644
+  knee:
+    x: 996
+    y: 497
+  shoulder:
+    x: 881
+    y: 345
+  wrist:
+    x: 1166
+    y: 605
+158:
+  ankle:
+    x: 1060
+    y: 775
+  ear:
+    x: 959
+    y: 227
+  elbow:
+    x: 1030
+    y: 509
+  hand:
+    x: 1235
+    y: 614
+  hip:
+    x: 768
+    y: 642
+  knee:
+    x: 1010
+    y: 490
+  shoulder:
+    x: 904
+    y: 345
+  wrist:
+    x: 1195
+    y: 602
+159:
+  ankle:
+    x: 1052
+    y: 752
+  ear:
+    x: 980
+    y: 227
+  elbow:
+    x: 1057
+    y: 505
+  hand:
+    x: 1251
+    y: 613
+  hip:
+    x: 792
+    y: 641
+  knee:
+    x: 1029
+    y: 479
+  shoulder:
+    x: 930
+    y: 345
+  wrist:
+    x: 1214
+    y: 600
+160:
+  ankle:
+    x: 1029
+    y: 752
+  ear:
+    x: 1002
+    y: 227
+  elbow:
+    x: 1081
+    y: 501
+  hand:
+    x: 1279
+    y: 606
+  hip:
+    x: 808
+    y: 639
+  knee:
+    x: 1045
+    y: 473
+  shoulder:
+    x: 952
+    y: 345
+  wrist:
+    x: 1244
+    y: 596
+161:
+  ankle:
+    x: 1025
+    y: 736
+  ear:
+    x: 1022
+    y: 227
+  elbow:
+    x: 1105
+    y: 492
+  hand:
+    x: 1310
+    y: 597
+  hip:
+    x: 826
+    y: 639
+  knee:
+    x: 1064
+    y: 472
+  shoulder:
+    x: 975
+    y: 345
+  wrist:
+    x: 1267
+    y: 592
+162:
+  ankle:
+    x: 1026
+    y: 733
+  ear:
+    x: 1040
+    y: 227
+  elbow:
+    x: 1130
+    y: 482
+  hand:
+    x: 1336
+    y: 591
+  hip:
+    x: 841
+    y: 638
+  knee:
+    x: 1080
+    y: 470
+  shoulder:
+    x: 995
+    y: 344
+  wrist:
+    x: 1290
+    y: 586
+163:
+  ankle:
+    x: 1026
+    y: 738
+  ear:
+    x: 1036
+    y: 227
+  elbow:
+    x: 1130
+    y: 481
+  hand:
+    x: 1337
+    y: 592
+  hip:
+    x: 842
+    y: 638
+  knee:
+    x: 1088
+    y: 472
+  shoulder:
+    x: 995
+    y: 345
+  wrist:
+    x: 1294
+    y: 584
+164:
+  ankle:
+    x: 1027
+    y: 734
+  ear:
+    x: 1051
+    y: 227
+  elbow:
+    x: 1146
+    y: 475
+  hand:
+    x: 1354
+    y: 584
+  hip:
+    x: 852
+    y: 638
+  knee:
+    x: 1092
+    y: 471
+  shoulder:
+    x: 1010
+    y: 345
+  wrist:
+    x: 1306
+    y: 575
+165:
+  ankle:
+    x: 1027
+    y: 731
+  ear:
+    x: 1067
+    y: 227
+  elbow:
+    x: 1175
+    y: 467
+  hand:
+    x: 1380
+    y: 571
+  hip:
+    x: 865
+    y: 638
+  knee:
+    x: 1106
+    y: 471
+  shoulder:
+    x: 1028
+    y: 342
+  wrist:
+    x: 1334
+    y: 565
+166:
+  ankle:
+    x: 1028
+    y: 729
+  ear:
+    x: 1078
+    y: 225
+  elbow:
+    x: 1193
+    y: 464
+  hand:
+    x: 1405
+    y: 550
+  hip:
+    x: 876
+    y: 638
+  knee:
+    x: 1110
+    y: 466
+  shoulder:
+    x: 1041
+    y: 342
+  wrist:
+    x: 1360
+    y: 551
+167:
+  ankle:
+    x: 1028
+    y: 726
+  ear:
+    x: 1087
+    y: 225
+  elbow:
+    x: 1219
+    y: 459
+  hand:
+    x: 1421
+    y: 541
+  hip:
+    x: 887
+    y: 639
+  knee:
+    x: 1120
+    y: 464
+  shoulder:
+    x: 1051
+    y: 342
+  wrist:
+    x: 1381
+    y: 537
+168:
+  ankle:
+    x: 1035
+    y: 720
+  ear:
+    x: 1092
+    y: 224
+  elbow:
+    x: 1240
+    y: 454
+  hand:
+    x: 1439
+    y: 540
+  hip:
+    x: 893
+    y: 639
+  knee:
+    x: 1129
+    y: 462
+  shoulder:
+    x: 1060
+    y: 343
+  wrist:
+    x: 1405
+    y: 534
+169:
+  ankle:
+    x: 1041
+    y: 718
+  ear:
+    x: 1092
+    y: 224
+  elbow:
+    x: 1247
+    y: 453
+  hand:
+    x: 1442
+    y: 539
+  hip:
+    x: 896
+    y: 640
+  knee:
+    x: 1130
+    y: 454
+  shoulder:
+    x: 1060
+    y: 343
+  wrist:
+    x: 1406
+    y: 534
+170:
+  ankle:
+    x: 1043
+    y: 716
+  ear:
+    x: 1092
+    y: 224
+  elbow:
+    x: 1251
+    y: 447
+  hand:
+    x: 1450
+    y: 525
+  hip:
+    x: 896
+    y: 641
+  knee:
+    x: 1127
+    y: 454
+  shoulder:
+    x: 1062
+    y: 343
+  wrist:
+    x: 1416
+    y: 520
+171:
+  ankle:
+    x: 1042
+    y: 717
+  ear:
+    x: 1091
+    y: 224
+  elbow:
+    x: 1245
+    y: 442
+  hand:
+    x: 1444
+    y: 510
+  hip:
+    x: 893
+    y: 641
+  knee:
+    x: 1123
+    y: 459
+  shoulder:
+    x: 1058
+    y: 343
+  wrist:
+    x: 1412
+    y: 504
+172:
+  ankle:
+    x: 1043
+    y: 718
+  ear:
+    x: 1085
+    y: 223
+  elbow:
+    x: 1236
+    y: 435
+  hand:
+    x: 1435
+    y: 500
+  hip:
+    x: 886
+    y: 641
+  knee:
+    x: 1117
+    y: 467
+  shoulder:
+    x: 1050
+    y: 342
+  wrist:
+    x: 1401
+    y: 492
+173:
+  ankle:
+    x: 1044
+    y: 718
+  ear:
+    x: 1083
+    y: 223
+  elbow:
+    x: 1231
+    y: 434
+  hand:
+    x: 1432
+    y: 496
+  hip:
+    x: 884
+    y: 641
+  knee:
+    x: 1115
+    y: 470
+  shoulder:
+    x: 1047
+    y: 342
+  wrist:
+    x: 1396
+    y: 487
+174:
+  ankle:
+    x: 1038
+    y: 721
+  ear:
+    x: 1083
+    y: 220
+  elbow:
+    x: 1223
+    y: 428
+  hand:
+    x: 1425
+    y: 494
+  hip:
+    x: 880
+    y: 638
+  knee:
+    x: 1110
+    y: 478
+  shoulder:
+    x: 1043
+    y: 339
+  wrist:
+    x: 1387
+    y: 485
+175:
+  ankle:
+    x: 1035
+    y: 722
+  ear:
+    x: 1082
+    y: 219
+  elbow:
+    x: 1218
+    y: 426
+  hand:
+    x: 1422
+    y: 494
+  hip:
+    x: 878
+    y: 637
+  knee:
+    x: 1106
+    y: 482
+  shoulder:
+    x: 1041
+    y: 338
+  wrist:
+    x: 1384
+    y: 485
+176:
+  ankle:
+    x: 1035
+    y: 724
+  ear:
+    x: 1061
+    y: 216
+  elbow:
+    x: 1202
+    y: 425
+  hand:
+    x: 1416
+    y: 492
+  hip:
+    x: 865
+    y: 634
+  knee:
+    x: 1097
+    y: 485
+  shoulder:
+    x: 1012
+    y: 335
+  wrist:
+    x: 1372
+    y: 478
+177:
+  ankle:
+    x: 1037
+    y: 726
+  ear:
+    x: 1027
+    y: 210
+  elbow:
+    x: 1155
+    y: 428
+  hand:
+    x: 1379
+    y: 487
+  hip:
+    x: 850
+    y: 634
+  knee:
+    x: 1089
+    y: 484
+  shoulder:
+    x: 983
+    y: 335
+  wrist:
+    x: 1327
+    y: 475
+178:
+  ankle:
+    x: 1035
+    y: 727
+  ear:
+    x: 990
+    y: 208
+  elbow:
+    x: 1107
+    y: 429
+  hand:
+    x: 1306
+    y: 483
+  hip:
+    x: 819
+    y: 634
+  knee:
+    x: 1065
+    y: 484
+  shoulder:
+    x: 949
+    y: 331
+  wrist:
+    x: 1265
+    y: 478
+179:
+  ankle:
+    x: 1040
+    y: 738
+  ear:
+    x: 948
+    y: 203
+  elbow:
+    x: 1075
+    y: 433
+  hand:
+    x: 1268
+    y: 481
+  hip:
+    x: 796
+    y: 632
+  knee:
+    x: 1045
+    y: 482
+  shoulder:
+    x: 912
+    y: 330
+  wrist:
+    x: 1228
+    y: 476
+180:
+  ankle:
+    x: 1049
+    y: 742
+  ear:
+    x: 900
+    y: 199
+  elbow:
+    x: 1033
+    y: 433
+  hand:
+    x: 1235
+    y: 483
+  hip:
+    x: 766
+    y: 632
+  knee:
+    x: 1020
+    y: 482
+  shoulder:
+    x: 867
+    y: 329
+  wrist:
+    x: 1188
+    y: 479
+181:
+  ankle:
+    x: 1050
+    y: 757
+  ear:
+    x: 901
+    y: 196
+  elbow:
+    x: 1023
+    y: 434
+  hand:
+    x: 1227
+    y: 486
+  hip:
+    x: 771
+    y: 633
+  knee:
+    x: 1013
+    y: 482
+  shoulder:
+    x: 854
+    y: 328
+  wrist:
+    x: 1180
+    y: 481
+182:
+  ankle:
+    x: 1054
+    y: 760
+  ear:
+    x: 860
+    y: 193
+  elbow:
+    x: 987
+    y: 428
+  hand:
+    x: 1201
+    y: 485
+  hip:
+    x: 735
+    y: 633
+  knee:
+    x: 984
+    y: 483
+  shoulder:
+    x: 818
+    y: 324
+  wrist:
+    x: 1151
+    y: 480
+183:
+  ankle:
+    x: 1053
+    y: 771
+  ear:
+    x: 812
+    y: 186
+  elbow:
+    x: 944
+    y: 422
+  hand:
+    x: 1169
+    y: 480
+  hip:
+    x: 694
+    y: 633
+  knee:
+    x: 947
+    y: 493
+  shoulder:
+    x: 772
+    y: 320
+  wrist:
+    x: 1122
+    y: 476
+184:
+  ankle:
+    x: 1052
+    y: 775
+  ear:
+    x: 760
+    y: 182
+  elbow:
+    x: 900
+    y: 414
+  hand:
+    x: 1113
+    y: 475
+  hip:
+    x: 680
+    y: 635
+  knee:
+    x: 927
+    y: 496
+  shoulder:
+    x: 724
+    y: 318
+  wrist:
+    x: 1072
+    y: 465
+185:
+  ankle:
+    x: 1050
+    y: 771
+  ear:
+    x: 713
+    y: 178
+  elbow:
+    x: 858
+    y: 409
+  hand:
+    x: 1065
+    y: 469
+  hip:
+    x: 651
+    y: 637
+  knee:
+    x: 907
+    y: 501
+  shoulder:
+    x: 676
+    y: 318
+  wrist:
+    x: 1028
+    y: 462
+186:
+  ankle:
+    x: 1042
+    y: 776
+  ear:
+    x: 658
+    y: 175
+  elbow:
+    x: 809
+    y: 410
+  hand:
+    x: 1021
+    y: 467
+  hip:
+    x: 634
+    y: 638
+  knee:
+    x: 889
+    y: 508
+  shoulder:
+    x: 627
+    y: 319
+  wrist:
+    x: 977
+    y: 462
+187:
+  ankle:
+    x: 1039
+    y: 780
+  ear:
+    x: 654
+    y: 174
+  elbow:
+    x: 807
+    y: 410
+  hand:
+    x: 1014
+    y: 464
+  hip:
+    x: 633
+    y: 638
+  knee:
+    x: 885
+    y: 517
+  shoulder:
+    x: 621
+    y: 317
+  wrist:
+    x: 968
+    y: 458
+188:
+  ankle:
+    x: 1038
+    y: 781
+  ear:
+    x: 600
+    y: 172
+  elbow:
+    x: 753
+    y: 411
+  hand:
+    x: 965
+    y: 463
+  hip:
+    x: 616
+    y: 638
+  knee:
+    x: 872
+    y: 534
+  shoulder:
+    x: 571
+    y: 315
+  wrist:
+    x: 919
+    y: 456
+189:
+  ankle:
+    x: 1037
+    y: 779
+  ear:
+    x: 543
+    y: 172
+  elbow:
+    x: 715
+    y: 413
+  hand:
+    x: 923
+    y: 462
+  hip:
+    x: 590
+    y: 638
+  knee:
+    x: 854
+    y: 543
+  shoulder:
+    x: 523
+    y: 318
+  wrist:
+    x: 873
+    y: 453
+190:
+  ankle:
+    x: 1033
+    y: 776
+  ear:
+    x: 493
+    y: 171
+  elbow:
+    x: 660
+    y: 413
+  hand:
+    x: 872
+    y: 460
+  hip:
+    x: 561
+    y: 638
+  knee:
+    x: 828
+    y: 558
+  shoulder:
+    x: 470
+    y: 320
+  wrist:
+    x: 826
+    y: 449
+191:
+  ankle:
+    x: 1030
+    y: 775
+  ear:
+    x: 445
+    y: 172
+  elbow:
+    x: 598
+    y: 421
+  hand:
+    x: 822
+    y: 459
+  hip:
+    x: 535
+    y: 638
+  knee:
+    x: 812
+    y: 591
+  shoulder:
+    x: 415
+    y: 325
+  wrist:
+    x: 780
+    y: 449
+192:
+  ankle:
+    x: 1031
+    y: 776
+  ear:
+    x: 409
+    y: 173
+  elbow:
+    x: 546
+    y: 437
+  hand:
+    x: 767
+    y: 460
+  hip:
+    x: 514
+    y: 638
+  knee:
+    x: 801
+    y: 610
+  shoulder:
+    x: 374
+    y: 330
+  wrist:
+    x: 727
+    y: 451
+193:
+  ankle:
+    x: 1029
+    y: 775
+  ear:
+    x: 405
+    y: 178
+  elbow:
+    x: 539
+    y: 439
+  hand:
+    x: 759
+    y: 453
+  hip:
+    x: 515
+    y: 639
+  knee:
+    x: 796
+    y: 612
+  shoulder:
+    x: 368
+    y: 331
+  wrist:
+    x: 722
+    y: 448
+194:
+  ankle:
+    x: 1029
+    y: 778
+  ear:
+    x: 366
+    y: 181
+  elbow:
+    x: 491
+    y: 454
+  hand:
+    x: 709
+    y: 452
+  hip:
+    x: 499
+    y: 641
+  knee:
+    x: 779
+    y: 636
+  shoulder:
+    x: 333
+    y: 335
+  wrist:
+    x: 663
+    y: 450
+195:
+  ankle:
+    x: 1029
+    y: 777
+  ear:
+    x: 337
+    y: 190
+  elbow:
+    x: 421
+    y: 475
+  hand:
+    x: 647
+    y: 452
+  hip:
+    x: 481
+    y: 645
+  knee:
+    x: 765
+    y: 647
+  shoulder:
+    x: 298
+    y: 340
+  wrist:
+    x: 603
+    y: 450
+196:
+  ankle:
+    x: 1027
+    y: 777
+  ear:
+    x: 311
+    y: 202
+  elbow:
+    x: 384
+    y: 488
+  hand:
+    x: 605
+    y: 453
+  hip:
+    x: 469
+    y: 651
+  knee:
+    x: 746
+    y: 655
+  shoulder:
+    x: 268
+    y: 344
+  wrist:
+    x: 562
+    y: 450
+197:
+  ankle:
+    x: 1027
+    y: 779
+  ear:
+    x: 291
+    y: 207
+  elbow:
+    x: 334
+    y: 491
+  hand:
+    x: 544
+    y: 448
+  hip:
+    x: 459
+    y: 653
+  knee:
+    x: 743
+    y: 684
+  shoulder:
+    x: 252
+    y: 345
+  wrist:
+    x: 510
+    y: 451
+198:
+  ankle:
+    x: 1032
+    y: 781
+  ear:
+    x: 275
+    y: 213
+  elbow:
+    x: 283
+    y: 492
+  hand:
+    x: 483
+    y: 438
+  hip:
+    x: 459
+    y: 655
+  knee:
+    x: 739
+    y: 690
+  shoulder:
+    x: 243
+    y: 348
+  wrist:
+    x: 450
+    y: 448
+199:
+  ankle:
+    x: 1033
+    y: 781
+  ear:
+    x: 273
+    y: 218
+  elbow:
+    x: 274
+    y: 492
+  hand:
+    x: 478
+    y: 434
+  hip:
+    x: 458
+    y: 658
+  knee:
+    x: 734
+    y: 692
+  shoulder:
+    x: 239
+    y: 354
+  wrist:
+    x: 444
+    y: 447
+200:
+  ankle:
+    x: 1034
+    y: 781
+  ear:
+    x: 268
+    y: 220
+  elbow:
+    x: 243
+    y: 495
+  hand:
+    x: 428
+    y: 419
+  hip:
+    x: 459
+    y: 657
+  knee:
+    x: 739
+    y: 705
+  shoulder:
+    x: 226
+    y: 354
+  wrist:
+    x: 399
+    y: 436
+201:
+  ankle:
+    x: 1034
+    y: 781
+  ear:
+    x: 259
+    y: 223
+  elbow:
+    x: 221
+    y: 491
+  hand:
+    x: 388
+    y: 401
+  hip:
+    x: 456
+    y: 656
+  knee:
+    x: 738
+    y: 707
+  shoulder:
+    x: 217
+    y: 355
+  wrist:
+    x: 361
+    y: 420
+202:
+  ankle:
+    x: 1035
+    y: 781
+  ear:
+    x: 258
+    y: 223
+  elbow:
+    x: 220
+    y: 490
+  hand:
+    x: 392
+    y: 400
+  hip:
+    x: 454
+    y: 654
+  knee:
+    x: 739
+    y: 708
+  shoulder:
+    x: 221
+    y: 354
+  wrist:
+    x: 363
+    y: 417
+203:
+  ankle:
+    x: 1038
+    y: 779
+  ear:
+    x: 255
+    y: 224
+  elbow:
+    x: 197
+    y: 490
+  hand:
+    x: 366
+    y: 400
+  hip:
+    x: 454
+    y: 647
+  knee:
+    x: 743
+    y: 706
+  shoulder:
+    x: 217
+    y: 353
+  wrist:
+    x: 335
+    y: 414
+204:
+  ankle:
+    x: 1038
+    y: 780
+  ear:
+    x: 251
+    y: 226
+  elbow:
+    x: 189
+    y: 491
+  hand:
+    x: 354
+    y: 398
+  hip:
+    x: 451
+    y: 645
+  knee:
+    x: 742
+    y: 707
+  shoulder:
+    x: 207
+    y: 353
+  wrist:
+    x: 327
+    y: 415
+205:
+  ankle:
+    x: 1039
+    y: 781
+  ear:
+    x: 249
+    y: 228
+  elbow:
+    x: 188
+    y: 495
+  hand:
+    x: 353
+    y: 397
+  hip:
+    x: 453
+    y: 645
+  knee:
+    x: 743
+    y: 708
+  shoulder:
+    x: 209
+    y: 353
+  wrist:
+    x: 324
+    y: 415
+206:
+  ankle:
+    x: 1041
+    y: 783
+  ear:
+    x: 249
+    y: 230
+  elbow:
+    x: 189
+    y: 496
+  hand:
+    x: 355
+    y: 400
+  hip:
+    x: 455
+    y: 645
+  knee:
+    x: 744
+    y: 708
+  shoulder:
+    x: 208
+    y: 354
+  wrist:
+    x: 325
+    y: 416
+207:
+  ankle:
+    x: 1042
+    y: 784
+  ear:
+    x: 250
+    y: 229
+  elbow:
+    x: 191
+    y: 496
+  hand:
+    x: 359
+    y: 402
+  hip:
+    x: 455
+    y: 645
+  knee:
+    x: 745
+    y: 711
+  shoulder:
+    x: 209
+    y: 354
+  wrist:
+    x: 331
+    y: 418
+208:
+  ankle:
+    x: 1042
+    y: 786
+  ear:
+    x: 255
+    y: 228
+  elbow:
+    x: 188
+    y: 496
+  hand:
+    x: 367
+    y: 403
+  hip:
+    x: 455
+    y: 646
+  knee:
+    x: 745
+    y: 710
+  shoulder:
+    x: 214
+    y: 354
+  wrist:
+    x: 337
+    y: 418
+209:
+  ankle:
+    x: 1042
+    y: 786
+  ear:
+    x: 259
+    y: 228
+  elbow:
+    x: 193
+    y: 496
+  hand:
+    x: 374
+    y: 405
+  hip:
+    x: 456
+    y: 646
+  knee:
+    x: 746
+    y: 711
+  shoulder:
+    x: 219
+    y: 354
+  wrist:
+    x: 345
+    y: 418
+210:
+  ankle:
+    x: 1042
+    y: 786
+  ear:
+    x: 262
+    y: 227
+  elbow:
+    x: 199
+    y: 496
+  hand:
+    x: 386
+    y: 408
+  hip:
+    x: 456
+    y: 645
+  knee:
+    x: 746
+    y: 709
+  shoulder:
+    x: 221
+    y: 353
+  wrist:
+    x: 356
+    y: 421
+211:
+  ankle:
+    x: 1042
+    y: 787
+  ear:
+    x: 264
+    y: 227
+  elbow:
+    x: 201
+    y: 495
+  hand:
+    x: 390
+    y: 409
+  hip:
+    x: 455
+    y: 645
+  knee:
+    x: 745
+    y: 707
+  shoulder:
+    x: 222
+    y: 353
+  wrist:
+    x: 359
+    y: 422
+212:
+  ankle:
+    x: 1042
+    y: 787
+  ear:
+    x: 272
+    y: 226
+  elbow:
+    x: 207
+    y: 492
+  hand:
+    x: 394
+    y: 423
+  hip:
+    x: 455
+    y: 644
+  knee:
+    x: 744
+    y: 707
+  shoulder:
+    x: 223
+    y: 353
+  wrist:
+    x: 362
+    y: 430
+213:
+  ankle:
+    x: 1040
+    y: 786
+  ear:
+    x: 285
+    y: 224
+  elbow:
+    x: 208
+    y: 492
+  hand:
+    x: 408
+    y: 434
+  hip:
+    x: 455
+    y: 641
+  knee:
+    x: 744
+    y: 704
+  shoulder:
+    x: 230
+    y: 350
+  wrist:
+    x: 375
+    y: 438
+214:
+  ankle:
+    x: 1042
+    y: 786
+  ear:
+    x: 293
+    y: 223
+  elbow:
+    x: 215
+    y: 493
+  hand:
+    x: 436
+    y: 458
+  hip:
+    x: 455
+    y: 642
+  knee:
+    x: 744
+    y: 704
+  shoulder:
+    x: 236
+    y: 350
+  wrist:
+    x: 407
+    y: 459
+215:
+  ankle:
+    x: 1043
+    y: 783
+  ear:
+    x: 311
+    y: 221
+  elbow:
+    x: 227
+    y: 494
+  hand:
+    x: 460
+    y: 480
+  hip:
+    x: 455
+    y: 643
+  knee:
+    x: 744
+    y: 704
+  shoulder:
+    x: 244
+    y: 345
+  wrist:
+    x: 424
+    y: 476
+216:
+  ankle:
+    x: 1043
+    y: 780
+  ear:
+    x: 331
+    y: 217
+  elbow:
+    x: 251
+    y: 497
+  hand:
+    x: 486
+    y: 501
+  hip:
+    x: 455
+    y: 643
+  knee:
+    x: 742
+    y: 706
+  shoulder:
+    x: 255
+    y: 338
+  wrist:
+    x: 445
+    y: 497
+217:
+  ankle:
+    x: 1048
+    y: 779
+  ear:
+    x: 334
+    y: 212
+  elbow:
+    x: 259
+    y: 499
+  hand:
+    x: 491
+    y: 502
+  hip:
+    x: 458
+    y: 643
+  knee:
+    x: 743
+    y: 703
+  shoulder:
+    x: 261
+    y: 334
+  wrist:
+    x: 453
+    y: 500
+218:
+  ankle:
+    x: 1049
+    y: 779
+  ear:
+    x: 351
+    y: 207
+  elbow:
+    x: 280
+    y: 499
+  hand:
+    x: 512
+    y: 514
+  hip:
+    x: 460
+    y: 643
+  knee:
+    x: 742
+    y: 703
+  shoulder:
+    x: 280
+    y: 330
+  wrist:
+    x: 467
+    y: 510
+219:
+  ankle:
+    x: 1049
+    y: 779
+  ear:
+    x: 371
+    y: 201
+  elbow:
+    x: 312
+    y: 503
+  hand:
+    x: 545
+    y: 530
+  hip:
+    x: 473
+    y: 643
+  knee:
+    x: 750
+    y: 702
+  shoulder:
+    x: 305
+    y: 325
+  wrist:
+    x: 502
+    y: 526
+220:
+  ankle:
+    x: 1042
+    y: 781
+  ear:
+    x: 397
+    y: 195
+  elbow:
+    x: 356
+    y: 508
+  hand:
+    x: 578
+    y: 538
+  hip:
+    x: 475
+    y: 645
+  knee:
+    x: 753
+    y: 702
+  shoulder:
+    x: 326
+    y: 325
+  wrist:
+    x: 537
+    y: 537
+221:
+  ankle:
+    x: 1043
+    y: 781
+  ear:
+    x: 427
+    y: 192
+  elbow:
+    x: 385
+    y: 512
+  hand:
+    x: 598
+    y: 553
+  hip:
+    x: 474
+    y: 645
+  knee:
+    x: 751
+    y: 698
+  shoulder:
+    x: 350
+    y: 324
+  wrist:
+    x: 560
+    y: 546
+222:
+  ankle:
+    x: 1030
+    y: 779
+  ear:
+    x: 452
+    y: 190
+  elbow:
+    x: 421
+    y: 511
+  hand:
+    x: 633
+    y: 567
+  hip:
+    x: 474
+    y: 644
+  knee:
+    x: 754
+    y: 695
+  shoulder:
+    x: 374
+    y: 320
+  wrist:
+    x: 591
+    y: 557
+223:
+  ankle:
+    x: 1031
+    y: 781
+  ear:
+    x: 454
+    y: 188
+  elbow:
+    x: 431
+    y: 511
+  hand:
+    x: 639
+    y: 565
+  hip:
+    x: 474
+    y: 643
+  knee:
+    x: 758
+    y: 691
+  shoulder:
+    x: 383
+    y: 320
+  wrist:
+    x: 596
+    y: 554
+224:
+  ankle:
+    x: 1025
+    y: 778
+  ear:
+    x: 478
+    y: 188
+  elbow:
+    x: 454
+    y: 510
+  hand:
+    x: 664
+    y: 572
+  hip:
+    x: 474
+    y: 637
+  knee:
+    x: 750
+    y: 683
+  shoulder:
+    x: 405
+    y: 320
+  wrist:
+    x: 618
+    y: 562
+225:
+  ankle:
+    x: 1027
+    y: 759
+  ear:
+    x: 509
+    y: 188
+  elbow:
+    x: 489
+    y: 508
+  hand:
+    x: 702
+    y: 575
+  hip:
+    x: 484
+    y: 637
+  knee:
+    x: 752
+    y: 674
+  shoulder:
+    x: 429
+    y: 318
+  wrist:
+    x: 664
+    y: 565
+226:
+  ankle:
+    x: 1027
+    y: 762
+  ear:
+    x: 532
+    y: 188
+  elbow:
+    x: 527
+    y: 507
+  hand:
+    x: 738
+    y: 587
+  hip:
+    x: 486
+    y: 642
+  knee:
+    x: 756
+    y: 665
+  shoulder:
+    x: 447
+    y: 317
+  wrist:
+    x: 697
+    y: 574
+227:
+  ankle:
+    x: 1025
+    y: 776
+  ear:
+    x: 553
+    y: 189
+  elbow:
+    x: 568
+    y: 506
+  hand:
+    x: 779
+    y: 595
+  hip:
+    x: 485
+    y: 643
+  knee:
+    x: 758
+    y: 657
+  shoulder:
+    x: 471
+    y: 318
+  wrist:
+    x: 732
+    y: 584
+228:
+  ankle:
+    x: 1020
+    y: 783
+  ear:
+    x: 581
+    y: 189
+  elbow:
+    x: 594
+    y: 506
+  hand:
+    x: 806
+    y: 596
+  hip:
+    x: 491
+    y: 646
+  knee:
+    x: 763
+    y: 631
+  shoulder:
+    x: 495
+    y: 318
+  wrist:
+    x: 759
+    y: 586
+229:
+  ankle:
+    x: 1020
+    y: 793
+  ear:
+    x: 581
+    y: 192
+  elbow:
+    x: 594
+    y: 506
+  hand:
+    x: 799
+    y: 605
+  hip:
+    x: 489
+    y: 647
+  knee:
+    x: 765
+    y: 636
+  shoulder:
+    x: 502
+    y: 319
+  wrist:
+    x: 752
+    y: 592

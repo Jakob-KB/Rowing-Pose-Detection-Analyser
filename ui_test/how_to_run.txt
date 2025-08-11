@@ -1,0 +1,15 @@
+In terminal cd in to the dir that this (and the html, landmark and video files) are stored,
+
+then in terminal launch the python local server by doing `python -m http.server 8000`,
+
+then go into browser and vist `http://localhost:8000/test_2.html` or any of the other files.
+
+
+Framework to make actual application:
+
+- PyWebView to load web based ui as native application.
+
+- Nuitka or PyInstaller to run a locally hosted FastAPI backend that the front end will
+interact with.
+
+- 'Good' LLM conversation about this topic at `https://chatgpt.com/c/68995dfb-6440-8320-8bbf-c88a9de2db76`

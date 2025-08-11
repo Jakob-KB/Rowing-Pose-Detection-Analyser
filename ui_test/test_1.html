@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Video Skeleton Demo</title>
+<style>
+  #container {
+    position: relative;
+    display: inline-block;
+    /* This controls how big it LOOKS on screen */
+    width: 640px;  /* desired display width */
+    height: 360px; /* desired display height */
+  }
+  #video, #overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;  /* scale to container */
+    height: 100%; /* scale to container */
+  }
+  #overlay { pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <!-- Keep native resolution, don't set width/height here -->
+  <video id="video" muted autoplay loop>
+    <source src="test.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <canvas id="overlay"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('overlay');
+const ctx = canvas.getContext('2d');
+const fps = 30;
+let landmarks = {};
+
+const originalWidth = 1920;  // resolution used for YAML coords
+const originalHeight = 1080;
+
+const skeletonPairs = [
+  ['ankle', 'knee'],
+  ['knee', 'hip'],
+  ['hip', 'shoulder'],
+  ['shoulder', 'ear'],
+  ['shoulder', 'elbow'],
+  ['elbow', 'wrist'],
+  ['wrist', 'hand']
+];
+
+fetch('landmarks.yaml')
+  .then(res => res.text())
+  .then(text => {
+    landmarks = jsyaml.load(text);
+    video.addEventListener('loadedmetadata', () => {
+      // Internal resolution stays at original video size
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      requestAnimationFrame(drawLoop);
+    });
+  });
+
+function drawLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const frameIndex = Math.floor(video.currentTime * fps) + 1;
+  const frameData = landmarks[frameIndex];
+  if (frameData) {
+    drawSkeleton(frameData);
+  }
+
+  requestAnimationFrame(drawLoop);
+}
+
+function drawSkeleton(points) {
+  const scaleX = canvas.width / originalWidth;
+  const scaleY = canvas.height / originalHeight;
+
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = 'blue';
+
+  skeletonPairs.forEach(([p1, p2]) => {
+    if (points[p1] && points[p2]) {
+      ctx.beginPath();
+      ctx.moveTo(points[p1].x * scaleX, points[p1].y * scaleY);
+      ctx.lineTo(points[p2].x * scaleX, points[p2].y * scaleY);
+      ctx.stroke();
+    }
+  });
+
+  for (const key in points) {
+    const {x, y} = points[key];
+    ctx.beginPath();
+    ctx.arc(x * scaleX, y * scaleY, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+</script>
+
+</body>
+</html>
