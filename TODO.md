@@ -11,6 +11,7 @@ at this current stage.
 ---
 #### Medium Term
 
+- Fix/Improve all system and model level imports
 - Implement full endpoint and services testing suite
 - Full user input validation (primarily backend)
 - Design UI structure (and decide if a framework like svelte is an optimal approach)
@@ -20,3 +21,5 @@ at this current stage.
 #### Long Term
 
 - Complete overhaul of README.md
+- Look into setting up and installer and uninstaller so that sqlite executable and app media can go back to 
+being stored in local %appdata%
