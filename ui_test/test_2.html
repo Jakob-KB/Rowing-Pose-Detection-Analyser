@@ -1,244 +1,238 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Video Skeleton with Rolling Velocity Graph</title>
-<style>
-  #container {
-    position: relative;
-    display: inline-block;
-    width: 640px;
-    height: 360px;
-  }
-  #video, #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  #overlay { pointer-events: none; }
-  #graphContainer {
-    width: 640px;
-    margin-top: 20px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Rowing Session Viewer</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, Segoe UI, Roboto, sans-serif; margin: 24px; }
+    #controls { display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+    #filepath { width:520px; padding:6px 8px; }
+    #submit { padding:6px 10px; }
+    #status { color:#666; min-height: 1.2em; }
+    #container { position:relative; display:none; max-width: min(100%, 960px); }
+    #video, #overlay { position:absolute; top:0; left:0; }
+    #overlay { pointer-events:none; }
+  </style>
 </head>
 <body>
+  <div id="controls">
+    <input id="filepath" type="text" placeholder="Absolute filepath (on SERVER machine)" />
+    <button id="submit">Submit</button>
+    <span id="status"></span>
+  </div>
 
-<div id="container">
-  <video id="video" muted autoplay loop>
-    <source src="test.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-  <canvas id="overlay"></canvas>
-</div>
+  <div id="container">
+    <video id="video" controls playsinline muted></video>
+    <canvas id="overlay"></canvas>
+  </div>
 
-<div id="graphContainer">
-  <canvas id="velocityChart"></canvas>
-</div>
+  <script>
+    // ----- API endpoints -----
+    const API_BASE = "http://127.0.0.1:8000";
+    const CREATE_SESSION = `${API_BASE}/rowio/sessions`; // POST { filepath } -> { id }
+    const GET_SESSION = id => `${API_BASE}/rowio/sessions/${encodeURIComponent(id)}`;
 
-<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    // Turn "/media/..." into "http://127.0.0.1:8000/media/..."
+    function absURL(u) {
+      if (!u) return "";
+      if (u.startsWith("http://") || u.startsWith("https://")) return u;
+      return API_BASE.replace(/\/+$/,'') + "/" + u.replace(/^\/+/, "");
+    }
 
-<script>
-const video = document.getElementById('video');
-const canvas = document.getElementById('overlay');
-const ctx = canvas.getContext('2d');
+    // ----- UI refs -----
+    const $filepath  = document.getElementById('filepath');
+    const $submit    = document.getElementById('submit');
+    const $status    = document.getElementById('status');
+    const $container = document.getElementById('container');
+    const $video     = document.getElementById('video');
+    const $canvas    = document.getElementById('overlay');
+    const ctx        = $canvas.getContext('2d');
 
-const fps = 30;
-const windowSize = 2;          // seconds to keep visible
-const VEL_MIN = 500;           // fixed y-axis bottom
-const VEL_MAX = 1500;          // fixed y-axis top
-const EMA_ALPHA = 0.03;        // 0.1 = smoother (more lag), 0.5 = less smooth
+    // ----- skeleton config -----
+    const SKELETON_PAIRS = [
+      ['ankle','knee'], ['knee','hip'], ['hip','shoulder'], ['shoulder','ear'],
+      ['shoulder','elbow'], ['elbow','wrist'], ['wrist','hand'],
+    ];
+    const JOINTS = ["ear","shoulder","elbow","wrist","hand","hip","knee","ankle"];
 
-let landmarks = {};
-let handVelocities = [];       // [{time, velocity}]
-let chart;
-let lastTime = 0;
-let emaValue = null;           // EMA state
-let nextIdx = 0;               // index of next sample to append
+    // ----- state -----
+    let lm = null;       // columnar landmarks from API
+    let tSeconds = null; // Float64Array of timestamps
+    let lastIdx = -1;
 
-// Coordinate space used in YAML
-const originalWidth = 1920;
-const originalHeight = 1080;
+    // ----- helpers -----
+    function setStatus(msg, isError=false) {
+      $status.textContent = msg;
+      $status.style.color = isError ? '#c00' : '#666';
+    }
 
-// Skeleton
-const skeletonPairs = [
-  ['ankle', 'knee'],
-  ['knee', 'hip'],
-  ['hip', 'shoulder'],
-  ['shoulder', 'ear'],
-  ['shoulder', 'elbow'],
-  ['elbow', 'wrist'],
-  ['wrist', 'hand']
-];
+    function sizeCanvasToVideo() {
+      const w = Math.max(1, $video.clientWidth || $video.videoWidth || 1);
+      const h = Math.max(1, $video.clientHeight || $video.videoHeight || 1);
+      $canvas.style.width  = w + 'px';
+      $canvas.style.height = h + 'px';
+      $canvas.width  = w;
+      $canvas.height = h;
+    }
 
-fetch('landmarks.yaml')
-  .then(res => res.text())
-  .then(text => {
-    landmarks = jsyaml.load(text);
-    computeHandVelocities();
-    initChart();
-
-    video.addEventListener('loadedmetadata', () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      requestAnimationFrame(drawLoop);
-    });
-
-    // Detect loop/restart by time going backwards
-    video.addEventListener('timeupdate', () => {
-      if (video.currentTime < lastTime) {
-        resetChart();
+    function nearestIndex(arr, t) {
+      let lo = 0, hi = arr.length - 1;
+      if (t <= arr[0]) return 0;
+      if (t >= arr[hi]) return hi;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const v = arr[mid];
+        if (v < t) lo = mid + 1;
+        else if (v > t) hi = mid - 1;
+        else return mid;
       }
-      lastTime = video.currentTime;
-    });
-  });
+      return (t - arr[hi]) <= (arr[lo] - t) ? hi : lo;
+    }
 
-function computeHandVelocities() {
-  handVelocities = [];
-  const frameKeys = Object.keys(landmarks).map(Number).sort((a, b) => a - b);
+    function timeToIndex(vt) {
+      if (!tSeconds || tSeconds.length === 0) return 0;
+      const clipT = tSeconds[tSeconds.length - 1] || 0;
+      if (!$video.duration || $video.duration <= 0) return 0;
+      const scaled = Math.min(clipT, vt * (clipT / $video.duration)); // normalize durations
+      return nearestIndex(tSeconds, scaled);
+    }
 
-  // Forward difference (simple) with times at i/fps
-  for (let i = 1; i < frameKeys.length; i++) {
-    const prev = landmarks[frameKeys[i - 1]].hand;
-    const curr = landmarks[frameKeys[i]].hand;
-    const dx = curr.x - prev.x;
-    const dy = curr.y - prev.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const velocity = distance * fps; // px/sec
-    const time = frameKeys[i] / fps; // time stamp for this delta
-    handVelocities.push({ time, velocity });
-  }
+    function drawAt(i) {
+      const W = $video.videoWidth  || $canvas.width;
+      const H = $video.videoHeight || $canvas.height;
+      const sx = $canvas.width / W;
+      const sy = $canvas.height / H;
 
-  // Seed a sample at t=0 so the line starts exactly on the origin
-  if (handVelocities.length && handVelocities[0].time > 0) {
-    handVelocities.unshift({ time: 0, velocity: handVelocities[0].velocity });
-  }
-}
+      ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+      ctx.strokeStyle = '#ff3355';
+      ctx.lineWidth = 2;
+      ctx.fillStyle = '#2e7dff';
 
-function initChart() {
-  const ctxChart = document.getElementById('velocityChart').getContext('2d');
-  chart = new Chart(ctxChart, {
-    type: 'line',
-    data: {
-      labels: [],
-      datasets: [{
-        label: 'Hand velocity',
-        data: [],
-        borderColor: 'blue',
-        fill: false,
-        tension: 0.2,
-        cubicInterpolationMode: 'monotone',
-        pointRadius: 0,
-        pointHoverRadius: 0,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      animation: false,
-      responsive: false,
-      scales: {
-        x: {
-          type: 'linear',
-          title: { display: true, text: 'Time (s)' },
-          min: 0,
-          max: windowSize
-        },
-        y: {
-          type: 'linear',
-          title: { display: true, text: 'Hand Velocity (px/s)' },
-          min: VEL_MIN,
-          max: VEL_MAX
+      const P = (name) => {
+        const xs = lm[`${name}_x`], ys = lm[`${name}_y`];
+        if (!xs || !ys) return null;
+        const x = xs[i], y = ys[i];
+        if (x == null || y == null || Number.isNaN(x) || Number.isNaN(y)) return null;
+        return { x: x * sx, y: y * sy };
+      };
+
+      // lines
+      for (const [a, b] of SKELETON_PAIRS) {
+        const p1 = P(a), p2 = P(b);
+        if (!p1 || !p2) continue;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+      // joints
+      for (const n of JOINTS) {
+        const p = P(n);
+        if (!p) continue;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function loop() {
+      const idx = timeToIndex($video.currentTime);
+      if (idx !== lastIdx) {
+        drawAt(idx);
+        lastIdx = idx;
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function initCanvas() {
+      sizeCanvasToVideo();
+      new ResizeObserver(sizeCanvasToVideo).observe($video);
+    }
+
+    // ----- main flow -----
+    $submit.addEventListener('click', async () => {
+      try {
+        const filepath = $filepath.value.trim();
+        if (!filepath) return setStatus("Enter a server-side filepath.", true);
+
+        setStatus("Creating session…");
+        const createRes = await fetch(CREATE_SESSION, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ filepath })
+        });
+        if (!createRes.ok) {
+          const raw = await createRes.text().catch(()=> "");
+          throw new Error(`Create failed (${createRes.status}) ${raw.slice(0,160)}`);
         }
-      },
-      plugins: { legend: { display: false } }
+        const { id } = await createRes.json(); // you said your POST returns { id }
+        if (!id) throw new Error("Server did not return an 'id'.");
+
+        setStatus("Fetching session…");
+        const sessRes = await fetch(GET_SESSION(id));
+        if (!sessRes.ok) throw new Error(`Get session failed (${sessRes.status})`);
+        const session = await sessRes.json();
+
+        await loadSession(session);
+        setStatus("Loaded.");
+      } catch (e) {
+        console.error(e);
+        setStatus(e.message || String(e), true);
+      }
+    });
+
+    async function loadSession(session) {
+      // Server currently returns processed_video_url overwritten to "/videos/…"
+      const relOrAbs = session.processed_video_url;
+      if (!relOrAbs) throw new Error("No processed_video_url returned by API.");
+      // If backend ever returns a real filesystem path by mistake, fail loudly:
+      if (/^(?:[a-zA-Z]:\\|\\\\)/.test(relOrAbs)) {
+        throw new Error("API returned a Windows path. It must return a URL like /videos/uuid.mp4");
+      }
+
+      const videoURL = absURL(relOrAbs);
+      console.log("videoURL:", videoURL);
+
+      // quick HEAD to verify it’s reachable
+      try {
+        const head = await fetch(videoURL, { method: "HEAD" });
+        console.log("HEAD", head.status, head.headers.get("content-type"));
+        if (!head.ok) setStatus(`Video HEAD ${head.status} — check /media mount & path`, true);
+      } catch (e) {
+        console.warn("HEAD failed:", e);
+      }
+
+      // landmarks (columnar)
+      lm = session.landmarks || {};
+      if (!lm.frame_index || !lm.t_seconds) throw new Error("No landmarks in session.");
+      tSeconds = Float64Array.from(lm.t_seconds);
+
+      // diagnostics
+      $video.onerror = () => {
+        const err = $video.error;
+        const codes = {1:"ABORTED", 2:"NETWORK", 3:"DECODE", 4:"SRC_NOT_SUPPORTED"};
+        setStatus(`Video error: ${codes[err?.code] || "unknown"} (${err?.code})`, true);
+        console.error("MediaError", err, "src=", videoURL);
+      };
+      $video.onloadedmetadata = () => console.log("loadedmetadata", $video.videoWidth, $video.videoHeight);
+      $video.oncanplay = () => console.log("canplay");
+      $video.onplay = () => console.log("play");
+
+      // show player and start
+      $container.style.display = 'inline-block';
+      $video.src = videoURL;
+
+      if ($video.readyState >= 1) {
+        initCanvas();
+      } else {
+        await new Promise(res => $video.addEventListener('loadedmetadata', res, { once: true }));
+        initCanvas();
+      }
+
+      lastIdx = -1;
+      requestAnimationFrame(loop);
     }
-  });
-}
-
-function resetChart() {
-  chart.data.labels = [];
-  chart.data.datasets[0].data = [];
-  chart.options.scales.x.min = 0;
-  chart.options.scales.x.max = windowSize;
-  emaValue = null;   // reset EMA state on loop
-  nextIdx = 0;       // restart stream at first sample
-  chart.update();
-}
-
-function updateChart(currentTime) {
-  // Append all samples up to (and not beyond) the current playhead time
-  while (nextIdx < handVelocities.length &&
-         handVelocities[nextIdx].time <= currentTime) {
-
-    const { time, velocity } = handVelocities[nextIdx];
-
-    // EMA smoothing
-    emaValue = (emaValue === null)
-      ? velocity
-      : EMA_ALPHA * velocity + (1 - EMA_ALPHA) * emaValue;
-
-    chart.data.labels.push(time);
-    chart.data.datasets[0].data.push(emaValue);
-
-    nextIdx++;
-  }
-
-  // Maintain rolling window
-  const xmin = (currentTime > windowSize) ? currentTime - windowSize : 0;
-  const xmax = xmin + windowSize;
-  chart.options.scales.x.min = 0;
-  chart.options.scales.x.max = windowSize;
-
-  // Prune old points left of window
-  while (chart.data.labels.length && chart.data.labels[0] < xmin) {
-    chart.data.labels.shift();
-    chart.data.datasets[0].data.shift();
-  }
-
-  chart.update();
-}
-
-function drawLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const frameIndex = Math.floor(video.currentTime * fps) + 1;
-  const frameData = landmarks[frameIndex];
-  if (frameData) {
-    drawSkeleton(frameData);
-    updateChart(video.currentTime);
-  }
-
-  requestAnimationFrame(drawLoop);
-}
-
-function drawSkeleton(points) {
-  const scaleX = canvas.width / originalWidth;
-  const scaleY = canvas.height / originalHeight;
-
-  ctx.strokeStyle = 'red';
-  ctx.lineWidth = 2;
-  ctx.fillStyle = 'blue';
-
-  skeletonPairs.forEach(([p1, p2]) => {
-    if (points[p1] && points[p2]) {
-      ctx.beginPath();
-      ctx.moveTo(points[p1].x * scaleX, points[p1].y * scaleY);
-      ctx.lineTo(points[p2].x * scaleX, points[p2].y * scaleY);
-      ctx.stroke();
-    }
-  });
-
-  for (const key in points) {
-    const { x, y } = points[key];
-    ctx.beginPath();
-    ctx.arc(x * scaleX, y * scaleY, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-</script>
-
+  </script>
 </body>
 </html>

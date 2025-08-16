@@ -128,7 +128,7 @@ class VideoAnnotator:
             )
 
         # Draw landmarks and reference lines.
-        for landmark in frame_landmarks.get_landmarks():
+        for landmark in frame_landmarks.process_landmarks():
             cv2.circle(
                 annotation_overlay,
                 landmark.get_position(),

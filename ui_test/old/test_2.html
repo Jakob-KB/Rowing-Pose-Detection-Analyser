@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Video Skeleton with Rolling Velocity Graph</title>
+<style>
+  #container {
+    position: relative;
+    display: inline-block;
+    width: 640px;
+    height: 360px;
+  }
+  #video, #overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  #overlay { pointer-events: none; }
+  #graphContainer {
+    width: 640px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <video id="video" muted autoplay loop>
+    <source src="test.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <canvas id="overlay"></canvas>
+</div>
+
+<div id="graphContainer">
+  <canvas id="velocityChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('overlay');
+const ctx = canvas.getContext('2d');
+
+const fps = 30;
+const windowSize = 2;          // seconds to keep visible
+const VEL_MIN = 500;           // fixed y-axis bottom
+const VEL_MAX = 1500;          // fixed y-axis top
+const EMA_ALPHA = 0.03;        // 0.1 = smoother (more lag), 0.5 = less smooth
+
+let landmarks = {};
+let handVelocities = [];       // [{time, velocity}]
+let chart;
+let lastTime = 0;
+let emaValue = null;           // EMA state
+let nextIdx = 0;               // index of next sample to append
+
+// Coordinate space used in YAML
+const originalWidth = 1920;
+const originalHeight = 1080;
+
+// Skeleton
+const skeletonPairs = [
+  ['ankle', 'knee'],
+  ['knee', 'hip'],
+  ['hip', 'shoulder'],
+  ['shoulder', 'ear'],
+  ['shoulder', 'elbow'],
+  ['elbow', 'wrist'],
+  ['wrist', 'hand']
+];
+
+fetch('landmarks.yaml')
+  .then(res => res.text())
+  .then(text => {
+    landmarks = jsyaml.load(text);
+    computeHandVelocities();
+    initChart();
+
+    video.addEventListener('loadedmetadata', () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      requestAnimationFrame(drawLoop);
+    });
+
+    // Detect loop/restart by time going backwards
+    video.addEventListener('timeupdate', () => {
+      if (video.currentTime < lastTime) {
+        resetChart();
+      }
+      lastTime = video.currentTime;
+    });
+  });
+
+function computeHandVelocities() {
+  handVelocities = [];
+  const frameKeys = Object.keys(landmarks).map(Number).sort((a, b) => a - b);
+
+  // Forward difference (simple) with times at i/fps
+  for (let i = 1; i < frameKeys.length; i++) {
+    const prev = landmarks[frameKeys[i - 1]].hand;
+    const curr = landmarks[frameKeys[i]].hand;
+    const dx = curr.x - prev.x;
+    const dy = curr.y - prev.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const velocity = distance * fps; // px/sec
+    const time = frameKeys[i] / fps; // time stamp for this delta
+    handVelocities.push({ time, velocity });
+  }
+
+  // Seed a sample at t=0 so the line starts exactly on the origin
+  if (handVelocities.length && handVelocities[0].time > 0) {
+    handVelocities.unshift({ time: 0, velocity: handVelocities[0].velocity });
+  }
+}
+
+function initChart() {
+  const ctxChart = document.getElementById('velocityChart').getContext('2d');
+  chart = new Chart(ctxChart, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Hand velocity',
+        data: [],
+        borderColor: 'blue',
+        fill: false,
+        tension: 0.2,
+        cubicInterpolationMode: 'monotone',
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      animation: false,
+      responsive: false,
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Time (s)' },
+          min: 0,
+          max: windowSize
+        },
+        y: {
+          type: 'linear',
+          title: { display: true, text: 'Hand Velocity (px/s)' },
+          min: VEL_MIN,
+          max: VEL_MAX
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function resetChart() {
+  chart.data.labels = [];
+  chart.data.datasets[0].data = [];
+  chart.options.scales.x.min = 0;
+  chart.options.scales.x.max = windowSize;
+  emaValue = null;   // reset EMA state on loop
+  nextIdx = 0;       // restart stream at first sample
+  chart.update();
+}
+
+function updateChart(currentTime) {
+  // Append all samples up to (and not beyond) the current playhead time
+  while (nextIdx < handVelocities.length &&
+         handVelocities[nextIdx].time <= currentTime) {
+
+    const { time, velocity } = handVelocities[nextIdx];
+
+    // EMA smoothing
+    emaValue = (emaValue === null)
+      ? velocity
+      : EMA_ALPHA * velocity + (1 - EMA_ALPHA) * emaValue;
+
+    chart.data.labels.push(time);
+    chart.data.datasets[0].data.push(emaValue);
+
+    nextIdx++;
+  }
+
+  // Maintain rolling window
+  const xmin = (currentTime > windowSize) ? currentTime - windowSize : 0;
+  const xmax = xmin + windowSize;
+  chart.options.scales.x.min = 0;
+  chart.options.scales.x.max = windowSize;
+
+  // Prune old points left of window
+  while (chart.data.labels.length && chart.data.labels[0] < xmin) {
+    chart.data.labels.shift();
+    chart.data.datasets[0].data.shift();
+  }
+
+  chart.update();
+}
+
+function drawLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const frameIndex = Math.floor(video.currentTime * fps) + 1;
+  const frameData = landmarks[frameIndex];
+  if (frameData) {
+    drawSkeleton(frameData);
+    updateChart(video.currentTime);
+  }
+
+  requestAnimationFrame(drawLoop);
+}
+
+function drawSkeleton(points) {
+  const scaleX = canvas.width / originalWidth;
+  const scaleY = canvas.height / originalHeight;
+
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
+  ctx.fillStyle = 'blue';
+
+  skeletonPairs.forEach(([p1, p2]) => {
+    if (points[p1] && points[p2]) {
+      ctx.beginPath();
+      ctx.moveTo(points[p1].x * scaleX, points[p1].y * scaleY);
+      ctx.lineTo(points[p2].x * scaleX, points[p2].y * scaleY);
+      ctx.stroke();
+    }
+  });
+
+  for (const key in points) {
+    const { x, y } = points[key];
+    ctx.beginPath();
+    ctx.arc(x * scaleX, y * scaleY, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+</script>
+
+</body>
+</html>

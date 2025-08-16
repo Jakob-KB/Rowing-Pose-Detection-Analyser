@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Minimal Video Frame Counter (VFR-friendly)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* Minimal UI like your example */
+  #container {
+    position: relative;
+    display: inline-block;
+    width: 640px;
+    height: 360px;
+    background: #000;
+  }
+  #video, #overlay {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  #overlay { pointer-events: none; }
+  /* Tiny, readable counter in the corner */
+  #counter {
+    position: absolute; left: 8px; bottom: 8px;
+    font: 600 14px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #e5e7eb;
+    background: rgba(0,0,0,.55);
+    padding: 6px 8px; border-radius: 6px;
+  }
+  #hint {
+    margin-top: 8px; color: #6b7280; font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <!-- Provide your own file named athlete_1.mp4 next to this HTML, or replace the src. -->
+  <video id="video" src="test.mp4" controls playsinline muted></video>
+  <!-- Transparent canvas kept to match your layout (not used here, but ready if you draw later) -->
+  <canvas id="overlay"></canvas>
+  <div id="counter">frame: 0</div>
+</div>
+<div id="hint">Counts presented frames. Resets when the playhead jumps backwards (loop/seek).</div>
+
+<script>
+/*
+  Goal: robust frame counting for arbitrary videos, including VFR (e.g., iPhone).
+  Strategy:
+    1) Prefer requestVideoFrameCallback (rVFC). Increment one per presented frame.
+       Reset the session counter if mediaTime goes backwards (loop/seek).
+    2) Fallback: use getVideoPlaybackQuality().totalVideoFrames deltas (Chrome/Edge).
+    3) Last-resort: estimate via currentTime deltas and a measured/assumed FPS (approximate).
+  UI stays minimal: just the video and a small counter pill, like your example.
+*/
+(() => {
+  const video   = document.getElementById('video');
+  const canvas  = document.getElementById('overlay');
+  const counter = document.getElementById('counter');
+  const ctx = canvas.getContext('2d'); // reserved if you want to draw later
+
+  // Maintain a *session* frame index that resets if the playhead jumps backwards.
+  let sessionFrame = 0;
+  let lastMediaTime = 0;
+
+  // Fallback state
+  let usingRVFC = typeof video.requestVideoFrameCallback === 'function';
+  let fallbackTimer = null;
+  let lastTotalFrames = 0; // for getVideoPlaybackQuality
+  let inferredFPS = 0;     // last-resort path
+
+  function setCounter(n){
+    counter.textContent = 'frame: ' + (n|0);
+  }
+
+  function resetSessionIfBackwards(mediaTime){
+    // If time moved backwards (loop/seek), start counting from 0 again
+    if (mediaTime < lastMediaTime - 0.03) { // small epsilon to ignore jitter
+      sessionFrame = 0;
+    }
+    lastMediaTime = mediaTime;
+  }
+
+  function sizeOverlay(){
+    const w = video.videoWidth || 640;
+    const h = video.videoHeight || 360;
+    // Keep canvas in lockstep with the video element's intrinsic aspect
+    canvas.width = w;
+    canvas.height = h;
+  }
+
+  // ---- Preferred path: rVFC (frame-accurate, VFR-friendly) ----
+  function startRVFC(){
+    function onFrame(_now, metadata){
+      const t = metadata?.mediaTime ?? video.currentTime;
+      resetSessionIfBackwards(t);
+      // Increment exactly once per presented frame
+      sessionFrame++;
+      setCounter(sessionFrame);
+      video.requestVideoFrameCallback(onFrame);
+    }
+    video.requestVideoFrameCallback(onFrame);
+  }
+
+  // ---- Fallback A: totalVideoFrames deltas (pretty good) ----
+  function startPlaybackQualityFallback(){
+    stopFallbacks();
+    fallbackTimer = setInterval(() => {
+      const q = (typeof video.getVideoPlaybackQuality === 'function')
+        ? video.getVideoPlaybackQuality()
+        : null;
+      const total = q ? (q.totalVideoFrames || 0) : 0;
+      const dropped = q ? (q.droppedVideoFrames || 0) : 0;
+
+      // Detect backwards seek by currentTime drop
+      const t = video.currentTime;
+      resetSessionIfBackwards(t);
+
+      // Only count newly presented frames since last tick
+      if (total >= lastTotalFrames) {
+        sessionFrame += (total - lastTotalFrames);
+      } else {
+        // If total decreased (unlikely), reset sessionFrame
+        sessionFrame = 0;
+      }
+      lastTotalFrames = total;
+
+      setCounter(sessionFrame);
+    }, 1000 / 60); // ~60Hz polling
+  }
+
+  // ---- Fallback B: time * inferredFPS (approximate) ----
+  async function measureFPSApprox(){
+    // Try to measure by sampling frames over ~500ms
+    if (typeof video.getVideoPlaybackQuality === 'function') {
+      const q1 = video.getVideoPlaybackQuality();
+      const f1 = q1.totalVideoFrames || 0;
+      await new Promise(r => setTimeout(r, 500));
+      const q2 = video.getVideoPlaybackQuality();
+      const f2 = q2.totalVideoFrames || 0;
+      const est = (f2 - f1) * 2;
+      if (est > 0 && Number.isFinite(est)) return est;
+    }
+    // fallback default
+    return 30;
+  }
+
+  async function startApproxFallback(){
+    stopFallbacks();
+    inferredFPS = await measureFPSApprox();
+    let lastTime = video.currentTime;
+    fallbackTimer = setInterval(() => {
+      const t = video.currentTime;
+      resetSessionIfBackwards(t);
+
+      // Increment by the number of frames that *should have* been presented.
+      const dt = Math.max(0, t - lastTime);
+      sessionFrame += Math.round(dt * inferredFPS);
+      lastTime = t;
+
+      setCounter(sessionFrame);
+    }, 1000 / 30);
+  }
+
+  function stopFallbacks(){
+    if (fallbackTimer) { clearInterval(fallbackTimer); fallbackTimer = null; }
+  }
+
+  // ---- Wiring ----
+  video.addEventListener('loadedmetadata', () => {
+    sessionFrame = 0;
+    lastMediaTime = 0;
+    setCounter(0);
+    sizeOverlay();
+  });
+
+  // Reset session counter when the user seeks (especially backwards)
+  video.addEventListener('seeked', () => {
+    if (video.currentTime < lastMediaTime - 0.03) {
+      sessionFrame = 0;
+      setCounter(0);
+    }
+    lastMediaTime = video.currentTime;
+  });
+
+  // Start counting when playing; choose best available path
+  video.addEventListener('play', async () => {
+    if (usingRVFC) {
+      stopFallbacks();
+      startRVFC();
+    } else if (typeof video.getVideoPlaybackQuality === 'function') {
+      // Good fallback on Chromium
+      lastTotalFrames = 0; // reset baseline
+      startPlaybackQualityFallback();
+    } else {
+      // Last-resort approximate path
+      await startApproxFallback();
+    }
+  });
+
+  // Stop polling when paused (rVFC naturally idles while paused)
+  video.addEventListener('pause', () => {
+    stopFallbacks();
+  });
+
+  // Keep overlay sized to the intrinsic video resolution (like your example)
+  const ro = new ResizeObserver(() => sizeOverlay());
+  ro.observe(document.getElementById('container'));
+
+})();
+</script>
+</body>
+</html>

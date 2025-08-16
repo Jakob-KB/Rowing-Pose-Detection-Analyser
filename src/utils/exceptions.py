@@ -1,2 +1,0 @@
-class ProcessCancelled(Exception):
-    pass
