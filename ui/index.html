@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>RowIO · Sessions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#0f1117; --card:#151821; --text:#e5e7eb; --muted:#9aa3b2; --border:#232634;
+    --accent:#5aa9ff; --good:#34d399; --warn:#f59e0b; --err:#ef4444;
+    --chip:#1f2937; --chip-border:#2b3243;
+    --shadow: 0 6px 24px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.12);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#475569; --border:#e5e7eb;
+      --accent:#2563eb; --chip:#f1f5f9; --chip-border:#e2e8f0;
+      --shadow: 0 10px 18px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.04);
+    }
+  }
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  header{position:sticky;top:0;backdrop-filter:saturate(1.2) blur(6px);background:color-mix(in oklab, var(--bg), transparent 25%);
+    border-bottom:1px solid var(--border);padding:12px 16px;z-index:10;}
+  .bar{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;max-width:1100px;margin:0 auto;}
+  h1{font-size:16px;margin:0;font-weight:800;}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+  .input{border:1px solid var(--border);background:var(--card);color:var(--text);padding:8px 10px;border-radius:8px;min-width:200px}
+  .btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer}
+  .btn:hover{border-color:var(--accent)}
+  .btn[disabled]{opacity:.6;cursor:not-allowed}
+  .muted{color:var(--muted)}
+  main{max-width:1100px;margin:16px auto;padding:0 16px 24px;}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:linear-gradient(135deg,#3b82f6 0%,#22d3ee 100%);}
+  .body{padding:12px 12px 14px;display:flex;flex-direction:column;gap:8px}
+  .title{font-weight:800;margin:0 0 2px 0;font-size:15px;line-height:1.2}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{font-size:12px;border:1px solid var(--chip-border);background:var(--chip);padding:4px 8px;border-radius:999px;color:var(--muted)}
+  .pill{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid transparent}
+  .pill.new{background:color-mix(in oklab, var(--accent), transparent 85%);color:var(--accent);border-color:color-mix(in oklab, var(--accent), transparent 70%);}
+  .pill.processing{background:color-mix(in oklab, var(--warn), transparent 88%);color:var(--warn);border-color:color-mix(in oklab, var(--warn), transparent 70%);}
+  .pill.done{background:color-mix(in oklab, var(--good), transparent 88%);color:var(--good);border-color:color-mix(in oklab, var(--good), transparent 70%);}
+  .pill.error{background:color-mix(in oklab, var(--err), transparent 90%);color:var(--err);border-color:color-mix(in oklab, var(--err), transparent 70%);}
+  .actions{margin-top:8px;display:flex;gap:8px}
+  .link{padding:8px 10px;border-radius:8px;border:1px solid var(--border);text-decoration:none;color:var(--text);background:var(--card)}
+  .link:hover{border-color:var(--accent)}
+  .state{padding:24px;text-align:center;color:var(--muted)}
+  .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <h1>RowIO Sessions</h1>
+      <div class="controls">
+        <input id="name" class="input" type="text" placeholder="Session name" />
+        <input id="path" class="input" type="text" placeholder="Absolute filepath on SERVER (e.g. C:\\videos\\row-1.mp4)" />
+        <button id="create" class="btn">Create session</button>
+        <button id="refresh" class="btn">Refresh</button>
+        <span id="status" class="muted"></span>
+        <span class="sr" id="live" aria-live="polite"></span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <input id="filter" class="input" type="search" placeholder="Filter by name…" />
+    </div>
+    <div id="state" class="state">Loading sessions…</div>
+    <section id="grid" class="grid" hidden></section>
+  </main>
+
+<script>
+  // ------- config -------
+  const API_BASE = "http://127.0.0.1:8000";
+  const GET_SESSIONS = `${API_BASE}/rowio/sessions`;
+  const CREATE_SESSION = `${API_BASE}/rowio/sessions`; // POST { name, original_filepath }
+
+  // ------- helpers -------
+  function absURL(u){
+    if (!u) return "";
+    if (u.startsWith("http://") || u.startsWith("https://")) return u;
+    return API_BASE.replace(/\/+$/,'') + "/" + u.replace(/^\/+/, "");
+  }
+  const PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,` + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="52%" text-anchor="middle" fill="white" font-family="system-ui,Segoe UI,Roboto" font-size="18">No Cover</text></svg>`
+  );
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtDate(epochSec){
+    if (!epochSec) return "–";
+    return new Date(epochSec * 1000).toLocaleString();
+  }
+  function timeAgo(epochSec){
+    if (!epochSec) return "";
+    const s = Math.max(1, Math.floor((Date.now()/1000) - epochSec));
+    const units = [["y",31536000],["mo",2592000],["d",86400],["h",3600],["m",60],["s",1]];
+    for (const [lab, secs] of units){
+      const v = Math.floor(s/secs);
+      if (v>=1) return `${v}${lab} ago`;
+    }
+    return "just now";
+  }
+  function statusClass(s){
+    s = (s||"").toLowerCase();
+    if (s==="done") return "pill done";
+    if (s==="processing") return "pill processing";
+    if (s==="error") return "pill error";
+    return "pill new";
+  }
+
+  // ------- UI refs -------
+  const $grid = document.getElementById('grid');
+  const $state = document.getElementById('state');
+  const $status = document.getElementById('status');
+  const $filter = document.getElementById('filter');
+  const $refresh = document.getElementById('refresh');
+  const $create = document.getElementById('create');
+  const $name = document.getElementById('name');
+  const $path = document.getElementById('path');
+  const $live = document.getElementById('live');
+
+  // ------- rendering -------
+  function render(sessions, q=""){
+    const term = q.trim().toLowerCase();
+    const list = term ? sessions.filter(s => (s.name||"").toLowerCase().includes(term)) : sessions;
+
+    if (!list.length){
+      $grid.hidden = true;
+      $state.textContent = term ? `No sessions match “${q}”.` : "No sessions yet.";
+      $state.hidden = false;
+      return;
+    }
+
+    $grid.innerHTML = "";
+    for (const s of list){
+      const cover = absURL(s.cover_image_fileurl) || PLACEHOLDER;
+      const video = absURL(s.processed_video_fileurl) || "";
+      const created = fmtDate(s.created_at);
+      const updated = fmtDate(s.updated_at);
+      const ago = timeAgo(s.created_at);
+
+      const card = document.createElement('article');
+      card.className = "card";
+      card.innerHTML = `
+        <img class="thumb" src="${cover}" alt="Cover of ${escapeHtml(s.name||s.id)}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" />
+        <div class="body">
+          <h3 class="title">${escapeHtml(s.name || "(untitled)")}</h3>
+          <div class="row">
+            <span class="${statusClass(s.status)}">${escapeHtml(s.status || "new")}</span>
+            <span class="chip">ID: ${escapeHtml(s.id)}</span>
+          </div>
+          <div class="row muted">
+            <span>Created: ${escapeHtml(created)} (${ago})</span>
+          </div>
+          <div class="row muted">
+            <span>Updated: ${escapeHtml(updated)}</span>
+          </div>
+          <div class="actions">
+            ${video ? `<a class="link" href="${video}" target="_blank" rel="noopener">Play</a>` : `<span class="muted">No video</span>`}
+            <a class="link" href="${API_BASE}/rowio/sessions/${encodeURIComponent(s.id)}" target="_blank" rel="noopener">Details JSON</a>
+          </div>
+        </div>
+      `;
+      $grid.appendChild(card);
+    }
+
+    $state.hidden = true;
+    $grid.hidden = false;
+  }
+
+  // ------- data flow -------
+  async function fetchSessions(){
+    $state.hidden = false;
+    $state.textContent = "Loading sessions…";
+    $grid.hidden = true;
+    $status.textContent = "";
+    try{
+      const res = await fetch(GET_SESSIONS, { headers:{'Accept':'application/json'} });
+      if (!res.ok) throw new Error(`GET /rowio/sessions failed (${res.status})`);
+      const data = await res.json();
+      render(data, $filter.value);
+      $status.textContent = `Loaded ${data.length} sessions.`;
+      $live.textContent = `Loaded ${data.length} sessions.`;
+    }catch(err){
+      console.error(err);
+      $state.textContent = (err?.message || String(err));
+      $status.textContent = "Error loading sessions.";
+      $live.textContent = "Error loading sessions.";
+    }
+  }
+
+  async function createSession(){
+    const name = $name.value.trim();
+    const path = $path.value.trim();
+    if (!name || !path){
+      $status.textContent = "Enter both name and absolute server filepath.";
+      return;
+    }
+
+    $create.disabled = true;
+    $status.textContent = "Creating session… (this may take a bit)";
+    $live.textContent = "Creating session…";
+
+    try{
+      const res = await fetch(CREATE_SESSION, {
+        method: "POST",
+        headers: {"Content-Type":"application/json", "Accept":"application/json"},
+        body: JSON.stringify({ name, original_filepath: path })
+      });
+
+      // Show any server error text
+      if (!res.ok){
+        const raw = await res.text().catch(()=> "");
+        throw new Error(`POST /rowio/sessions failed (${res.status}) ${raw.slice(0,240)}`);
+      }
+
+      const data = await res.json();
+      // Clear inputs on success
+      $name.value = "";
+      $path.value = "";
+      $status.textContent = `Created "${data?.name || name}" (status: ${data?.status || 'unknown'}).`;
+      $live.textContent = $status.textContent;
+
+      // Refresh list
+      await fetchSessions();
+    }catch(err){
+      console.error(err);
+      $status.textContent = err?.message || String(err);
+      $live.textContent = "Create failed.";
+    }finally{
+      $create.disabled = false;
+    }
+  }
+
+  // ------- wire up -------
+  $filter.addEventListener('input', () => fetchSessions());
+  $refresh.addEventListener('click', () => fetchSessions());
+  $create.addEventListener('click', () => createSession());
+  // submit with Enter in either input
+  $name.addEventListener('keydown', (e)=>{ if(e.key==="Enter"){ createSession(); } });
+  $path.addEventListener('keydown', (e)=>{ if(e.key==="Enter"){ createSession(); } });
+
+  // initial load
+  fetchSessions();
+</script>
+</body>
+</html>

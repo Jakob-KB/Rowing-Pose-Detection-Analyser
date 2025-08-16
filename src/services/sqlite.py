@@ -1,21 +1,12 @@
 # src/services/video.py
 from __future__ import annotations
-import uuid
-import math
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 import pandas as pd
 import sqlite3
 from pandas import DataFrame
+from src.models.session import Session
 
-@dataclass
-class SessionRecord:
-    id: str
-    name: str
-    original_video_filepath: Path
-    processed_video_filepath: Optional[Path]
-    session_status: str
 
 class MyDB:
     def __init__(self, sqlite_client: sqlite3.Connection):
@@ -25,23 +16,84 @@ class MyDB:
         cur = self.db.execute("SELECT 1 FROM sessions WHERE name = ? LIMIT 1", (name,))
         return cur.fetchone() is not None
 
-    def session_id_exists(self, session_id: str) -> bool:
+    def session_id_exists(self, session_id: str | None) -> bool:
+        if session_id is None:
+            return False
         cur = self.db.execute("SELECT 1 FROM sessions WHERE id = ? LIMIT 1", (session_id,))
         return cur.fetchone() is not None
 
-    def insert_session_row(self, rec: SessionRecord) -> None:
+    def get_all_sessions(self) -> List[Session]:
+
+        cur = self.db.execute("SELECT * FROM sessions")
+        rows = cur.fetchall()
+        col_names = [d[0] for d in cur.description] if cur.description else []
+
+        sessions: List[Session] = []
+        for row in rows:
+            # Normalize row -> dict
+            if isinstance(row, sqlite3.Row):
+                row_dict = {c: (row[c] if c in row.keys() else None) for c in col_names}
+            else:
+                row_dict = {c: row[i] if i < len(row) else None for i, c in enumerate(col_names)}
+
+            s_id = str(row_dict.get("id", ""))
+            name = str(row_dict.get("name", ""))
+
+            original_video_filepath = Path(row_dict.get("original_video_filepath", ""))
+            processed_video_filepath = Path(row_dict.get("processed_video_filepath", ""))
+            processed_video_fileurl = str(row_dict.get("processed_video_fileurl", ""))
+            cover_image_filepath = Path(row_dict.get("cover_image_filepath", ""))
+            cover_image_fileurl = str(row_dict.get("cover_image_fileurl", ""))
+
+            status = str(row_dict.get("status", ""))
+
+            created_at = float(row_dict.get("created_at", 0))
+            updated_at = float(row_dict.get("updated_at", 0))
+
+            sessions.append(
+                Session(
+                    id=s_id,
+                    name=name,
+                    original_video_filepath=original_video_filepath,
+                    processed_video_filepath=processed_video_filepath,
+                    processed_video_fileurl=processed_video_fileurl,
+                    cover_image_filepath=cover_image_filepath,
+                    cover_image_fileurl=cover_image_fileurl,
+                    status=status,
+                    created_at=created_at,
+                    updated_at=updated_at,
+                )
+            )
+
+        # Order by created_at (newest first). Set reverse=False for oldest first.
+        return sorted(sessions, key=lambda s: s.created_at, reverse=True)
+
+    def insert_session_row(self, session: Session) -> None:
         self.db.execute(
             """
-            INSERT INTO sessions (id, name, original_video_filepath, processed_video_filepath, session_status)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO sessions (
+                id,
+                name,
+                original_video_filepath,
+                processed_video_filepath,
+                processed_video_fileurl,
+                cover_image_filepath,
+                cover_image_fileurl,
+                status,
+                created_at,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (rec.id, rec.name, str(rec.original_video_filepath),
-             str(rec.processed_video_filepath) if rec.processed_video_filepath else None, rec.session_status),
+            (session.id, session.name, str(session.original_video_filepath),
+             str(session.processed_video_filepath), str(session.processed_video_fileurl),
+             str(session.cover_image_filepath), str(session.cover_image_fileurl),
+             session.status, session.created_at, session.updated_at),
         )
         self.db.commit()
 
     def update_session_status(self, session_id: str, status: str) -> None:
-        self.db.execute("UPDATE sessions SET session_status = ? WHERE id = ?", (status, session_id))
+        self.db.execute("UPDATE sessions SET status = ? WHERE id = ?", (status, session_id))
         self.db.commit()
 
     def insert_landmark_data_to_session(self, session_id: str, data: DataFrame) -> None:

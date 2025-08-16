@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, status
-import os
+from typing import Dict, List
 from pathlib import Path
-from pydantic import BaseModel
 import sqlite3
 from src.adapters.sqlite import get_sqlite_client
 
 from src.services.sessions import SessionServices
 from src.services.sqlite import MyDB
+from src.api.schemas import SessionRequest
+from src.models.session import Session
 
 from src.config import get_api_config
 
@@ -17,33 +18,45 @@ sessions_router = APIRouter(
     tags=["sessions"]
 )
 
-class VideoIn(BaseModel):
-    filepath: str
-
 @sessions_router.get("")
-def list_videos(db: sqlite3.Connection = Depends(get_sqlite_client)):
-    rows = db.execute("SELECT id, name FROM videos ORDER BY id").fetchall()
-    return [dict(r) for r in rows]
+def get_sessions(
+    sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)
+) -> List[Session]:
+    db = MyDB(sqlite_client)
+    sessions = db.get_all_sessions()
+    return sessions
 
 @sessions_router.post("", status_code=status.HTTP_201_CREATED)
-def process_video(payload: VideoIn, sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)):
-    print(f"starting process on {payload.filepath}")
+def create_session(
+    req: SessionRequest,
+    sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)
+) -> Session:
+
     db = MyDB(sqlite_client)
-    service = SessionServices(db=db)
-    result = service.process_session(Path(payload.filepath))
-    return {"id": result.id}
-
-
-def path_to_media_url(abs_path: str) -> str:
-    rel = os.path.relpath(abs_path, start=str(cfg.STORAGE_DIR))
-    return "" + rel.replace(os.sep, "/")
+    service = SessionServices(db)
+    res = service.create_session(
+        name=req.name,
+        video_path=Path(req.original_filepath)
+    )
+    service.process_session(res)
+    return res
 
 @sessions_router.get("/{session_id}")
-def get_video(session_id: str, sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)):
+def get_session(
+    session_id: str,
+    sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)
+) -> Dict:
     db = MyDB(sqlite_client)
     result = db.get_session_from_id(session_id)
-    # Add URL for the browser
-    p = result.get("processed_video_filepath")
-    if p:
-        result["processed_video_url"] = path_to_media_url(p)
     return result
+
+@sessions_router.delete("/{session_id}")
+def delete_session(
+    session_id:str,
+    sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)
+) -> Dict:
+    db = MyDB(sqlite_client)
+    service = SessionServices(db)
+    # Then use service to set status of session to deleting, before attempting to remove files
+    # then confirm files are removed, then delete row and cascade to linked rows on sub tables
+    return {}

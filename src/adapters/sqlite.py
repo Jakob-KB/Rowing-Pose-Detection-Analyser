@@ -59,7 +59,12 @@ def init_schema(conn: sqlite3.Connection) -> None:
       name TEXT NOT NULL UNIQUE,
       original_video_filepath TEXT NOT NULL,
       processed_video_filepath TEXT,
-      session_status TEXT NOT NULL CHECK (session_status IN ('processing','done','error'))
+      processed_video_fileurl TEXT,
+      cover_image_filepath TEXT,
+      cover_image_fileurl TEXT,
+      status TEXT NOT NULL CHECK (status IN ('new','processing','done','error')),
+      created_at FLOAT NOT NULL,
+      updated_at FLOAT NOT NULL
     );
 
     -- Wide per-frame landmark storage (one row per frame per session)
@@ -86,7 +91,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
       ON landmarks_wide(session_id, t_seconds);
 
     CREATE INDEX idx_sessions_status
-      ON sessions(session_status);
+      ON sessions(status);
 
     PRAGMA user_version = 1;
     """)

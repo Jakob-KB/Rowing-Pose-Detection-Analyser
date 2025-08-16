@@ -1,8 +1,8 @@
 import webview
+from pathlib import Path
 
-def main():
-    webview.create_window("Hello World", "https://example.com")
+if __name__ == "__main__":
+    html_filename = "index.html"
+    html_file = (Path(__file__).parent / "index.html").resolve(strict=True)
+    webview.create_window("My App", html_file.as_uri())
     webview.start()
-
-if __name__ == '__main__':
-    main()

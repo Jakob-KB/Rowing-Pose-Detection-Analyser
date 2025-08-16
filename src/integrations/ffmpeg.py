@@ -28,7 +28,6 @@ class VideoClip:
 
 
 # ---------- helpers ----------
-
 def _normalize_times(times: np.ndarray) -> np.ndarray:
     """Start at t=0 and enforce monotonic non-decreasing times."""
     if times.size == 0:
@@ -49,7 +48,6 @@ def _cover_size_and_crop(src_w: int, src_h: int, tgt_w: int, tgt_h: int):
 
 
 # ---------- API ----------
-
 def load_video_file(video_path: Path) -> VideoClip:
     """Decode to RGB frames with true timestamps (VFR-aware)."""
     container = av.open(str(video_path))
@@ -77,7 +75,6 @@ def load_video_file(video_path: Path) -> VideoClip:
     h, w = frames.shape[1], frames.shape[2]
     return VideoClip(frames=frames, times=times, size=(w, h), note="loaded")
 
-
 def resize_video(clip: VideoClip, target_w: int, target_h: int) -> VideoClip:
     """
     Uniform scale-to-fill + center crop to (target_w, target_h).
@@ -101,7 +98,6 @@ def resize_video(clip: VideoClip, target_w: int, target_h: int) -> VideoClip:
 
     return VideoClip(frames=out, times=clip.times.copy(), size=(target_w, target_h),
                      note=f"resized_to_{target_w}x{target_h}")
-
 
 def cfr_video(clip: VideoClip, target_fps: float = 30.0) -> VideoClip:
     """
@@ -159,3 +155,39 @@ def save_video_file(clip: VideoClip, out_path: Path, fps: float):
 
     container.close()
     print(f"Saved {clip.nframes} frames to {out_path} at {fps} fps.")
+
+def save_cover_image(clip: VideoClip, out_path: Path):
+    if clip.nframes == 0:
+        raise ValueError("Clip has no frames.")
+
+    out_path = Path(out_path).with_suffix(".png")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    frame = clip.frames[0]
+    # Defensive: ensure uint8 RGB, contiguous
+    if frame.dtype != np.uint8:
+        frame = frame.astype(np.uint8, copy=False)
+    if frame.ndim != 3 or frame.shape[2] != 3:
+        raise ValueError(f"Expected RGB frame HxWx3, got shape {frame.shape}")
+    frame = np.ascontiguousarray(frame)
+
+    # Try Pillow first (simple, fast); fall back to pure PyAV if not available.
+    try:
+        from PIL import Image
+        Image.fromarray(frame, mode="RGB").save(
+            out_path, format="PNG", optimize=True, compress_level=6
+        )
+        return out_path
+    except Exception:
+        # Pure PyAV fallback: encode a single PNG using image2 muxer
+        vframe = av.VideoFrame.from_ndarray(frame, format="rgb24")
+        container = av.open(str(out_path), mode="w", format="image2")
+        try:
+            stream = container.add_stream("png")
+            for pkt in stream.encode(vframe):
+                container.mux(pkt)
+            for pkt in stream.encode():
+                container.mux(pkt)
+        finally:
+            container.close()
+        return out_path
