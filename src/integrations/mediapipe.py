@@ -1,96 +1,89 @@
-# /src/integrations/mediapipe.py
-
+# src/integrations/mediapipe.py
 from pathlib import Path
-from typing import Dict, List
+from typing import Iterator, List, Tuple
 import numpy as np
 import av
 import mediapipe as mp
 
-LandmarkData = Dict[str, np.ndarray]
+from src.models.session_b import ProcessedVideo
+from pydantic import BaseModel
 
-def _iter_rgb_frames_with_time(video_file: Path):
-    """
-    Yield (rgb_uint8, t_seconds, (w,h)) in presentation order, i.e. PTS-aware.
-    """
-    container = av.open(str(video_file))
-    stream = container.streams.video[0]
-    tb = float(stream.time_base)  # seconds per tick
-    for frame in container.decode(video=0):
-        if frame.pts is None:
-            continue
-        t_seconds = frame.pts * tb
-        rgb = frame.to_ndarray(format="rgb24")
-        h, w = rgb.shape[:2]
-        yield rgb, float(t_seconds), (w, h)
+# Minimal transient types for DB insert (no need to reuse API DTO)
+class _Frame(BaseModel):
+    session_id: str
+    frame_index: int
+    pts_ms: int
+    timecode: str
 
-def process_landmarks_pts(video_file: Path) -> LandmarkData:
+class _Landmark(BaseModel):
+    session_id: str
+    frame_index: int
+    keypoint: str
+    x: float
+    y: float
+
+class _Evaluation(BaseModel):
+    session_id: str
+    frames: List[_Frame]
+    landmarks: List[_Landmark]
+    status: str
+
+def _iter_rgb_frames_with_time(video_file: Path) -> Iterator[Tuple[np.ndarray, float, Tuple[int, int]]]:
+    with av.open(str(video_file)) as container:
+        stream = container.streams.video[0]
+        tb = float(stream.time_base)
+        for frame in container.decode(video=0):
+            if frame.pts is None:
+                continue
+            t_seconds = frame.pts * tb
+            rgb = frame.to_ndarray(format="rgb24")
+            h, w = rgb.shape[:2]
+            yield rgb, float(t_seconds), (w, h)
+
+def _format_timecode(t_sec: float) -> str:
+    ms_total = int(round(t_sec * 1000.0))
+    s, ms = divmod(max(ms_total, 0), 1000)
+    h, s = divmod(s, 3600); m, s = divmod(s, 60)
+    return f"{h:02d}:{m:02d}:{s:02d}.{ms:03d}"
+
+def process_landmarks_pts_models(video: ProcessedVideo) -> _Evaluation:
     order = ("ear","shoulder","elbow","wrist","hand","hip","knee","ankle")
-    idx_map = {"ear":8, "shoulder":12, "elbow":14, "wrist":16, "hand":20, "hip":24, "knee":26, "ankle":28}
+    idx_map = {"ear": 8, "shoulder":12, "elbow":14, "wrist":16, "hand":20, "hip":24, "knee":26, "ankle":28}
+
+    frames: List[_Frame] = []
+    landmarks: List[_Landmark] = []
 
     pose = mp.solutions.pose.Pose()
-
-    frame_idx: List[int] = []
-    t_secs: List[float] = []
-    cols: Dict[str, List[float]] = {}
-    confs: Dict[str, List[float]] = {}
-
-    for n in order:
-        cols[f"{n}_x"] = []
-        cols[f"{n}_y"] = []
-
     first_t = None
-    W = H = None
-    i = 0
+    frame_idx = 0
 
     with pose as p:
-        for rgb, t, (w, h) in _iter_rgb_frames_with_time(video_file):
+        for rgb, t_abs, (w, h) in _iter_rgb_frames_with_time(video.path_local):
             if first_t is None:
-                first_t = t
-            W, H = w, h
-            t0 = t - first_t
+                first_t = t_abs
+            t0 = float(t_abs - first_t)
+            pts_ms = max(int(round(t0 * 1000.0)), 0)
+            frame_idx += 1
+
+            frames.append(_Frame(
+                session_id=video.session_id,
+                frame_index=frame_idx,
+                pts_ms=pts_ms,
+                timecode=_format_timecode(t0),
+            ))
 
             res = p.process(rgb)
-
-            frame_idx.append(i + 1)
-            t_secs.append(t0)
-
-            # default fill = NaN
-            for n in order:
-                cols[f"{n}_x"].append(np.nan)
-                cols[f"{n}_y"].append(np.nan)
-
             if res.pose_landmarks:
                 lms = res.pose_landmarks.landmark
-                for n in order:
-                    lm = lms[idx_map[n]]
-                    x = float(lm.x * w)
-                    y = float(lm.y * h)
-                    cols[f"{n}_x"][-1] = x
-                    cols[f"{n}_y"][-1] = y
-            i += 1
+                for name in order:
+                    lm = lms[idx_map[name]]
+                    x_px = float(lm.x * w); y_px = float(lm.y * h)
+                    if not (np.isnan(x_px) or np.isnan(y_px)):
+                        landmarks.append(_Landmark(
+                            session_id=video.session_id,
+                            frame_index=frame_idx,
+                            keypoint=name,
+                            x=x_px, y=y_px
+                        ))
 
-    out: LandmarkData = {
-        "frame_index": np.asarray(frame_idx, dtype=np.int32),
-        "t_seconds":   np.asarray(t_secs, dtype=np.float64),
-        **{k: np.asarray(v, dtype=np.float32) for k, v in cols.items()},
-        "meta": {
-            "video_path": str(video_file),
-            "width_px": W,
-            "height_px": H,
-            "landmarks": list(order),
-            "pts_reference": "t_seconds starts at 0 (first decoded frame PTS as origin)"
-        },
-    }
-    return out
-
-def to_pandas(data: LandmarkData):
-    import pandas as pd
-    cols = {k: v for k, v in data.items() if k != "meta"}
-    df = pd.DataFrame(cols)
-    return df, data["meta"]
-
-def process_landmarks_pts_df(video_file: Path):
-    data = process_landmarks_pts(
-        video_file=video_file
-    )
-    return to_pandas(data)
+    return _Evaluation(session_id=video.session_id, frames=frames, landmarks=landmarks, status="done")

@@ -1,14 +1,13 @@
-from pydantic import BaseModel
-from pathlib import Path
+# /src/models/session.py
+
+from pydantic import BaseModel, Field
+
+from src.utils.misc import new_id, now_s
 
 class Session(BaseModel):
-    id: str
+    id: str = Field(default_factory=new_id)
     name: str
-    original_video_filepath: Path
-    processed_video_filepath: Path
-    processed_video_fileurl: str
-    cover_image_filepath: Path
-    cover_image_fileurl: str
     status: str
-    created_at: float
-    updated_at: float
+    notes: str = ""
+    created_at: int = Field(default_factory=now_s)
+    updated_at: int = Field(default_factory=now_s)

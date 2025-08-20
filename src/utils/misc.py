@@ -1,5 +1,6 @@
-import os
 import random
+import uuid
+from time import time_ns
 
 
 def get_random_name() -> str:
@@ -26,3 +27,9 @@ def get_random_name() -> str:
         noun = random.choice(NOUNS)
 
     return f"{adjective}-{noun}-{number}"
+
+def now_s() -> int:
+    return int(time_ns() // 1_000_000_000)
+
+def new_id() -> str:
+    return str(uuid.uuid4())

@@ -4,7 +4,7 @@ import shutil
 
 from src.models.annotation_preferences import AnnotationPreferences
 from src.models.mediapipe_preferences import MediapipePreferences
-from src.models.session import Session
+from src.models.testing.session import Session
 from src.models.session_files import SessionFiles
 from src.models.video_metadata import VideoMetadata
 

@@ -44,11 +44,17 @@
   .pill.processing{background:color-mix(in oklab, var(--warn), transparent 88%);color:var(--warn);border-color:color-mix(in oklab, var(--warn), transparent 70%);}
   .pill.done{background:color-mix(in oklab, var(--good), transparent 88%);color:var(--good);border-color:color-mix(in oklab, var(--good), transparent 70%);}
   .pill.error{background:color-mix(in oklab, var(--err), transparent 90%);color:var(--err);border-color:color-mix(in oklab, var(--err), transparent 70%);}
-  .actions{margin-top:8px;display:flex;gap:8px}
-  .link{padding:8px 10px;border-radius:8px;border:1px solid var(--border);text-decoration:none;color:var(--text);background:var(--card)}
-  .link:hover{border-color:var(--accent)}
+  .actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+  .link,.btn-link{padding:8px 10px;border-radius:8px;border:1px solid var(--border);text-decoration:none;color:var(--text);background:var(--card);cursor:pointer}
+  .link:hover,.btn-link:hover{border-color:var(--accent)}
   .state{padding:24px;text-align:center;color:var(--muted)}
   .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .viewer{margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px}
+  .viewer h2{margin:0 0 10px 0;font-size:15px}
+  .stage{position:relative;display:inline-block;max-width:100%;}
+  .stage video, .stage canvas{display:block;max-width:100%;}
+  .stage canvas{position:absolute;left:0;top:0;pointer-events:none;}
+  .viewer .row{justify-content:space-between}
 </style>
 </head>
 <body>
@@ -70,49 +76,41 @@
     <div class="toolbar">
       <input id="filter" class="input" type="search" placeholder="Filter by name…" />
     </div>
+
     <div id="state" class="state">Loading sessions…</div>
     <section id="grid" class="grid" hidden></section>
+
+    <!-- Viewer -->
+    <section class="viewer" id="viewer" hidden>
+      <div class="row">
+        <h2 id="viewerTitle">Viewer</h2>
+        <span class="muted" id="viewerHint">Click “Play” on a session to load it</span>
+      </div>
+      <div class="stage">
+        <video id="video" controls playsinline crossorigin="anonymous" preload="auto"></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <span class="muted" id="frameInfo">–</span>
+        <span class="muted" id="drawInfo">–</span>
+      </div>
+    </section>
   </main>
 
 <script>
-  // ------- config -------
+  // ------- config (restore /rowio prefix) -------
   const API_BASE = "http://127.0.0.1:8000";
   const GET_SESSIONS = `${API_BASE}/rowio/sessions`;
-  const CREATE_SESSION = `${API_BASE}/rowio/sessions`; // POST { name, original_filepath }
+  const CREATE_SESSION = `${API_BASE}/rowio/sessions`;
+  const GET_SESSION = (id) => `${API_BASE}/rowio/sessions/${encodeURIComponent(id)}`;
 
   // ------- helpers -------
-  function absURL(u){
-    if (!u) return "";
-    if (u.startsWith("http://") || u.startsWith("https://")) return u;
-    return API_BASE.replace(/\/+$/,'') + "/" + u.replace(/^\/+/, "");
-  }
-  const PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,` + encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="52%" text-anchor="middle" fill="white" font-family="system-ui,Segoe UI,Roboto" font-size="18">No Cover</text></svg>`
-  );
-  function escapeHtml(s){
-    return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function fmtDate(epochSec){
-    if (!epochSec) return "–";
-    return new Date(epochSec * 1000).toLocaleString();
-  }
-  function timeAgo(epochSec){
-    if (!epochSec) return "";
-    const s = Math.max(1, Math.floor((Date.now()/1000) - epochSec));
-    const units = [["y",31536000],["mo",2592000],["d",86400],["h",3600],["m",60],["s",1]];
-    for (const [lab, secs] of units){
-      const v = Math.floor(s/secs);
-      if (v>=1) return `${v}${lab} ago`;
-    }
-    return "just now";
-  }
-  function statusClass(s){
-    s = (s||"").toLowerCase();
-    if (s==="done") return "pill done";
-    if (s==="processing") return "pill processing";
-    if (s==="error") return "pill error";
-    return "pill new";
-  }
+  function absURL(u){ if (!u) return ""; if (/^https?:\/\//i.test(u)) return u; return API_BASE.replace(/\/+$/,'') + "/" + u.replace(/^\/+/,''); }
+  const PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,` + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="52%" text-anchor="middle" fill="white" font-family="system-ui,Segoe UI,Roboto" font-size="18">No Cover</text></svg>`);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtDate = s => s ? new Date(s*1000).toLocaleString() : "–";
+  function timeAgo(epochSec){ if (!epochSec) return ""; const d = Math.max(1, (Date.now()/1000)-epochSec); const u=[["y",31536000],["mo",2592000],["d",86400],["h",3600],["m",60],["s",1]]; for (const [lab,sec] of u){const v=Math.floor(d/sec); if(v>=1) return `${v}${lab} ago`;} return "just now"; }
+  function statusClass(s){ s=(s||"").toLowerCase(); if(s==="done")return"pill done"; if(s==="processing")return"pill processing"; if(s==="error")return"pill error"; return"pill new"; }
 
   // ------- UI refs -------
   const $grid = document.getElementById('grid');
@@ -125,7 +123,230 @@
   const $path = document.getElementById('path');
   const $live = document.getElementById('live');
 
-  // ------- rendering -------
+  const $viewer = document.getElementById('viewer');
+  const $viewerTitle = document.getElementById('viewerTitle');
+  const $viewerHint = document.getElementById('viewerHint');
+  const $video = document.getElementById('video');
+  const $canvas = document.getElementById('overlay');
+  const $frameInfo = document.getElementById('frameInfo');
+  const $drawInfo = document.getElementById('drawInfo');
+
+  // worker plumbing
+  let worker = null;
+  let offscreen = null;
+  const SUPPORTS_OFFSCREEN = !!HTMLCanvasElement.prototype.transferControlToOffscreen;
+
+  // skeleton edges (flat pairs)
+  const EDGES = [
+    'hip','knee','knee','ankle',
+    'shoulder','elbow','elbow','wrist','wrist','hand',
+    'shoulder','hip',
+    'ear','shoulder'
+  ];
+
+  // playback state
+  let frames = [];
+  let times = [];
+  let ptr = 0;
+  let vfcHandle = null;
+  let rafId = null;
+  let lastPresented = -1;
+
+  // ------- Offscreen worker -------
+  const WORKER_SRC = `
+    let canvas, ctx;
+    let w=0,h=0,lineWidth=2, jointR=3;
+    let edgeList = [];
+    let frames = [];
+
+    function toPx(x, y){
+      const nx = (x >= 0 && x <= 1);
+      const ny = (y >= 0 && y <= 1);
+      return [ nx ? x*w : x, ny ? y*h : y ];
+    }
+
+    onmessage = (e) => {
+      const {type} = e.data;
+      if (type === 'init'){
+        canvas = e.data.canvas;
+        w = e.data.width; h = e.data.height;
+        canvas.width = w; canvas.height = h;
+        ctx = canvas.getContext('2d', {desynchronized:true, alpha:true});
+        updateMetrics();
+      } else if (type === 'resize'){
+        w = e.data.width; h = e.data.height;
+        canvas.width = w; canvas.height = h;
+        updateMetrics();
+      } else if (type === 'edges'){
+        edgeList = e.data.edges;
+      } else if (type === 'data'){
+        frames = e.data.frames;
+      } else if (type === 'draw'){
+        drawIndex(e.data.idx);
+      }
+    };
+
+    function updateMetrics(){
+      lineWidth = Math.max(2, Math.round(w/640));
+      jointR = Math.max(3, Math.round(w/240));
+    }
+
+    function drawIndex(idx){
+      const f = frames[idx];
+      if (!f) return;
+      ctx.clearRect(0,0,w,h);
+
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = '#22d3ee';
+      ctx.globalAlpha = 0.95;
+      ctx.beginPath();
+      const k = f.k || {};
+      for (let i=0;i<edgeList.length;i+=2){
+        const a = edgeList[i], b = edgeList[i+1];
+        const pa = k[a], pb = k[b];
+        if (!pa || !pb) continue;
+        const [ax, ay] = toPx(pa.x, pa.y);
+        const [bx, by] = toPx(pb.x, pb.y);
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(bx, by);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#3b82f6';
+      for (const key in k){
+        const p = k[key];
+        const [x,y] = toPx(p.x, p.y);
+        ctx.beginPath();
+        ctx.arc(x, y, jointR, 0, 6.283);
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.moveTo(w/2-10, h/2); ctx.lineTo(w/2+10, h/2);
+      ctx.moveTo(w/2, h/2-10); ctx.lineTo(w/2, h/2+10);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  `;
+  const WORKER_URL = URL.createObjectURL(new Blob([WORKER_SRC], {type:'application/javascript'}));
+
+  function ensureWorker(width, height){
+    if (!SUPPORTS_OFFSCREEN) return null;
+    if (!worker){
+      worker = new Worker(WORKER_URL);
+      offscreen = $canvas.transferControlToOffscreen();
+      worker.postMessage({type:'init', canvas: offscreen, width, height}, [offscreen]);
+      worker.postMessage({type:'edges', edges: EDGES});
+    }else{
+      worker.postMessage({type:'resize', width, height});
+    }
+    return worker;
+  }
+
+  function drawViaWorker(idx){
+    if (!worker) return;
+    worker.postMessage({type:'draw', idx});
+  }
+
+  // Fallback (main thread canvas)
+  const ctx2d = !SUPPORTS_OFFSCREEN ? $canvas.getContext('2d', {desynchronized:true, alpha:true}) : null;
+  function drawFallback(idx){
+    if (!ctx2d) return;
+    const f = frames[idx]; if (!f) return;
+    const w = $canvas.width, h = $canvas.height;
+    ctx2d.clearRect(0,0,w,h);
+    ctx2d.lineWidth = Math.max(2, Math.round(w/640));
+    ctx2d.strokeStyle = '#22d3ee';
+    ctx2d.globalAlpha = 0.95;
+    ctx2d.beginPath();
+    const k = f.k || {};
+    for (let i=0;i<EDGES.length;i+=2){
+      const a = EDGES[i], b = EDGES[i+1];
+      const pa = k[a], pb = k[b];
+      if (!pa || !pb) continue;
+      const ax = (pa.x>=0 && pa.x<=1) ? pa.x*w : pa.x;
+      const ay = (pa.y>=0 && pa.y<=1) ? pa.y*h : pa.y;
+      const bx = (pb.x>=0 && pb.x<=1) ? pb.x*w : pb.x;
+      const by = (pb.y>=0 && pb.y<=1) ? pb.y*h : pb.y;
+      ctx2d.moveTo(ax, ay); ctx2d.lineTo(bx, by);
+    }
+    ctx2d.stroke();
+    ctx2d.fillStyle = '#3b82f6';
+    const r = Math.max(3, Math.round(w/240));
+    for (const key in k){
+      const p = k[key];
+      const x = (p.x>=0 && p.x<=1) ? p.x*w : p.x;
+      const y = (p.y>=0 && p.y<=1) ? p.y*h : p.y;
+      ctx2d.beginPath(); ctx2d.arc(x,y,r,0,6.283); ctx2d.fill();
+    }
+    ctx2d.globalAlpha = 0.35;
+    ctx2d.strokeStyle = '#94a3b8';
+    ctx2d.beginPath();
+    ctx2d.moveTo(w/2-10, h/2); ctx2d.lineTo(w/2+10, h/2);
+    ctx2d.moveTo(w/2, h/2-10); ctx2d.lineTo(w/2, h/2+10);
+    ctx2d.stroke();
+    ctx2d.globalAlpha = 1;
+  }
+
+  // sizing
+  function setCanvasPixelSizeToVideo(){
+    const w = $video.videoWidth || 0;
+    const h = $video.videoHeight || 0;
+    if (!w || !h) return;
+    const MAXW = 1280;
+    const scale = w > MAXW ? (MAXW / w) : 1;
+    const pxW = Math.round(w * scale);
+    const pxH = Math.round(h * scale);
+    if ($canvas.width !== pxW) $canvas.width = pxW;
+    if ($canvas.height !== pxH) $canvas.height = pxH;
+    $canvas.style.width = $video.clientWidth + "px";
+    $canvas.style.height = $video.clientHeight + "px";
+    if (SUPPORTS_OFFSCREEN){ ensureWorker(pxW, pxH); }
+  }
+
+  // time → index
+  function jumpToTime(t_ms){
+    if (!times.length) return 0;
+    if (t_ms < times[0]) { ptr = 0; return 0; }
+    while (ptr+1 < times.length && times[ptr+1] <= t_ms) ptr++;
+    while (ptr > 0 && times[ptr] > t_ms) ptr--;
+    return ptr;
+  }
+
+  function startLoop(){
+    stopLoop();
+    if ('requestVideoFrameCallback' in HTMLVideoElement.prototype){
+      const cb = (_now, meta) => {
+        if (meta.presentedFrames !== lastPresented){
+          lastPresented = meta.presentedFrames;
+          const idx = jumpToTime(meta.mediaTime * 1000);
+          if (SUPPORTS_OFFSCREEN) drawViaWorker(idx); else drawFallback(idx);
+          const f = frames[idx] || {};
+          $frameInfo.textContent = `frame ${f.i ?? '-'} • t=${f.t ?? '-'}ms ${f.tc? '• '+f.tc:''}`;
+          $drawInfo.textContent = `kp=${f.k ? Object.keys(f.k).length : 0}`;
+        }
+        if (!$video.paused && !$video.ended){
+          vfcHandle = $video.requestVideoFrameCallback(cb);
+        }
+      };
+      vfcHandle = $video.requestVideoFrameCallback(cb);
+    }else{
+      const tick = () => {
+        const idx = jumpToTime(($video.currentTime||0)*1000);
+        if (SUPPORTS_OFFSCREEN) drawViaWorker(idx); else drawFallback(idx);
+        if (!$video.paused && !$video.ended) rafId = requestAnimationFrame(tick);
+      };
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+  function stopLoop(){
+    if (vfcHandle && $video.cancelVideoFrameCallback){ $video.cancelVideoFrameCallback(vfcHandle); vfcHandle = null; }
+    if (rafId){ cancelAnimationFrame(rafId); rafId = null; }
+  }
+
+  // ------- render cards -------
   function render(sessions, q=""){
     const term = q.trim().toLowerCase();
     const list = term ? sessions.filter(s => (s.name||"").toLowerCase().includes(term)) : sessions;
@@ -139,36 +360,43 @@
 
     $grid.innerHTML = "";
     for (const s of list){
-      const cover = absURL(s.cover_image_fileurl) || PLACEHOLDER;
-      const video = absURL(s.processed_video_fileurl) || "";
+      const cover = absURL(s.cover_image_url_remote) || PLACEHOLDER;
       const created = fmtDate(s.created_at);
       const updated = fmtDate(s.updated_at);
       const ago = timeAgo(s.created_at);
+      const playable = (String(s.status||"").toLowerCase() === "done");
 
       const card = document.createElement('article');
       card.className = "card";
       card.innerHTML = `
-        <img class="thumb" src="${cover}" alt="Cover of ${escapeHtml(s.name||s.id)}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" />
+        <img class="thumb" src="${cover}" alt="Cover of ${esc(s.name||s.id)}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" />
         <div class="body">
-          <h3 class="title">${escapeHtml(s.name || "(untitled)")}</h3>
+          <h3 class="title">${esc(s.name || "(untitled)")}</h3>
           <div class="row">
-            <span class="${statusClass(s.status)}">${escapeHtml(s.status || "new")}</span>
-            <span class="chip">ID: ${escapeHtml(s.id)}</span>
+            <span class="${statusClass(s.status)}">${esc(s.status || "new")}</span>
+            <span class="chip">ID: ${esc(s.id)}</span>
           </div>
-          <div class="row muted">
-            <span>Created: ${escapeHtml(created)} (${ago})</span>
-          </div>
-          <div class="row muted">
-            <span>Updated: ${escapeHtml(updated)}</span>
-          </div>
+          <div class="row muted"><span>Created: ${esc(created)} (${ago})</span></div>
+          <div class="row muted"><span>Updated: ${esc(updated)}</span></div>
           <div class="actions">
-            ${video ? `<a class="link" href="${video}" target="_blank" rel="noopener">Play</a>` : `<span class="muted">No video</span>`}
-            <a class="link" href="${API_BASE}/rowio/sessions/${encodeURIComponent(s.id)}" target="_blank" rel="noopener">Details JSON</a>
+            ${playable
+              ? `<button class="btn-link" data-action="play" data-id="${esc(s.id)}" data-name="${esc(s.name||s.id)}">Play</button>`
+              : `<span class="muted">Processing…</span>`
+            }
+            <a class="link" href="${GET_SESSION(s.id)}" target="_blank" rel="noopener">Session JSON</a>
           </div>
         </div>
       `;
       $grid.appendChild(card);
     }
+
+    $grid.querySelectorAll('button[data-action="play"]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name') || id;
+        await loadSessionIntoViewer(id, name);
+      });
+    });
 
     $state.hidden = true;
     $grid.hidden = false;
@@ -202,9 +430,8 @@
       $status.textContent = "Enter both name and absolute server filepath.";
       return;
     }
-
     $create.disabled = true;
-    $status.textContent = "Creating session… (this may take a bit)";
+    $status.textContent = "Creating session…";
     $live.textContent = "Creating session…";
 
     try{
@@ -213,21 +440,14 @@
         headers: {"Content-Type":"application/json", "Accept":"application/json"},
         body: JSON.stringify({ name, original_filepath: path })
       });
-
-      // Show any server error text
       if (!res.ok){
         const raw = await res.text().catch(()=> "");
         throw new Error(`POST /rowio/sessions failed (${res.status}) ${raw.slice(0,240)}`);
       }
-
       const data = await res.json();
-      // Clear inputs on success
-      $name.value = "";
-      $path.value = "";
+      $name.value = ""; $path.value = "";
       $status.textContent = `Created "${data?.name || name}" (status: ${data?.status || 'unknown'}).`;
       $live.textContent = $status.textContent;
-
-      // Refresh list
       await fetchSessions();
     }catch(err){
       console.error(err);
@@ -238,15 +458,74 @@
     }
   }
 
-  // ------- wire up -------
-  $filter.addEventListener('input', () => fetchSessions());
-  $refresh.addEventListener('click', () => fetchSessions());
-  $create.addEventListener('click', () => createSession());
-  // submit with Enter in either input
-  $name.addEventListener('keydown', (e)=>{ if(e.key==="Enter"){ createSession(); } });
-  $path.addEventListener('keydown', (e)=>{ if(e.key==="Enter"){ createSession(); } });
+  async function loadSessionIntoViewer(sessionId, displayName){
+    try{
+      $viewer.hidden = false;
+      $viewerHint.textContent = "Loading session…";
+      $viewerTitle.textContent = `Viewer · ${displayName}`;
+      stopLoop();
 
-  // initial load
+      const res = await fetch(GET_SESSION(sessionId), { headers:{'Accept':'application/json'} });
+      if (!res.ok) throw new Error(`GET /rowio/sessions/${sessionId} failed (${res.status})`);
+      const data = await res.json();
+
+      // payload: { session, processed_video, pose_samples }
+      const videoUrl = absURL(data?.processed_video?.url_remote || "");
+      frames = Array.isArray(data?.pose_samples) ? data.pose_samples : [];
+      times = frames.map(f => f.t ?? 0);
+      ptr = 0; lastPresented = -1;
+
+      if (!videoUrl){
+        $viewerHint.textContent = "No processed video URL available.";
+        return;
+      }
+
+      $video.src = videoUrl;
+      $video.load();
+
+      const onLoadedMeta = () => {
+        setCanvasPixelSizeToVideo();
+        if (SUPPORTS_OFFSCREEN){
+          ensureWorker($canvas.width, $canvas.height);
+          worker.postMessage({type:'data', frames});
+        }
+        $viewerHint.textContent = `Loaded ${frames.length} frames`;
+        const idx0 = 0;
+        if (SUPPORTS_OFFSCREEN) drawViaWorker(idx0); else drawFallback(idx0);
+      };
+
+      const ro = new ResizeObserver(()=>{
+        $canvas.style.width = $video.clientWidth + "px";
+        $canvas.style.height = $video.clientHeight + "px";
+      });
+      ro.observe($video);
+
+      $video.addEventListener('loadedmetadata', onLoadedMeta, { once:true });
+      $video.onplay = () => startLoop();
+      $video.onpause = () => stopLoop();
+      $video.onseeking = () => { const idx = jumpToTime(($video.currentTime||0)*1000); if (SUPPORTS_OFFSCREEN) drawViaWorker(idx); else drawFallback(idx); };
+      $video.onended = () => stopLoop();
+
+    }catch(err){
+      console.error(err);
+      $viewer.hidden = false;
+      $viewerHint.textContent = err?.message || String(err);
+    }
+  }
+
+  // ------- wire up -------
+  document.getElementById('filter').addEventListener('input', () => fetchSessions());
+  document.getElementById('refresh').addEventListener('click', () => fetchSessions());
+  document.getElementById('create').addEventListener('click', () => createSession());
+  document.getElementById('name').addEventListener('keydown', (e)=>{ if(e.key==="Enter"){ createSession(); } });
+  document.getElementById('path').addEventListener('keydown', (e)=>{ if(e.key==="Enter"){ createSession(); } });
+
+  window.addEventListener('resize', ()=>{
+    const t = ($video.currentTime||0)*1000;
+    const idx = jumpToTime(t);
+    if (SUPPORTS_OFFSCREEN) drawViaWorker(idx); else drawFallback(idx);
+  });
+
   fetchSessions();
 </script>
 </body>

@@ -35,7 +35,7 @@ def on_startup():
 
     conn = ensure_db()
     try:
-        wipe_on_start = False
+        wipe_on_start = True
         if wipe_on_start:
             init_schema(conn)
         pass

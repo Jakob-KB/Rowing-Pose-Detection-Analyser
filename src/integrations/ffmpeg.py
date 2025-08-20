@@ -1,9 +1,14 @@
 from __future__ import annotations
 import av
+import os
+from typing import Dict
 import numpy as np
 from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
+import mimetypes
+
+from PIL import Image
 from typing import Tuple
 
 
@@ -45,7 +50,6 @@ def _cover_size_and_crop(src_w: int, src_h: int, tgt_w: int, tgt_h: int):
     x0 = (new_w - tgt_w) // 2
     y0 = (new_h - tgt_h) // 2
     return new_w, new_h, x0, y0
-
 
 # ---------- API ----------
 def load_video_file(video_path: Path) -> VideoClip:
@@ -129,11 +133,11 @@ def cfr_video(clip: VideoClip, target_fps: float = 30.0) -> VideoClip:
 
 def save_video_file(clip: VideoClip, out_path: Path, fps: float):
     """
-    Save a VideoClip to an MP4 file at the given constant frame rate.
+    Save a VideoObject to an MP4 file at the given constant frame rate.
     Frames must already be in RGB24 and all the same size.
     """
     if clip.nframes == 0:
-        raise ValueError("Cannot save empty VideoClip.")
+        raise ValueError("Cannot save empty VideoObject.")
 
     h, w = clip.frames.shape[1:3]
 
@@ -191,3 +195,131 @@ def save_cover_image(clip: VideoClip, out_path: Path):
         finally:
             container.close()
         return out_path
+
+def get_video_metadata_from_file(path: Path) -> Dict[str, str | float | int]:
+    if not path.exists():
+        raise FileNotFoundError(f"Video not found: {path}")
+
+    guessed_mime, _ = mimetypes.guess_type(path.name)
+    mime_type = guessed_mime or "application/octet-stream"
+
+    duration_s: float = 0.0
+    frame_count: int = 0
+    fps: float = 0.0
+    width: int = 0
+    height: int = 0
+
+    with av.open(str(path)) as container:
+        # Prefer container-derived MIME if guess_type failed
+        if not guessed_mime and container.format and container.format.name:
+            fmt = container.format.name.split(",")[0].strip().lower()
+            mime_map = {
+                "matroska": "video/x-matroska",
+                "webm": "video/webm",
+                "mp4": "video/mp4",
+                "mov": "video/quicktime",
+                "avi": "video/x-msvideo",
+                "mpeg": "video/mpeg",
+                "ogg": "video/ogg",
+                "flv": "video/x-flv",
+                "3gp": "video/3gpp",
+            }
+            mime_type = mime_map.get(fmt, f"video/{fmt}")
+
+        if not container.streams.video:
+            raise ValueError("No video stream found in file.")
+
+        stream = container.streams.video[0]
+
+        # Dimensions
+        try:
+            width = int(getattr(stream.codec_context, "width", 0) or 0)
+            height = int(getattr(stream.codec_context, "height", 0) or 0)
+        except Exception:
+            width = int(getattr(stream, "width", 0) or 0)
+            height = int(getattr(stream, "height", 0) or 0)
+
+        # Duration: container-level preferred
+        if container.duration is not None:
+            duration_s = float(container.duration) / 1_000_000.0
+        elif getattr(stream, "duration", None) is not None and getattr(stream, "time_base", None):
+            duration_s = float(stream.duration * stream.time_base)
+
+        # FPS candidates
+        fps_candidate = None
+        if getattr(stream, "average_rate", None):
+            try:
+                fps_candidate = float(stream.average_rate)
+            except ZeroDivisionError:
+                fps_candidate = None
+        if not fps_candidate and getattr(stream, "guessed_rate", None):
+            try:
+                fps_candidate = float(stream.guessed_rate)
+            except ZeroDivisionError:
+                fps_candidate = None
+
+        # Frame count: use metadata if reliable; else decode
+        if getattr(stream, "frames", 0):
+            frame_count = int(stream.frames)
+        else:
+            last_time = None
+            frame_count = 0
+            for frame in container.decode(stream):
+                frame_count += 1
+                if (not width or not height) and hasattr(frame, "width"):
+                    width = int(frame.width)
+                    height = int(frame.height)
+                last_time = frame.time  # seconds since stream start
+
+            if duration_s == 0.0 and last_time is not None:
+                duration_s = float(last_time)
+
+        # Finalize FPS
+        if fps_candidate and fps_candidate > 0:
+            fps = float(fps_candidate)
+        elif duration_s > 0 and frame_count > 0:
+            fps = float(frame_count / duration_s)
+        else:
+            fps = 0.0
+
+    return {
+        "mime_type": mime_type,
+        "duration_s": round(float(duration_s), 6),
+        "frame_count": int(frame_count),
+        "fps": round(float(fps), 6),
+        "width": int(width),
+        "height": int(height),
+    }
+
+def get_image_metadata_from_file(path: Path) -> Dict[str, str | float | int]:
+    if not path.exists():
+        raise FileNotFoundError(f"Image not found: {path}")
+
+    guessed_mime, _ = mimetypes.guess_type(path.name)
+    mime_type = guessed_mime or "application/octet-stream"
+
+    with Image.open(path) as img:
+        # Prefer MIME from Pillow's format map
+        fmt = getattr(img, "format", None)  # e.g., 'JPEG', 'PNG'
+        if fmt and getattr(Image, "MIME", None):
+            mime_from_fmt = Image.MIME.get(fmt)
+            if mime_from_fmt:
+                mime_type = mime_from_fmt
+
+        width, height = img.size  # raw pixel dimensions
+
+        # Adjust for EXIF orientation if present (values 5–8 imply 90/270° rotation)
+        try:
+            exif = img.getexif()
+            orientation = exif.get(274)  # 274 is the EXIF tag for Orientation
+            if orientation in {5, 6, 7, 8}:
+                width, height = height, width
+        except Exception:
+            # If EXIF not available or unreadable, keep raw size
+            pass
+
+    return {
+        "mime_type": mime_type,
+        "width": int(width),
+        "height": int(height),
+    }
