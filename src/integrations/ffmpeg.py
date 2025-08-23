@@ -131,17 +131,13 @@ def cfr_video(clip: VideoClip, target_fps: float = 30.0) -> VideoClip:
     return VideoClip(frames=frames_cfr, times=t_uniform, size=clip.size,
                      note=f"cfr_{target_fps}Hz")
 
-def save_video_file(clip: VideoClip, out_path: Path, fps: float):
-    """
-    Save a VideoObject to an MP4 file at the given constant frame rate.
-    Frames must already be in RGB24 and all the same size.
-    """
+def save_video_file(clip: VideoClip, fps: float, output_path: Path):
     if clip.nframes == 0:
         raise ValueError("Cannot save empty VideoObject.")
 
     h, w = clip.frames.shape[1:3]
 
-    container = av.open(str(out_path), mode='w')
+    container = av.open(str(output_path), mode='w')
     stream = container.add_stream('libx264', rate=fps)  # h264 video
     stream.width = w
     stream.height = h
@@ -158,43 +154,27 @@ def save_video_file(clip: VideoClip, out_path: Path, fps: float):
         container.mux(packet)
 
     container.close()
-    print(f"Saved {clip.nframes} frames to {out_path} at {fps} fps.")
+    print(f"Saved {clip.nframes} frames to {output_path} at {fps} fps.")
 
-def save_cover_image(clip: VideoClip, out_path: Path):
+def save_cover_image(clip: VideoClip, output_path: Path):
     if clip.nframes == 0:
         raise ValueError("Clip has no frames.")
 
-    out_path = Path(out_path).with_suffix(".png")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path = Path(output_path).with_suffix(".png")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     frame = clip.frames[0]
-    # Defensive: ensure uint8 RGB, contiguous
     if frame.dtype != np.uint8:
         frame = frame.astype(np.uint8, copy=False)
     if frame.ndim != 3 or frame.shape[2] != 3:
         raise ValueError(f"Expected RGB frame HxWx3, got shape {frame.shape}")
     frame = np.ascontiguousarray(frame)
 
-    # Try Pillow first (simple, fast); fall back to pure PyAV if not available.
-    try:
-        from PIL import Image
-        Image.fromarray(frame, mode="RGB").save(
-            out_path, format="PNG", optimize=True, compress_level=6
-        )
-        return out_path
-    except Exception:
-        # Pure PyAV fallback: encode a single PNG using image2 muxer
-        vframe = av.VideoFrame.from_ndarray(frame, format="rgb24")
-        container = av.open(str(out_path), mode="w", format="image2")
-        try:
-            stream = container.add_stream("png")
-            for pkt in stream.encode(vframe):
-                container.mux(pkt)
-            for pkt in stream.encode():
-                container.mux(pkt)
-        finally:
-            container.close()
-        return out_path
+    from PIL import Image
+    Image.fromarray(frame, mode="RGB").save(
+        output_path, format="PNG", optimize=True, compress_level=6
+    )
+    return output_path
 
 def get_video_metadata_from_file(path: Path) -> Dict[str, str | float | int]:
     if not path.exists():

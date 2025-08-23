@@ -9,7 +9,7 @@ from src.utils.misc import new_id, now_s
 class RawVideo(BaseModel):
     id: str = Field(default_factory=new_id)
     session_id: str
-    path_local: str
+    path: Path
     mime_type: Optional[str] = None
     duration_s: Optional[float] = None
     frame_count: Optional[int] = None
@@ -18,5 +18,3 @@ class RawVideo(BaseModel):
     height: Optional[int] = None
     created_at: int = Field(default_factory=now_s)
 
-    def get_path_local(self) -> Path:
-        return Path(self.path_local)

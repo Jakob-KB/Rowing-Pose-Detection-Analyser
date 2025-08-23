@@ -6,7 +6,8 @@ from src.adapters.sqlite import get_sqlite_client
 
 from src.services.sessions import SessionServices
 from src.services.database import DatabaseServices
-from src.api.schemas import SessionRequest, SessionResponse
+from src.api.schemas import SessionRequest
+from src.models.session_view import SessionView
 from src.models import Session
 
 from src.config import get_api_config
@@ -18,19 +19,19 @@ sessions_router = APIRouter(
     tags=["sessions"]
 )
 
-@sessions_router.get("")
+@sessions_router.get("/")
 def get_sessions(
     sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)
-) -> List[SessionResponse]:
+) -> List[SessionView]:
     db = DatabaseServices(sqlite_client)
-    sessions = db.get_sessions()
+    sessions = db.get_session_views()
     return sessions
 
-@sessions_router.post("")
+@sessions_router.post("/")
 def create_session(
     req: SessionRequest,
     sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)
-) -> SessionResponse:
+) -> SessionView:
     db = DatabaseServices(sqlite_client)
     service = SessionServices(db)
 
@@ -39,15 +40,9 @@ def create_session(
         name=req.name,
         video_path=Path(req.original_filepath)
     )
+    service.process_session(session.id)
 
-    # Process and Save Standardised Video
-    processed_video = service.create_processed_video(session.id)
-
-    # Process and save cover image
-    cover_image = service.create_cover_image(session.id)
-
-    service.process_session(session_id)
-    return session
+    return db.get_session_view(session.id)
 
 
 @sessions_router.delete("/{session_id}")
@@ -65,9 +60,8 @@ def delete_session(
 def get_session(
     session_id: str,
     sqlite_client: sqlite3.Connection = Depends(get_sqlite_client)
-) -> None:
+) -> SessionView:
     db = DatabaseServices(sqlite_client)
-    pass
-
+    return db.get_session_view(session_id)
 
 

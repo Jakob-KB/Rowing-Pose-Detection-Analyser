@@ -1,3 +1,5 @@
+# /src/api/app.py
+
 from fastapi import FastAPI
 from src.api.routers import router
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,18 +22,25 @@ app.add_middleware(
     allow_credentials=False,
     max_age=86400,
 )
-app.mount("/media", StaticFiles(directory=str(cfg.STORAGE_DIR / "media")), name="media")
+app.mount("/appdata", StaticFiles(directory=str(cfg.STORAGE_DIR / "appdata")), name="appdata")
 app.include_router(router, prefix="/rowio")
 
 @app.on_event("startup")
 def on_startup():
-    wipe_on_start = False
+    wipe_on_start = True
 
     if wipe_on_start:
         # wipe videos file
-        filepath = cfg.STORAGE_DIR / "media"
+        filepath = cfg.STORAGE_DIR
         if filepath.exists():
             shutil.rmtree(filepath)
+
+
+    # Ensure storage directory
+    (cfg.STORAGE_DIR / "appdata").mkdir(parents=True, exist_ok=True)
+    (cfg.STORAGE_DIR / "appdata" / "videos").mkdir(parents=True, exist_ok=True)
+    (cfg.STORAGE_DIR / "appdata" / "evaluations").mkdir(parents=True, exist_ok=True)
+    (cfg.STORAGE_DIR / "appdata" / "images").mkdir(parents=True, exist_ok=True)
 
     conn = ensure_db()
     try:

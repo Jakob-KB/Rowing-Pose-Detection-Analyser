@@ -1,5 +1,5 @@
 # src/services/database.py
-from __future__ import annotations
+import json
 import sqlite3
 from time import time
 from typing import Iterable, List
@@ -63,7 +63,7 @@ class DatabaseServices:
                 INSERT INTO raw_videos (
                     id,
                     session_id,
-                    path_local,
+                    path,
                     mime_type,
                     duration_s,
                     frame_count,
@@ -77,7 +77,7 @@ class DatabaseServices:
                 (
                     raw_video.id,
                     raw_video.session_id,
-                    raw_video.path_local,
+                    str(raw_video.path),
                     raw_video.mime_type,
                     raw_video.duration_s,
                     raw_video.frame_count,
@@ -96,7 +96,7 @@ class DatabaseServices:
                 INSERT INTO processed_videos (
                     id,
                     session_id,
-                    path_local,
+                    path,
                     uri,
                     mime_type,
                     duration_s,
@@ -111,7 +111,7 @@ class DatabaseServices:
                 (
                     processed_video.id,
                     processed_video.session_id,
-                    processed_video.path_local,
+                    str(processed_video.path),
                     processed_video.uri,
                     processed_video.mime_type,
                     processed_video.duration_s,
@@ -131,7 +131,7 @@ class DatabaseServices:
                 INSERT INTO cover_images (
                     id,
                     session_id,
-                    path_local,
+                    path,
                     uri,
                     mime_type,
                     width,
@@ -143,7 +143,7 @@ class DatabaseServices:
                 (
                     cover_image.id,
                     cover_image.session_id,
-                    cover_image.path_local,
+                    str(cover_image.path),
                     cover_image.uri,
                     cover_image.mime_type,
                     cover_image.width,
@@ -161,19 +161,21 @@ class DatabaseServices:
                     id,
                     session_id,
                     video_id,
-                    path_local,
+                    path,
                     uri,
+                    mime_type,
                     avg_spm,
                     created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     evaluation.id,
                     evaluation.session_id,
                     evaluation.video_id,
-                    evaluation.path_local,
+                    str(evaluation.path),
                     evaluation.uri,
+                    evaluation.mime_type,
                     evaluation.avg_spm,
                     evaluation.created_at
                 )
@@ -223,7 +225,37 @@ class DatabaseServices:
 
     # Read (Views)
     def get_session_views(self) -> List[SessionView]:
-        ...
+        cur = self.db.execute("SELECT session_json FROM SessionView ORDER BY sort_created_at DESC")
+        rows = cur.fetchall()
+        return [self._row_to_session_view(r["session_json"]) for r in rows]
 
-    def get_session_view(self) -> SessionView:
-        ...
+    def get_session_view(self, session_id: str) -> SessionView:
+        row = self.db.execute(
+            "SELECT session_json FROM SessionView WHERE json_extract(session_json, '$.id') = ? LIMIT 1",
+            (session_id,),
+        ).fetchone()
+        if not row:
+            raise ValueError(f"SessionView not found for {session_id}")
+        return self._row_to_session_view(row["session_json"])
+
+    @staticmethod
+    def _row_to_session_view(session_json: str) -> SessionView:
+        data = json.loads(session_json)
+
+        # hydrate nested models
+        if data.get("processed_video") is None:
+            data["processed_video"] = None
+        else:
+            data["processed_video"] = ProcessedVideo(**data["processed_video"])
+
+        if data.get("evaluation") is None:
+            data["evaluation"] = None
+        else:
+            data["evaluation"] = Evaluation(**data["evaluation"])
+
+        if data.get("cover_image") is None:
+            data["cover_image"] = None
+        else:
+            data["cover_image"] = CoverImage(**data["cover_image"])
+
+        return SessionView(**data)

@@ -1,5 +1,6 @@
 # /src/models/evaluation.py
 
+from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -9,7 +10,8 @@ class Evaluation(BaseModel):
     id: str = Field(default_factory=new_id)
     session_id: str
     video_id: str
-    path_local: Optional[str] = None
+    path: Path
     uri: Optional[str] = None
+    mime_type: str
     avg_spm: Optional[float] = None
     created_at: int = Field(default_factory=now_s)
