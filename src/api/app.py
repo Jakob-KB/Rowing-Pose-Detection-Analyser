@@ -11,7 +11,7 @@ import shutil
 
 cfg = get_api_config()
 
-app = FastAPI(title="RowIO API", version="v1-3", debug=True, redirect_slashes=False)
+app = FastAPI(title="RowIO API", version="v1.4", debug=True, redirect_slashes=False)
 
 # DEV: allow everything so preflight gets a 200
 app.add_middleware(
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_credentials=False,
     max_age=86400,
 )
-app.mount("/appdata", StaticFiles(directory=str(cfg.STORAGE_DIR / "appdata")), name="appdata")
+app.mount(f"/{cfg.APP_DATA_PREFIX}", StaticFiles(directory=cfg.APP_DATA_DIR), name=cfg.APP_DATA_PREFIX)
 app.include_router(router, prefix="/rowio")
 
 @app.on_event("startup")
@@ -37,10 +37,10 @@ def on_startup():
 
 
     # Ensure storage directory
-    (cfg.STORAGE_DIR / "appdata").mkdir(parents=True, exist_ok=True)
-    (cfg.STORAGE_DIR / "appdata" / "videos").mkdir(parents=True, exist_ok=True)
-    (cfg.STORAGE_DIR / "appdata" / "evaluations").mkdir(parents=True, exist_ok=True)
-    (cfg.STORAGE_DIR / "appdata" / "images").mkdir(parents=True, exist_ok=True)
+    cfg.APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    cfg.EVALUATIONS_DIR.mkdir(parents=True, exist_ok=True)
+    cfg.IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    cfg.VIDEOS_DIR.mkdir(parents=True, exist_ok=True)
 
     conn = ensure_db()
     try:

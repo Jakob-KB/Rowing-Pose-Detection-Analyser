@@ -13,6 +13,14 @@ class APIConfig(BaseSettings):
 
     # Sqlite
     STORAGE_DIR: Path = Path(__file__).parent.parent / "temp"
+
+    APP_DATA_PREFIX: str = "appdata"
+    APP_DATA_DIR: Path = STORAGE_DIR / APP_DATA_PREFIX
+
+    EVALUATIONS_DIR: Path = APP_DATA_DIR / "evaluations"
+    IMAGES_DIR: Path = APP_DATA_DIR / "images"
+    VIDEOS_DIR: Path = APP_DATA_DIR / "videos"
+
     DB_PATH: Path = STORAGE_DIR / "rowio.db"
 
     # Video Constants

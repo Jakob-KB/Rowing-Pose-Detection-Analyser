@@ -11,8 +11,7 @@ def ensure_db() -> sqlite3.Connection:
     Open a connection to the on-disk DB. No seed copy. Call init_schema() at startup.
     Use one connection per request (via dependency) to avoid cross-thread issues.
     """
-    target = cfg.DB_PATH
-    conn = sqlite3.connect(target, check_same_thread=False)
+    conn = sqlite3.connect(cfg.DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
 
     # PRAGMA defaults

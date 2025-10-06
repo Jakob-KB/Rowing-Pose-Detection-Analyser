@@ -1,10 +1,6 @@
 # src/services/video.py
-from __future__ import annotations
-
 from pathlib import Path
-
 from src.config import get_api_config
-from src.services.database import DatabaseServices
 from src.integrations import (
     load_video_file,
     resize_video,
@@ -50,6 +46,8 @@ class MediaServices:
         self._processed_clip = None
         self._cover_image = None
 
+        self._df = None
+
 
     def load_raw_video(self, input_video_path: Path):
         self._raw_clip = load_video_file(input_video_path)
@@ -79,15 +77,15 @@ class MediaServices:
             session_id=self.session_id,
             path=self.processed_video_path,
             uri=self.processed_video_uri,
-            **meta,
+            **meta
         )
 
     def evaluate_video(self, processed_video_id: str) -> Evaluation:
         if not self._processed_clip:
             self._processed_clip = load_video_file(self.processed_video_path)
 
-        df = process_landmarks_pts_models(self.processed_video_path)
-        save_landmarks_to_file(df, self.evaluation_path)
+        self._df = process_landmarks_pts_models(self.processed_video_path)
+        save_landmarks_to_file(self._df, self.evaluation_path)
 
         return Evaluation(
             session_id=self.session_id,

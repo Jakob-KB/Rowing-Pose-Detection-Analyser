@@ -11,6 +11,8 @@ class ProcessedVideo(BaseModel):
     session_id: str
     path: Path
     uri: Optional[str] = None
+    annotated_path: Optional[Path] = None
+    annotated_uri: Optional[str] = None
     mime_type: Optional[str] = None
     duration_s: Optional[float] = None
     frame_count: Optional[int] = None

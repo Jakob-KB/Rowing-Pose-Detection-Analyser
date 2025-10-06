@@ -1,56 +1,48 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<title>RowIO · Sessions (visible video + rVFC overlay)</title>
+<meta charset="utf-8" />
+<title>RowIO · Barebones Viewer (video→canvas)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+
 <style>
-  :root{--fg:#111827;--muted:#64748b;--border:#e5e7eb;--accent:#2563eb;--card:#fff;--bg:#f8fafc}
-  @media (prefers-color-scheme: dark){
-    :root{--fg:#e5e7eb;--muted:#9aa3b2;--border:#232634;--accent:#5aa9ff;--card:#0f172a;--bg:#0b1020}
-  }
-  body{margin:16px;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,Segoe UI,Roboto,Arial}
-  h1{font-size:18px;margin:0 0 12px}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
-  input,button{padding:8px 10px;border:1px solid var(--border);border-radius:8px}
-  button{cursor:pointer;background:var(--card);color:var(--fg)}
-  button:hover{border-color:var(--accent)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
-  .card{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:10px}
-  .muted{color:var(--muted)}
-  .viewer{margin-top:18px;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:10px}
-  .stage{position:relative;display:inline-block;max-width:100%}
-  video#video{display:block;max-width:100%;border-radius:8px;background:#000}
-  canvas#overlay{position:absolute;left:0;top:0;pointer-events:none;display:block;max-width:100%}
-  pre{background:#0f172a;color:#e5e7eb;padding:10px;border-radius:8px;overflow:auto;max-height:45vh}
-  .pill{display:inline-block;font-size:12px;border:1px solid var(--border);border-radius:999px;padding:2px 8px}
-  .ok{color:#10b981}.warn{color:#f59e0b}.err{color:#ef4444}
+  body { margin: 12px; font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+  h1 { margin: 0 0 8px; font-size: 16px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+  input, button { padding: 6px 8px; }
+  #list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .card { border: 1px solid #ccc; padding: 8px; }
+  #viewer { margin-top: 12px; }
+  #stage { display: block; width: 100%; background: #000; }
+  #video { display: none; } /* hidden decode source */
+  pre { background: #111; color: #eee; padding: 8px; overflow: auto; max-height: 40vh; }
 </style>
 
 <h1>RowIO · Sessions</h1>
 
-<!-- Create + refresh -->
+<!-- Controls -->
 <div class="row">
-  <input id="name" placeholder="Session name">
-  <input id="path" placeholder="Absolute server filepath">
-  <button id="btnCreate">Create session (POST)</button>
-  <button id="btnRefresh">Refresh list</button>
-  <span id="msg" class="muted">Idle.</span>
+  <input id="name" placeholder="Session name" />
+  <input id="path" placeholder="Absolute server filepath" />
+  <button id="btnCreate">Create (POST)</button>
+  <button id="btnRefresh">Refresh</button>
+  <span id="msg">Idle.</span>
 </div>
 
 <!-- Sessions list -->
 <h3>Sessions</h3>
-<div id="list" class="grid"></div>
+<div id="list"></div>
 
 <!-- Viewer -->
-<section class="viewer" id="viewer" hidden>
+<section id="viewer" hidden>
   <div class="row" style="justify-content:space-between">
     <strong id="viewerTitle">Viewer</strong>
-    <span class="muted" id="viewerInfo">–</span>
+    <span id="viewerInfo">–</span>
   </div>
-  <div class="stage" id="stage">
-    <video id="video" controls playsinline crossorigin="anonymous"></video>
-    <canvas id="overlay"></canvas>
-  </div>
-  <div class="row muted" style="margin-top:6px">
+
+  <canvas id="stage"></canvas>
+  <video id="video" playsinline crossorigin="anonymous"></video>
+
+  <div class="row" style="margin-top:6px">
+    <button id="btnToggle">▶ Play</button>
     <span id="frameInfo">–</span>
     <span id="drawInfo">–</span>
   </div>
@@ -59,96 +51,106 @@
 <h3>Log</h3>
 <pre id="out">(idle)</pre>
 
-<script>
-  /* ------------------------ fixed endpoints (127.0.0.1) ------------------------ */
-  const BASE = "http://127.0.0.1:8000";
-  const URL_SESSIONS = `${BASE}/rowio/sessions/`;                       // collection (trailing slash)
-  const URL_SESSION  = id => `${BASE}/rowio/sessions/${encodeURIComponent(id)}`;
+<script type="module">
+  import { RowIOViewer } from './rowio-viewer.js';
 
-  /* ----------------------------- ui references ----------------------------- */
+  /* --------------------- Endpoints --------------------- */
+  const BASE = "http://127.0.0.1:8000";
+  const URL_SESSIONS = `${BASE}/rowio/sessions/`;
+  const URL_SESSION = (id) => `${BASE}/rowio/sessions/${encodeURIComponent(id)}`;
+
+  /* --------------------- Elements --------------------- */
   const OUT = document.getElementById('out');
   const MSG = document.getElementById('msg');
   const LIST = document.getElementById('list');
   const VIEWER = document.getElementById('viewer');
   const V_TITLE = document.getElementById('viewerTitle');
   const V_INFO = document.getElementById('viewerInfo');
-  const VIDEO = document.getElementById('video');
-  const CANVAS = document.getElementById('overlay');
+
+  const VIDEO = document.getElementById('video');   // hidden source
+  const STAGE = document.getElementById('stage');   // canvas
+
+  const BTN_TOGGLE = document.getElementById('btnToggle');
   const FRAME_INFO = document.getElementById('frameInfo');
   const DRAW_INFO = document.getElementById('drawInfo');
 
-  /* ----------------------------- logging helpers ----------------------------- */
+  /* --------------------- Viewer instance --------------------- */
+  const viewer = new RowIOViewer({
+    canvas: STAGE,
+    video: VIDEO,
+    frameInfoEl: FRAME_INFO,
+    drawInfoEl: DRAW_INFO,
+    onLog: (s) => logln(s),
+    onMsg: (s) => setMsg(s),
+  });
+
+  BTN_TOGGLE.onclick = () => {
+    if (!VIDEO.src) return;
+    if (VIDEO.paused) viewer.play(); else viewer.pause();
+    BTN_TOGGLE.textContent = VIDEO.paused ? "▶ Play" : "⏸ Pause";
+  };
+
+  /* --------------------- Logging --------------------- */
   function logln(s){ OUT.textContent = `${OUT.textContent}\n${s}`.trimStart(); }
   function resetLog(title, url, init){
     OUT.textContent = `${title}\n${url}\n${JSON.stringify(init||{},null,2)}\n\n(waiting…)`;
   }
-  function setMsg(s, cls){ MSG.textContent = s; MSG.className = cls || 'muted'; }
+  function setMsg(s){ MSG.textContent = s; }
 
-  /* ----------------------------- fetch wrapper ----------------------------- */
+  /* --------------------- Fetch helper --------------------- */
   async function logFetch(label, url, init){
     resetLog(label, url, init);
-    try{
-      const res  = await fetch(url, {mode:'cors', cache:'no-store', ...init});
-      const body = await res.text();
-      logln(`status: ${res.status}`);
-      try{
-        const data = JSON.parse(body);
-        logln(JSON.stringify(data, null, 2));
-        return {res, data};
-      }catch{
-        logln(body);
-        return {res, text: body};
-      }
-    }catch(err){
-      logln(`ERROR: ${err?.name||''} ${err?.message||err}`);
-      throw err;
-    }
+    const res = await fetch(url, { mode: 'cors', cache: 'no-store', ...init });
+    const body = await res.text();
+    logln(`status: ${res.status}`);
+    let data = null;
+    try { data = JSON.parse(body); logln(JSON.stringify(data, null, 2)); }
+    catch { logln(body); }
+    return { res, data, text: data ? null : body };
   }
 
-  /* ----------------------------- sessions list ----------------------------- */
+  /* --------------------- UI wiring --------------------- */
   document.getElementById('btnRefresh').onclick = loadSessions;
   document.getElementById('btnCreate').onclick = async () => {
     const name = document.getElementById('name').value.trim();
     const original_filepath = document.getElementById('path').value.trim();
-    if (!name || !original_filepath){ setMsg("Please enter name and absolute server filepath.","warn"); return; }
-    const r = await logFetch("POST sessions (create)", URL_SESSIONS, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", "Accept":"application/json" },
-      body: JSON.stringify({ name, original_filepath })
+    if (!name || !original_filepath){ setMsg("Enter name and path"); return; }
+    const r = await logFetch("POST sessions", URL_SESSIONS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ name, original_filepath }),
     });
-    setMsg(r?.res?.ok ? "Created." : `Create failed: ${r?.res?.status}`, r?.res?.ok ? "ok" : "err");
-    if (r?.res?.ok) loadSessions();
+    setMsg(r.res.ok ? "Created." : `Create failed: ${r.res.status}`);
+    if (r.res.ok) loadSessions();
   };
-  document.getElementById('name').addEventListener('keydown', e => { if(e.key==="Enter") document.getElementById('btnCreate').click(); });
-  document.getElementById('path').addEventListener('keydown', e => { if(e.key==="Enter") document.getElementById('btnCreate').click(); });
+  document.getElementById('name').addEventListener('keydown', e => { if (e.key === "Enter") document.getElementById('btnCreate').click(); });
+  document.getElementById('path').addEventListener('keydown', e => { if (e.key === "Enter") document.getElementById('btnCreate').click(); });
 
   async function loadSessions(){
     LIST.innerHTML = "";
-    const r = await logFetch("GET sessions (list)", URL_SESSIONS, { headers:{ Accept:"application/json" }});
-    const items = Array.isArray(r?.data) ? r.data : [];
-    if (!items.length){ LIST.innerHTML = `<div class="muted">No sessions yet.</div>`; return; }
+    const r = await logFetch("GET sessions", URL_SESSIONS, { headers: { Accept: "application/json" }});
+    const items = Array.isArray(r.data) ? r.data : [];
+    if (!items.length){ LIST.innerHTML = `<div>None.</div>`; return; }
     for (const s of items){
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
         <div><strong>${esc(s?.name || '(untitled)')}</strong></div>
-        <div class="muted">ID: ${esc(s?.id || '-')}</div>
-        <div class="muted">Status: ${esc(s?.status || '-')}</div>
-        <div class="muted">Created: ${esc(fmtEpoch(s?.created_at))}</div>
-        <div class="muted">Updated: ${esc(fmtEpoch(s?.updated_at))}</div>
-        <div style="margin-top:6px;display:flex;gap:8px">
+        <div>ID: ${esc(s?.id || '-')}</div>
+        <div>Status: ${esc(s?.status || '-')}</div>
+        <div style="margin-top:6px;display:flex;gap:8px;">
           <button class="btnGet" data-id="${attr(s?.id)}">GET JSON</button>
           <button class="btnPlay" data-id="${attr(s?.id)}" data-name="${attr(s?.name||s?.id||'Session')}">Play</button>
         </div>`;
-      LIST.appendChild(card);
+      LIST.appendChild(el);
     }
-    LIST.querySelectorAll('.btnGet').forEach(btn=>{
+    LIST.querySelectorAll('.btnGet').forEach(btn => {
       btn.onclick = async () => {
         const id = btn.getAttribute('data-id');
-        await logFetch(`GET session ${id}`, URL_SESSION(id), { headers:{ Accept:"application/json" }});
+        await logFetch(`GET session ${id}`, URL_SESSION(id), { headers: { Accept: "application/json" }});
       };
     });
-    LIST.querySelectorAll('.btnPlay').forEach(btn=>{
+    LIST.querySelectorAll('.btnPlay').forEach(btn => {
       btn.onclick = async () => {
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name');
@@ -157,302 +159,36 @@
     });
   }
 
-  /* ----------------------------- viewer + overlay (video visible, canvas on top) ----------------------------- */
-  /** edges */
-  const EDGES = [
-    'hip','knee','knee','ankle',
-    'shoulder','elbow','elbow','wrist','wrist','hand',
-    'shoulder','hip',
-    'ear','shoulder'
-  ];
-
-  /** parsed pose frames */
-  let frames = [];     // [{i, t(ms), k:{joint:{x,y}}}, ...] sorted by t
-  let times = [];      // t(ms)
-  let coordsNormalized = false;
-
-  /** timing + sync (nearest-only, no interpolation) */
-  let avgDtMs = 33.3;
-  let SHIFT_BASE_MS = -6;   // nudge if your CSV timestamps trail/lead the visual frame a hair
-  let shiftDynamic = 0;
-
-  /** fetch session JSON, then play its video and overlay from CSV */
+  /* --------------------- Play flow --------------------- */
   async function loadAndPlay(sessionId, displayName){
-    setMsg(`GET ${URL_SESSION(sessionId)}`,'muted');
-    const {res, data} = await logFetch(`GET session ${sessionId}`, URL_SESSION(sessionId), { headers:{ Accept:"application/json" }});
-    if (!res.ok){ setMsg(`GET session failed: ${res.status}`,'err'); return; }
+    const { res, data } = await logFetch(`GET session ${sessionId}`, URL_SESSION(sessionId), { headers: { Accept: "application/json" }});
+    if (!res.ok){ setMsg(`GET failed: ${res.status}`); return; }
 
     const pv = data?.processed_video || {};
     const ev = data?.evaluation || {};
-
     const videoUrl = absURL(pv?.uri || pv?.path || "");
     const csvUrl   = absURL(ev?.uri || ev?.path || "");
 
-    if (!videoUrl){ setMsg('No processed_video.uri/path','warn'); return; }
-    VIEWER.hidden = false;
-    V_TITLE.textContent = `Viewer · ${displayName||sessionId}`;
-    V_INFO.textContent = `video: ${videoUrl}${csvUrl ? ' | eval: '+csvUrl : ''}`;
+    if (!videoUrl){ setMsg('No video url/path'); return; }
 
-    // Reset pose state
-    frames = []; times = []; coordsNormalized = false; avgDtMs = 33.3; shiftDynamic = 0;
+    document.getElementById('viewer').hidden = false;
+    document.getElementById('viewerTitle').textContent = `Viewer · ${displayName || sessionId}`;
+    document.getElementById('viewerInfo').textContent  = `video: ${videoUrl}${csvUrl ? ' | csv: '+csvUrl : ''}`;
 
-    // Load CSV (if any)
-    if (csvUrl){
-      try{
-        const csvText = await (await fetch(csvUrl, {mode:'cors', cache:'no-store'})).text();
-        parseCSV_longFormat(csvText); // fills frames + times + coordsNormalized
-        finalizeTiming();
-        setMsg(`CSV loaded: ${frames.length} frames (Δ≈${avgDtMs.toFixed(1)}ms)`, 'ok');
-      }catch(e){
-        logln('CSV fetch/parse error: ' + (e?.message || e));
-        setMsg('Failed to load evaluation CSV. Playing video without overlay.','warn');
-        frames = []; times = [];
-      }
-    }else{
-      setMsg('No evaluation CSV URI. Playing video only.','warn');
-    }
-
-    // Load & wire video (visible with native controls)
-    VIDEO.src = videoUrl;
-    VIDEO.load();
-    VIDEO.addEventListener('loadedmetadata', onLoadedMeta, {once:true});
-    VIDEO.onplay    = () => { shiftDynamic = 0; startLoop(); };
-    VIDEO.onpause   = () => stopLoop();
-    VIDEO.onseeking = () => { shiftDynamic = 0; drawAtTime((VIDEO.currentTime||0)*1000, true); };
-    VIDEO.onended   = () => stopLoop();
-
-    VIDEO.onerror = () => {
-      logln(`VIDEO ERROR: code=${VIDEO.error?.code} readyState=${VIDEO.readyState} networkState=${VIDEO.networkState} src=${VIDEO.currentSrc}`);
-      setMsg('Video failed to load. See log.', 'err');
-    };
+    await viewer.load({ videoUrl, csvUrl, displayName });
+    // Button label will update on first onplay
+    BTN_TOGGLE.textContent = "⏸ Pause";
   }
 
-  /** sizing */
-  function onLoadedMeta(){
-    const vw = VIDEO.videoWidth || 0, vh = VIDEO.videoHeight || 0;
-    if (!vw || !vh){ setMsg('Video has no metadata width/height','warn'); return; }
-    // canvas intrinsic resolution == video pixels
-    CANVAS.width = vw;
-    CANVAS.height = vh;
-    // match CSS size to video client box so overlay aligns with the visible pixels
-    CANVAS.style.width = VIDEO.clientWidth + "px";
-    CANVAS.style.height = VIDEO.clientHeight + "px";
-    drawAtTime(0, true);
-  }
-
-  /** render loop (rVFC preferred) */
-  let vfcHandle = null, rafId = null, lastPresented = -1;
-
-  function startLoop(){
-    stopLoop();
-    if ('requestVideoFrameCallback' in HTMLVideoElement.prototype){
-      const cb = (_now, meta) => {
-        if (meta.presentedFrames !== lastPresented){
-          lastPresented = meta.presentedFrames;
-          drawAtTime(meta.mediaTime * 1000, false);
-        }
-        if (!VIDEO.paused && !VIDEO.ended) vfcHandle = VIDEO.requestVideoFrameCallback(cb);
-      };
-      vfcHandle = VIDEO.requestVideoFrameCallback(cb);
-    }else{
-      const tick = () => {
-        drawAtTime((VIDEO.currentTime||0)*1000, false);
-        if (!VIDEO.paused && !VIDEO.ended) rafId = requestAnimationFrame(tick);
-      };
-      rafId = requestAnimationFrame(tick);
-    }
-  }
-  function stopLoop(){
-    if (vfcHandle && VIDEO.cancelVideoFrameCallback) { VIDEO.cancelVideoFrameCallback(vfcHandle); vfcHandle = null; }
-    if (rafId){ cancelAnimationFrame(rafId); rafId = null; }
-  }
-
-  /** NEAREST-FRAME sync (no interpolation) — draw ONLY the overlay (video is visible underneath) */
-  function drawAtTime(t_ms, immediate){
-    const ctx = CANVAS.getContext('2d', {desynchronized:true, alpha:true});
-    ctx.clearRect(0,0,CANVAS.width,CANVAS.height);
-
-    if (!times.length){
-      FRAME_INFO.textContent = "–";
-      DRAW_INFO.textContent = "kp=0";
-      return;
-    }
-
-    const tTarget = t_ms + SHIFT_BASE_MS + shiftDynamic;
-    const idx = nearestIndex(tTarget);
-    const f = frames[idx];
-
-    const err = f.t - tTarget;
-    const bigJump = immediate || Math.abs(err) > Math.max(45, avgDtMs * 1.4);
-    const gain = bigJump ? 0.95 : 0.20;
-    shiftDynamic = clamp(shiftDynamic + gain * err, -500, 500);
-
-    drawSkeleton(ctx, f.k);
-
-    FRAME_INFO.textContent = `CSV frame ${f.i} • t=${Math.round(f.t)}ms • err=${err.toFixed(1)}ms • shift=${(SHIFT_BASE_MS+shiftDynamic).toFixed(1)}ms`;
-    DRAW_INFO.textContent  = `kp=${Object.keys(f.k).length}`;
-  }
-
-  function nearestIndex(t){
-    let i = lowerBound(t);
-    if (i <= 0) return 0;
-    if (i >= times.length) return times.length-1;
-    const prev = i-1;
-    return (t - times[prev] <= times[i] - t) ? prev : i;
-  }
-  function lowerBound(t){
-    let lo=0, hi=times.length;
-    while (lo < hi){
-      const mid = (lo + hi) >> 1;
-      if (times[mid] >= t) hi = mid; else lo = mid+1;
-    }
-    return lo;
-  }
-
-  /** draw skeleton for one frame */
-  function drawSkeleton(ctx, k){
-    const toPx = (x,y) => coordsNormalized
-      ? [x*CANVAS.width, y*CANVAS.height]
-      : [x, y];
-
-    ctx.lineWidth = Math.max(2, Math.round(CANVAS.width/640));
-    ctx.strokeStyle = '#22d3ee';
-    ctx.globalAlpha = 0.95;
-    ctx.beginPath();
-
-    for (let i=0; i<EDGES.length; i+=2){
-      const a = EDGES[i], b = EDGES[i+1];
-      const pa = k[a], pb = k[b];
-      if (!pa || !pb) continue;
-      const [ax, ay] = toPx(pa.x, pa.y);
-      const [bx, by] = toPx(pb.x, pb.y);
-      ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
-    }
-    ctx.stroke();
-
-    ctx.fillStyle = '#3b82f6';
-    const r = Math.max(3, Math.round(CANVAS.width/240));
-    for (const key in k){
-      const p = k[key]; const [x,y] = toPx(p.x, p.y);
-      ctx.beginPath(); ctx.arc(x,y,r,0,6.283); ctx.fill();
-    }
-
-    // optional crosshair
-    ctx.globalAlpha = 0.35;
-    ctx.strokeStyle = '#94a3b8';
-    ctx.beginPath();
-    ctx.moveTo(CANVAS.width/2-10, CANVAS.height/2); ctx.lineTo(CANVAS.width/2+10, CANVAS.height/2);
-    ctx.moveTo(CANVAS.width/2, CANVAS.height/2-10); ctx.lineTo(CANVAS.width/2, CANVAS.height/2+10);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-
-  /* ----------------------------- CSV (long/tidy format) ----------------------------- */
-  function parseCSV_longFormat(text){
-    const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim().length);
-    if (!lines.length){ frames=[]; times=[]; return; }
-
-    const header = lines[0].split(',').map(h => h.trim());
-    const col = (name, alts=[]) => {
-      const want = [name, ...alts].map(s => s.toLowerCase());
-      return header.findIndex(h => want.includes(h.toLowerCase()));
-    };
-
-    const fiCol = col('frame_index', ['frame','index','i']);
-    const tCol  = col('pts_ms', ['t','ms','time_ms']);
-    const tcCol = col('timecode', ['tc','timecode_hhmmss']);
-    const kpCol = col('keypoint', ['joint','part']);
-    const xCol  = col('x', ['x_px','x_norm']);
-    const yCol  = col('y', ['y_px','y_norm']);
-
-    if (fiCol < 0 || kpCol < 0 || xCol < 0 || yCol < 0){
-      throw new Error('CSV missing required columns (need frame_index,keypoint,x,y; optional pts_ms/timecode).');
-    }
-
-    const map = new Map(); // frame_index -> {i, t, k:{}}
-    let pixVotes=0, normVotes=0;
-
-    for (let r=1; r<lines.length; r++){
-      const cells = splitCSV(lines[r], header.length);
-      const iVal = Number(cells[fiCol]);
-      if (!Number.isFinite(iVal)) continue;
-
-      let tms = Number(cells[tCol]);
-      if (!Number.isFinite(tms) && tcCol>=0) tms = timecodeToMs(cells[tcCol]);
-      if (!Number.isFinite(tms)) tms = Math.round(iVal * 1000/30); // fallback
-
-      const kp = String(cells[kpCol]||'').toLowerCase();
-      const x = Number(cells[xCol]), y = Number(cells[yCol]);
-      if (!Number.isFinite(x) || !Number.isFinite(y) || !kp) continue;
-
-      if (!map.has(iVal)) map.set(iVal, { i:iVal, t:tms, k:{} });
-      const fr = map.get(iVal);
-      fr.t = tms;
-      fr.k[kp] = {x, y};
-
-      if (x>=0 && x<=1 && y>=0 && y<=1) normVotes++; else pixVotes++;
-    }
-
-    coordsNormalized = (normVotes > pixVotes);
-
-    const arr = Array.from(map.values()).sort((a,b)=> (a.t - b.t) || (a.i - b.i));
-    frames = arr;
-    times  = arr.map(f => f.t);
-  }
-
-  function finalizeTiming(){
-    if (!times.length){ avgDtMs = 33.3; return; }
-    const diffs = [];
-    for (let i=1; i<times.length; i++){ diffs.push(times[i]-times[i-1]); }
-    diffs.sort((a,b)=>a-b);
-    const med = diffs[Math.floor(diffs.length/2)] || 33.3;
-    avgDtMs = Math.max(5, Math.min(100, med));
-  }
-
-  /* ----------------------------- utils ----------------------------- */
-  function splitCSV(line, expectCols){
-    const out = [];
-    let cur = '', inQ = false;
-    for (let i=0;i<line.length;i++){
-      const ch = line[i];
-      if (ch === '"'){
-        if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
-        else inQ = !inQ;
-      }else if (ch === ',' && !inQ){
-        out.push(cur); cur='';
-      }else{
-        cur += ch;
-      }
-    }
-    out.push(cur);
-    while (out.length < expectCols) out.push('');
-    return out.map(s => s.trim());
-  }
-  function timecodeToMs(tc){
-    const m = /^(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?$/.exec(String(tc||'').trim());
-    if (!m) return NaN;
-    const hh = +m[1], mm = +m[2], ss = +m[3], ms = +(m[4]||0);
-    return ((hh*3600 + mm*60 + ss)*1000 + ms);
-  }
-  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+  /* --------------------- Utils --------------------- */
   function absURL(u){
     if (!u) return "";
     if (/^https?:\/\//i.test(u)) return u;
     return BASE.replace(/\/+$/,'') + "/" + String(u).replace(/^\/+/, '');
   }
-  function fmtEpoch(s){ return s ? new Date(s*1000).toLocaleString() : '–'; }
   function esc(str){ return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function attr(str){ return String(str ?? '').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
-  /* ----------------------------- window resize ----------------------------- */
-  window.addEventListener('resize', ()=>{
-    if (!VIDEO.videoWidth) return;
-    // keep canvas CSS size matched to the visible video box
-    CANVAS.style.width = VIDEO.clientWidth + "px";
-    CANVAS.style.height = VIDEO.clientHeight + "px";
-    drawAtTime((VIDEO.currentTime||0)*1000, true);
-  });
-
-  /* ----------------------------- boot ----------------------------- */
-  loadSessions().catch(e => setMsg(String(e),'err'));
+  /* --------------------- Boot --------------------- */
+  loadSessions().catch(e => setMsg(String(e)));
 </script>
