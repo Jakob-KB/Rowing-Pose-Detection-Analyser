@@ -35,7 +35,6 @@ def on_startup():
         if filepath.exists():
             shutil.rmtree(filepath)
 
-
     # Ensure storage directory
     cfg.APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
     cfg.EVALUATIONS_DIR.mkdir(parents=True, exist_ok=True)

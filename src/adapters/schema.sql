@@ -63,6 +63,8 @@ CREATE TABLE evaluations (
 );
 
 -- Views
+DROP VIEW IF EXISTS SessionView;
+
 CREATE VIEW SessionView AS
 SELECT
     s.created_at AS sort_created_at,
@@ -72,7 +74,8 @@ SELECT
         'status', s.status,
         'notes', s.notes,
 
-        'processed_video', json_object(
+        'processed_video',
+          CASE WHEN pv.id IS NULL THEN NULL ELSE json_object(
             'id', pv.id,
             'session_id', pv.session_id,
             'path', pv.path,
@@ -84,9 +87,10 @@ SELECT
             'width', pv.width,
             'height', pv.height,
             'created_at', pv.created_at
-        ),
+          ) END,
 
-        'evaluation', json_object(
+        'evaluation',
+          CASE WHEN e.id IS NULL THEN NULL ELSE json_object(
             'id', e.id,
             'session_id', e.session_id,
             'video_id', e.video_id,
@@ -95,9 +99,10 @@ SELECT
             'mime_type', e.mime_type,
             'avg_spm', e.avg_spm,
             'created_at', e.created_at
-        ),
+          ) END,
 
-        'cover_image', json_object(
+        'cover_image',
+          CASE WHEN ci.id IS NULL THEN NULL ELSE json_object(
             'id', ci.id,
             'session_id', ci.session_id,
             'path', ci.path,
@@ -106,12 +111,12 @@ SELECT
             'width', ci.width,
             'height', ci.height,
             'created_at', ci.created_at
-        ),
+          ) END,
 
         'created_at', s.created_at,
         'updated_at', s.updated_at
     ) AS session_json
 FROM sessions s
 LEFT JOIN processed_videos pv ON pv.session_id = s.id
-LEFT JOIN evaluations  e   ON e.session_id  = s.id
-LEFT JOIN cover_images ci  ON ci.session_id = s.id;
+LEFT JOIN evaluations      e  ON e.session_id  = s.id
+LEFT JOIN cover_images     ci ON ci.session_id = s.id;

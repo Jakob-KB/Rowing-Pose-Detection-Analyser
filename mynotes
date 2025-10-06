@@ -1,4 +1,6 @@
-to start up, run this from proj root: uvicorn src.api.app:app --reload
+to start up, run this from proj root:
+
+uvicorn src.api.app:app --reload
 
 this launches the local backend server.
 
@@ -6,4 +8,6 @@ then launch ui.
 
 
 To force kill the backend and all python processed (for example if the backend code is 'stale')
-even after rerunning, then run this from proj root: Get-Process python | Stop-Process -Force
+even after rerunning, then run this from proj root:
+
+Get-Process python | Stop-Process -Force

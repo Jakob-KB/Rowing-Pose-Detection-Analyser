@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>RowIO · Minimal Session Progress</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body { font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 12px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0; }
+  input, button { padding:6px 8px; }
+  #progressWrap { width:320px; height:10px; background:#eee; border:1px solid #ccc; }
+  #progressBar { height:100%; width:0%; background:#4caf50; transition: width .15s; }
+  pre { background:#111; color:#eee; padding:8px; overflow:auto; max-height:40vh; }
+</style>
+
+<h1>RowIO · Minimal Session Progress</h1>
+
+<div class="row">
+  <input id="name" placeholder="Session name" />
+  <input id="path" placeholder="Absolute server filepath (video)" style="min-width:360px" />
+  <button id="btnCreate">Create Session</button>
+  <span id="msg">Idle.</span>
+</div>
+
+<div class="row">
+  <input id="sessionId" placeholder="(optional) existing session id" style="min-width:320px" />
+  <button id="btnAttach">Attach to Session</button>
+</div>
+
+<div class="row">
+  <div>State: <strong id="state">–</strong></div>
+  <div>Stage: <strong id="stage">–</strong></div>
+  <div>Progress: <strong id="pct">0%</strong></div>
+</div>
+
+<div id="progressWrap"><div id="progressBar"></div></div>
+
+<h3>Debug</h3>
+<pre id="out">(idle)</pre>
+
+<script>
+  /* ---------------- config ---------------- */
+  const BASE = "http://127.0.0.1:8000/rowio";      // change if needed
+  const URL_SESSIONS = `${BASE}/sessions/`;   // POST /
+  const URL_SESSION  = id => `${BASE}/sessions/${encodeURIComponent(id)}`;
+  const URL_EVENTS   = id => `${BASE}/sessions/${encodeURIComponent(id)}/events`;
+  const URL_SNAPSHOT = id => `${BASE}/sessions/${encodeURIComponent(id)}/progress`; // optional
+
+  /* --------------- elements --------------- */
+  const elName   = document.getElementById('name');
+  const elPath   = document.getElementById('path');
+  const elMsg    = document.getElementById('msg');
+  const elOut    = document.getElementById('out');
+  const elState  = document.getElementById('state');
+  const elStage  = document.getElementById('stage');
+  const elPct    = document.getElementById('pct');
+  const elBar    = document.getElementById('progressBar');
+  const elSession= document.getElementById('sessionId');
+
+  let evSrc = null; // EventSource
+
+  /* ---------------- utils ----------------- */
+  function setMsg(s){ elMsg.textContent = s; }
+  function logln(s){ elOut.textContent = `${elOut.textContent}\n${s}`.replace(/^\n+/, ''); }
+  function resetLog(label, url, init){
+    elOut.textContent = `${label}\n${url}\n${JSON.stringify(init||{},null,2)}\n\n(waiting…)`;
+  }
+  async function logFetch(label, url, init){
+    resetLog(label, url, init);
+    const res = await fetch(url, { mode:'cors', cache:'no-store', ...init });
+    const text = await res.text();
+    logln(`status: ${res.status}`);
+    let data = null;
+    try { data = JSON.parse(text); logln(JSON.stringify(data,null,2)); }
+    catch { logln(text); }
+    return { res, data, text };
+  }
+  function renderProgress({state, stage, progress} = {}){
+    if (state)  elState.textContent = state;
+    if (stage)  elStage.textContent = stage;
+    const p = Number.isFinite(progress) ? Math.max(0, Math.min(100, progress)) : null;
+    if (p !== null){
+      elPct.textContent = `${p}%`;
+      elBar.style.width = `${p}%`;
+    }
+  }
+  function openEvents(sessionId){
+    closeEvents();
+    logln(`\n[SSE] connecting → ${URL_EVENTS(sessionId)}`);
+    evSrc = new EventSource(URL_EVENTS(sessionId));
+    evSrc.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        logln(`[SSE msg] ${e.data}`);
+        if (data.type === 'progress' || data.type === 'status' || data.type === 'snapshot'){
+          renderProgress(data);
+          if (data.state === 'succeeded' || data.stage === 'done' || data.type === 'failed'){
+            // end stream if job is done/failed
+            setMsg('Completed.');
+            closeEvents();
+          }
+        }
+      } catch (err) {
+        logln(`[SSE parse error] ${String(err)}`);
+      }
+    };
+    evSrc.onerror = (e) => {
+      logln(`[SSE error] ${e?.message || e}`);
+      // keepalive comments will still trigger onmessage; on hard error browser will retry
+    };
+  }
+  function closeEvents(){
+    if (evSrc){ try { evSrc.close(); } catch{} evSrc = null; }
+  }
+
+  /* --------------- actions ---------------- */
+  document.getElementById('btnCreate').onclick = async () => {
+    const name = elName.value.trim();
+    const original_filepath = elPath.value.trim();
+    if (!name || !original_filepath){ setMsg("Enter name and path"); return; }
+
+    const init = {
+      method: "POST",
+      headers: {"Content-Type":"application/json","Accept":"application/json"},
+      body: JSON.stringify({ name, original_filepath })
+    };
+    const { res, data } = await logFetch("POST /sessions", URL_SESSIONS, init);
+    if (!res.ok){ setMsg(`Create failed (${res.status})`); return; }
+
+    setMsg("Created. Attaching to SSE…");
+    const sid = data?.id || data?.session?.id || data?.session_id;
+    if (!sid){ setMsg("No session id returned"); return; }
+    elSession.value = sid;
+
+    // (optional) try to pull a snapshot once before attaching
+    try {
+      const snapRes = await fetch(URL_SNAPSHOT(sid), { headers:{Accept:"application/json"} });
+      if (snapRes.ok){
+        const snap = await snapRes.json();
+        logln(`[snapshot] ${JSON.stringify(snap)}`);
+        renderProgress(snap);
+      }
+    } catch {}
+
+    openEvents(sid);
+  };
+
+  document.getElementById('btnAttach').onclick = async () => {
+    const sid = elSession.value.trim();
+    if (!sid){ setMsg("Enter a session id to attach"); return; }
+    setMsg("Attaching…");
+
+    // (optional) fetch snapshot first
+    try {
+      const snapRes = await fetch(URL_SNAPSHOT(sid), { headers:{Accept:"application/json"} });
+      if (snapRes.ok){
+        const snap = await snapRes.json();
+        logln(`[snapshot] ${JSON.stringify(snap)}`);
+        renderProgress(snap);
+      } else {
+        logln(`[snapshot] status: ${snapRes.status}`);
+      }
+    } catch (e){
+      logln(`[snapshot] error: ${String(e)}`);
+    }
+
+    openEvents(sid);
+  };
+
+  // convenience: enter to submit
+  elName.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btnCreate').click(); });
+  elPath.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btnCreate').click(); });
+</script>
