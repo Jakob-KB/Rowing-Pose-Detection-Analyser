@@ -30,7 +30,7 @@ def on_startup():
     wipe_on_start = True
 
     if wipe_on_start:
-        # wipe videos file
+        # Wipe all files, including DB
         filepath = cfg.STORAGE_DIR
         if filepath.exists():
             shutil.rmtree(filepath)
